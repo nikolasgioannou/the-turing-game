@@ -36,3 +36,11 @@ http://localhost:3000 serves the built app using explicit mock AI. bun run dev s
 3. Validate container and Fly config, attach MPG and secrets, deploy single app machine.
 4. Verify live multiplayer flow and replay/usage persistence against real PostgreSQL.
 5. Play-test and evaluate human-likeness before changing the agreed simple system prompt.
+
+## Local play-test update: opponent answer context
+
+Owner requested a rule change after seeing the AI's overly formal answers. The AI now receives the human's submitted answer to the current question in addition to revealed history. Judge/spectator pending-answer secrecy and simultaneous reveal are unchanged. Prompt `opponent-context-v2` adds tone/length guidance while asking for an independent response. Tests updated: 12 passed, 63 assertions; typecheck/build passed.
+
+Three live checks with human-answer context succeeded, including the screenshot's age question. Responses were still relatively formal/verbose, so receiving context is verified but human-like style is not solved. Avoid claiming this alone makes the model convincing.
+
+Wi-Fi server restarted on http://192.168.1.233:3001 with live AI and data/wifi PGlite storage. Start new matches to test v2. Fly remains deferred for local iteration.

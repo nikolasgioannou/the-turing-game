@@ -14,7 +14,7 @@ Read docs/product.md before changing behavior, docs/architecture.md before chang
 ## Product invariants
 
 - Five questions; 90 seconds per human action. No whole-match timer.
-- Human submits first; AI sees ONLY previous revealed rounds and the current question. Reveal answers together.
+- Human submits first; AI sees the current submitted human answer, previous revealed rounds and the current question. Reveal answers together.
 - Serialize explicit public views. Never send hidden answers, identity mapping, participant credentials, prompt, or early audience results to browsers.
 - Anonymous A/B assignments stay fixed. All rooms are publicly watchable; invite tokens reserve seats only.
 - Disconnect/leave abandons a match. No reconnection; socket loss is authoritative, heartbeat detects dead peers.

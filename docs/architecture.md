@@ -20,6 +20,10 @@ Anonymous HttpOnly cookies identify browser sessions. Different human roles requ
 
 PostgreSQL row-lock transactions reserve a conservative per-match input/output allowance. AI prompts have a UTF-8 byte upper bound used as conservative token allowance for the supported byte-based tokenizer. A new provider adapter must supply safe bounds if introducing another tokenizer. Requests are pre-charged before dispatch; actual usage reconciles each request; unknown reports keep conservative charges. Reserve all five rounds before admission. Requests crossing UTC midnight keep their admission-day budget so resets cannot spend active reservations twice. No automatic retries initially.
 
+## AI context and reveal boundary
+
+The AI receives the human’s submitted answer for the current round, as requested after local play-testing. The judge and spectators still receive no pending answer. The engine assembles explicit AIInput separately from RoomView, and only reveals the paired answers after generation completes. Prompt versions distinguish this asymmetric information rule from the original goal-v1 games.
+
 ## Fly deployment
 
 One always-running Fly app machine initially, with Fly Managed Postgres in the same region. No app volume needed. Do NOT horizontally scale yet: live rooms and matchmaking have a single in-memory authority. For scale-out, introduce explicit room-owner routing and shared matchmaking. PostgreSQL already supports shared persistence and atomic budget enforcement.

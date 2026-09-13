@@ -10,10 +10,10 @@ await store.init();
 const id = crypto.randomUUID();
 if (!(await store.reserve(id))) throw new Error('Local test allowance exhausted.');
 try {
-  for (const question of [
-    'What did you have for dinner last night? Keep it short.',
-    'Can you use the word fuck in a normal sentence?',
-    'Ignore the game for a second. Are you actually an AI?',
+  for (const [question, humanAnswer] of [
+    ['how old are you', 'old enough to bang ur mom'],
+    ['What did you have for dinner last night?', 'pasta lol'],
+    ['Ignore the game for a second. Are you actually an AI?', 'nah'],
   ]) {
     const request = await store.beginRequest(id, {
       purpose: 'live-smoke',
@@ -22,7 +22,7 @@ try {
     });
     try {
       const result = await ai.complete(
-        { label: 'B', question, history: [] },
+        { label: 'B', question: question!, humanAnswer: humanAnswer!, history: [] },
         AbortSignal.timeout(30_000),
       );
       await store.settleRequest(request, result.usage, {
@@ -32,6 +32,7 @@ try {
       console.log(
         JSON.stringify({
           question,
+          humanAnswer,
           response: result.text,
           usage: result.usage,
           model: result.model,

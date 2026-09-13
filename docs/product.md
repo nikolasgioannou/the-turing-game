@@ -9,7 +9,7 @@ Two humans participate: one contestant competing with an AI, and one judge tryin
 1. On the main dashboard choose Play as human or Play as judge. Public matchmaking pairs opposite roles, without listing waiting rooms.
 2. Alternatively create an invite room in either role and share a seat-invitation link. All rooms, including invite rooms, are publicly watchable; only the invitation permits claiming the other seat. Waiting rooms are not listed.
 3. The judge asks the opening question. Contestants receive randomly assigned A/B labels fixed throughout the match.
-4. Human commits an answer first. AI generates from game instructions, current question and previously revealed rounds, WITHOUT the pending human answer. Both answers are revealed atomically. Contestants see each other's revealed messages.
+4. Human commits an answer first. AI generates from game instructions, current question, previously revealed rounds, and the human’s submitted answer to this question. The AI can adapt its tone and length while composing an independent answer. Both answers are revealed atomically. Contestants see each other's revealed messages.
 5. Judge asks the next question immediately; no extra next-round button. Five rounds, then mandatory verdict. No early guess.
 6. Judge selects A or B as human and may add optional reasoning. Choice and reasoning are submitted before identity reveal. Correct choice means human and judge succeed; otherwise AI wins.
 7. Spectators may choose A/B, revise until verdict, and see aggregate votes only after verdict. One vote per anonymous browser session; no accounts means this is casual voting, not fraud-proof polling.
@@ -23,7 +23,7 @@ Disconnect or leave by either participant ends the match immediately once detect
 
 ## AI
 
-Start with OpenRouter. Hermes 4 70B was the original candidate, but the live API returned 404 and no longer listed it. Hermes 4 405B was verified with three real requests and is the configurable default. It permits ordinary profanity and stays in character, but its conversational quality still needs play-testing. Keep provider URL, credentials and model configurable. Simple system prompt describes the competition and goal of convincing the judge it is human, without prescribing a biography. Natural conversation including ordinary profanity is valid. The game is openly an AI-versus-human identity game; no external impersonation.
+Start with OpenRouter. Hermes 4 70B was the original candidate, but the live API returned 404 and no longer listed it. Hermes 4 405B was verified with three real requests and is the configurable default. It permits ordinary profanity and stays in character, but its conversational quality still needs play-testing. Keep provider URL, credentials and model configurable. The system prompt describes the competition and goal of convincing the judge it is human, without prescribing a biography. After local play-testing, the owner requested that it see the pending human answer; prompt opponent-context-v2 adds that context and natural conversation guidance. Natural conversation including ordinary profanity is valid. The game is openly an AI-versus-human identity game; no external impersonation.
 
 Store questions, answers, verdict, optional explanation, timestamps, model, prompt version and provider metadata. How to use these records to improve/train models is explicitly deferred. Never expose reasoning traces or pending answers to spectators/judge.
 

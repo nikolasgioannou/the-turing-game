@@ -62,13 +62,13 @@ async function complete(text = 'AI ANSWER') {
   await game.run(async () => {});
 }
 describe('match authority and reveal', () => {
-  test('AI never sees current human answer; judge/spectators never receive pending answers or identity', async () => {
+  test('AI sees current human answer; judge/spectators never receive pending answers or identity', async () => {
     const { h, j, m } = await pair();
     const s = await peer();
     await game.handle(s.p, { type: 'watch', id: m.id });
     await game.handle(j.p, { type: 'question', text: 'What did you eat?' });
     await game.handle(h.p, { type: 'answer', text: 'SECRET HUMAN ANSWER' });
-    expect(JSON.stringify(lastInput)).not.toContain('SECRET');
+    expect(lastInput.humanAnswer).toBe('SECRET HUMAN ANSWER');
     expect(lastInput.history).toHaveLength(0);
     for (const p of [j.p, s.p]) {
       const v = game.view(m, p);
@@ -84,7 +84,8 @@ describe('match authority and reveal', () => {
     await game.handle(j.p, { type: 'question', text: 'Why?' });
     await game.handle(h.p, { type: 'answer', text: 'NEW SECRET' });
     expect(JSON.stringify(lastInput.history)).toContain('SECRET HUMAN ANSWER');
-    expect(JSON.stringify(lastInput)).not.toContain('NEW SECRET');
+    expect(lastInput.humanAnswer).toBe('NEW SECRET');
+    expect(JSON.stringify(lastInput.history)).not.toContain('NEW SECRET');
     await complete();
   });
   test('five rounds then atomic verdict and reasoning; audience remains secret and locks', async () => {

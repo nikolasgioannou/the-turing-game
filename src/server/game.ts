@@ -331,6 +331,7 @@ export class Game {
     const input: AIInput = {
       label: m.humanLabel === 'A' ? 'B' : 'A',
       question: current.question,
+      humanAnswer: current.human!,
       history: m.rounds.slice(0, -1).map((r) => ({
         question: r.question,
         answers: {
