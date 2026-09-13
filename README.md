@@ -43,3 +43,15 @@ A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.en
 ## What ships
 
 Role matchmaking, invite-only seats with public spectating, hidden A/B identities, five rounds, per-action deadlines, spectator guesses, optional judge reasoning, saved transcripts/replays, independent token budgets and provider-failure states. No accounts, spectator chat, model-training pipeline or multi-machine room coordination.
+
+## AI SDK DevTools
+
+Local model calls use Vercel AI SDK `generateText`. To inspect prompts, the current human answer, revealed history, raw provider payloads, output, token usage and latency:
+
+1. Set `AI_DEVTOOLS=true` in your project `.env` and restart the game server.
+2. Run `bun run devtools` from this project.
+3. Open http://localhost:4983 on your Mac and select a run, then expand its step. Live game rounds are grouped by match ID; manual smoke checks appear as separate runs.
+
+The Wi-Fi game can remain at http://192.168.1.233:3001. Only the DevTools viewer is restricted to localhost; other players cannot inspect hidden inputs through it. Set `AI_SDK_DEVTOOLS_PORT` consistently on both the game and viewer if changing its default port.
+
+Traces start when enabled; older games are not backfilled. `.devtools/generations.json` stays inside this project and is excluded from git and Docker. Disable `AI_DEVTOOLS` in production; the app rejects production startup with tracing enabled. The DevTools package is development-only and imported only for enabled local calls. The game still enforces its own durable token ledger and makes no automatic SDK retries.

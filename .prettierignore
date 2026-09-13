@@ -8,3 +8,5 @@ work
 bun.lock
 skills-lock.json
 .env*
+
+.devtools/

@@ -31,3 +31,9 @@ One always-running Fly app machine initially, with Fly Managed Postgres in the s
 Deploy/restart aborts live matches and releases unused capacity. On boot, unfinished snapshots become technical failures; pre-charged in-flight usage remains accounted. Use one-at-a-time immediate replacement, not overlapping rolling instances, until room ownership exists. Fly MPG supplies backups/failover; app availability is still single-instance.
 
 Production prohibits mock mode and requires AI_API_KEY, DATABASE_URL and APP_ORIGIN. API secrets never enter the frontend. Same-origin WebSocket checks, bounded payloads, rate limits, schema validation and safe public DTOs protect the public transport.
+
+## AI SDK instrumentation
+
+The live provider adapter uses Vercel AI SDK 7 `generateText` with `@ai-sdk/openai-compatible`. The configured endpoint/key/model remain unchanged. OpenRouter reasoning-disable and fallback-disable fields are preserved through `transformRequestBody`; output limit, temperature, abort signal and `maxRetries: 0` preserve accounting behavior. API errors retain status codes for the provider circuit. Missing usage remains unknown and conservatively charged.
+
+`AI_DEVTOOLS=true` enables per-call `DevToolsTelemetry`, using the match ID as its run ID without inserting that ID into the model prompt. Raw body retention supports request/response inspection. The viewer is a separate loopback-only process. Production rejects enabled tracing; the development dependency is lazy-loaded and local files are excluded from both git and the Docker build context.

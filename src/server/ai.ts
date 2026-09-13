@@ -1,3 +1,5 @@
+import { generateText, APICallError, type ModelMessage } from 'ai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { shorten } from '../shared/protocol';
 import { INPUT_PER_ROUND, OUTPUT_PER_ROUND, type Allowance } from './store';
 export const PROMPT_VERSION = 'opponent-context-v2';
@@ -7,6 +9,7 @@ export type AIInput = {
   label: 'A' | 'B';
   question: string;
   humanAnswer: string;
+  matchId?: string;
   history: { question: string; answers: Record<'A' | 'B', string> }[];
 };
 export type AIOutput = {
@@ -30,6 +33,9 @@ export class AIError extends Error {
   }
 }
 export function createAI(): AI {
+  if (process.env.NODE_ENV === 'production' && process.env.AI_DEVTOOLS === 'true') {
+    throw new Error('AI DevTools is local-only. Disable AI_DEVTOOLS in production.');
+  }
   const mock = process.env.AI_MODE === 'mock';
   if (mock) {
     if (process.env.NODE_ENV === 'production')
@@ -64,7 +70,7 @@ export function createAI(): AI {
     model,
     async complete(input, signal) {
       if (!process.env.AI_API_KEY) throw new AIError('credentials', 86_400_000);
-      const messages = [
+      const messages: ModelMessage[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         {
           role: 'user',
@@ -79,54 +85,60 @@ export function createAI(): AI {
       if (new TextEncoder().encode(JSON.stringify(messages)).length + 1000 > INPUT_PER_ROUND)
         throw new AIError('input_bound');
       const base = process.env.AI_BASE_URL ?? 'https://openrouter.ai/api/v1';
-      let response: Response;
+      const tracing = process.env.AI_DEVTOOLS === 'true' && process.env.NODE_ENV !== 'production';
+      const provider = createOpenAICompatible({
+        name: 'game-provider',
+        baseURL: base,
+        apiKey: process.env.AI_API_KEY,
+        transformRequestBody: (body) =>
+          new URL(base).hostname === 'openrouter.ai'
+            ? { ...body, reasoning: { enabled: false }, provider: { allow_fallbacks: false } }
+            : body,
+      });
+      const integrations = tracing
+        ? [(await import('@ai-sdk/devtools')).DevToolsTelemetry({ runId: input.matchId })]
+        : [];
       try {
-        response = await fetch(base.replace(/\/$/, '') + '/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.AI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            max_tokens: OUTPUT_PER_ROUND,
-            temperature: 0.9,
-            stream: false,
-            ...(base.includes('openrouter.ai')
-              ? { reasoning: { enabled: false }, provider: { allow_fallbacks: false } }
-              : {}),
-          }),
-          signal,
+        const result = await generateText({
+          model: provider.chatModel(model),
+          system: SYSTEM_PROMPT,
+          messages: messages.slice(1),
+          maxOutputTokens: OUTPUT_PER_ROUND,
+          temperature: 0.9,
+          maxRetries: 0, // Every provider request must have its own budget reservation.
+          abortSignal: signal,
+          include: { requestBody: tracing, responseBody: true },
+          ...(tracing ? { telemetry: { integrations } } : {}),
         });
-      } catch {
-        throw new AIError(signal.aborted ? 'timeout' : 'network');
+        const text = result.text;
+        if (!text.trim() || text.includes('<think>')) throw new AIError('invalid_response');
+        const inputTokens = result.usage.inputTokens;
+        const outputTokens = result.usage.outputTokens;
+        const usage =
+          Number.isSafeInteger(inputTokens) &&
+          inputTokens! >= 0 &&
+          Number.isSafeInteger(outputTokens) &&
+          outputTokens! >= 0
+            ? { input: inputTokens!, output: outputTokens! }
+            : null;
+        const raw = result.response.body as { provider?: string } | undefined;
+        return {
+          text: shorten(text.trim(), 500),
+          usage,
+          provider: raw?.provider ?? new URL(base).hostname,
+          model: result.response.modelId ?? model,
+          requestId: result.response.id,
+        };
+      } catch (error) {
+        if (error instanceof AIError) throw error;
+        if (APICallError.isInstance(error) && error.statusCode) {
+          throw new AIError(
+            String(error.statusCode),
+            [401, 402, 403].includes(error.statusCode) ? 86_400_000 : 60_000,
+          );
+        }
+        throw new AIError(signal.aborted ? 'timeout' : 'network_or_response');
       }
-      if (!response.ok)
-        throw new AIError(
-          String(response.status),
-          [401, 402, 403].includes(response.status) ? 86_400_000 : 60_000,
-        );
-      const body: any = await response.json();
-      const text = body.choices?.[0]?.message?.content;
-      if (typeof text !== 'string' || !text.trim() || text.includes('<think>'))
-        throw new AIError('invalid_response');
-      const u = body.usage;
-      const usage =
-        u &&
-        Number.isSafeInteger(u.prompt_tokens) &&
-        u.prompt_tokens >= 0 &&
-        Number.isSafeInteger(u.completion_tokens) &&
-        u.completion_tokens >= 0
-          ? { input: u.prompt_tokens, output: u.completion_tokens }
-          : null;
-      return {
-        text: shorten(text.trim(), 500),
-        usage,
-        provider: body.provider ?? new URL(base).hostname,
-        model: body.model ?? model,
-        requestId: body.id,
-      };
     },
   };
 }

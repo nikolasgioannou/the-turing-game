@@ -332,6 +332,7 @@ export class Game {
       label: m.humanLabel === 'A' ? 'B' : 'A',
       question: current.question,
       humanAnswer: current.human!,
+      matchId: m.id,
       history: m.rounds.slice(0, -1).map((r) => ({
         question: r.question,
         answers: {

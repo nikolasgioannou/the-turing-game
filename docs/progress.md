@@ -44,3 +44,9 @@ Owner requested a rule change after seeing the AI's overly formal answers. The A
 Three live checks with human-answer context succeeded, including the screenshot's age question. Responses were still relatively formal/verbose, so receiving context is verified but human-like style is not solved. Avoid claiming this alone makes the model convincing.
 
 Wi-Fi server restarted on http://192.168.1.233:3001 with live AI and data/wifi PGlite storage. Start new matches to test v2. Fly remains deferred for local iteration.
+
+## AI SDK DevTools integration
+
+Installed project-local ai 7.0.99, @ai-sdk/openai-compatible 3.0.48 and @ai-sdk/devtools 1.0.19, plus Vercel's ai-sdk skill. Migrated raw fetch to generateText and local DevToolsTelemetry. Prompt/model behavior unchanged from opponent-context-v2. SDK retries disabled; budget/error/usage behavior covered by four new adapter tests. 16 tests/79 assertions, TypeScript and build passed. Three real model calls succeeded and appeared in DevTools; visually inspected input (including human answer), output, token usage and raw-payload controls. Checked trace file did not contain the configured API key.
+
+Local .env has AI_DEVTOOLS=true. Viewer running at http://localhost:4983 (loopback only); Wi-Fi live server restarted at http://192.168.1.233:3001 with tracing. Traces remain in ignored .devtools/generations.json. No historical trace backfill. Fly remains paused.

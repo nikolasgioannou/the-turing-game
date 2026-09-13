@@ -15,16 +15,20 @@
     "check": "bun run typecheck && bun test && bun run build",
     "test:e2e": "bun scripts/e2e.ts",
     "format": "prettier --write src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts",
-    "format:check": "prettier --check src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts"
+    "format:check": "prettier --check src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts",
+    "devtools": "bun node_modules/@ai-sdk/devtools/bin/cli.js"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.48",
     "@electric-sql/pglite": "0.5.8",
+    "ai": "7.0.99",
     "postgres": "3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "4.6.4"
   },
   "devDependencies": {
+    "@ai-sdk/devtools": "1.0.19",
     "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@types/bun": "1.4.2",
