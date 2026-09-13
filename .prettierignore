@@ -1,0 +1,10 @@
+.agents
+.cache
+.tools
+node_modules
+dist
+data
+work
+bun.lock
+skills-lock.json
+.env*
