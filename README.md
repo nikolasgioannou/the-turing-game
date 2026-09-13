@@ -12,7 +12,7 @@ cp .env.example .env # only when .env does not already exist
 bun run dev
 ```
 
-Open http://localhost:5173. Use separate browsers/profiles/devices for the two human roles. Two tabs in the same browser session cannot take both seats. Development uses project-local PGlite (PostgreSQL WASM) and explicitly labeled mock AI. A refresh/disconnect forfeits a playing seat by design. Spectators can reopen a match link.
+Start the model with `bun run ai:local` in another terminal, then open http://localhost:3000. `bun run dev` builds and starts one game server with real local inference. For Wi-Fi access, set `DEV_APP_ORIGIN` to your Mac’s LAN URL on port 3000. Use separate browsers/profiles/devices for the two human roles. Two tabs in the same browser session cannot take both seats. Development uses project-local PGlite (PostgreSQL WASM) and the real local model. Mock responses are only used by automated tests. A refresh/disconnect forfeits a playing seat by design. Spectators can reopen a match link.
 
 To use live AI, put `AI_API_KEY` in `.env` and set `AI_MODE=live`. Keep `APP_ORIGIN` equal to the exact browser origin. Never put secrets in a `VITE_` variable. To use an existing PostgreSQL database locally, set `DATABASE_URL`; otherwise PGlite stores data in `data/postgres`.
 
@@ -52,7 +52,7 @@ Local model calls use Vercel AI SDK `generateText`. To inspect prompts, the curr
 2. Run `bun run devtools` from this project.
 3. Open http://localhost:4983 on your Mac and select a run, then expand its step. Live game generations and manual smoke checks are grouped by match ID.
 
-The Wi-Fi game can remain at http://192.168.1.233:3001. Only the DevTools viewer is restricted to localhost; other players cannot inspect hidden inputs through it. Set `AI_SDK_DEVTOOLS_PORT` consistently on both the game and viewer if changing its default port.
+The Wi-Fi game can remain at http://192.168.1.233:3000. Only the DevTools viewer is restricted to localhost; other players cannot inspect hidden inputs through it. Set `AI_SDK_DEVTOOLS_PORT` consistently on both the game and viewer if changing its default port.
 
 Traces start when enabled; older games are not backfilled. `.devtools/generations.json` stays inside this project and is excluded from git and Docker. Disable `AI_DEVTOOLS` in production; the app rejects production startup with tracing enabled. The DevTools package is development-only and imported only for enabled local calls. The game still enforces its own durable token ledger and makes no automatic SDK retries.
 

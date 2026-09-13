@@ -42,7 +42,8 @@ function App() {
     let heartbeat: ReturnType<typeof setInterval>;
     async function start() {
       try {
-        await fetch('/api/session');
+        const response = await fetch('/api/session');
+        if (!response.ok) throw new Error('Session unavailable');
         if (stopped) return;
         socket = new WebSocket(
           `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`,
@@ -63,20 +64,25 @@ function App() {
             setJoining(false);
           } else if (event.type === 'room') {
             setRoom(event.data);
+            setStartOpen(false);
             setJoining(false);
             if (location.pathname !== `/match/${event.data.id}`)
               history.replaceState(null, '', `/match/${event.data.id}`);
           } else if (event.type === 'error') {
             setError(event.message);
+            setStartOpen(false);
             setJoining(false);
           }
         };
         socket.onclose = () => {
           setConnected(false);
+          setStartOpen(false);
           clearInterval(heartbeat);
           if (!stopped) setError('Connection lost. If you were playing, the match has ended.');
         };
-        socket.onerror = () => setError('Unable to connect. Please try again.');
+        socket.onerror = () => {
+          setError('Unable to connect. Please try again.');
+        };
       } catch {
         setError('Unable to reach the game. Please try again.');
       }
@@ -99,22 +105,10 @@ function App() {
   const play = (role: 'human' | 'judge', invite = false) => {
     setJoining(true);
     setInviteRole(false);
-    setStartOpen(false);
     send({ type: invite ? 'create' : 'queue', role });
   };
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <button className="wordmark" onClick={home} aria-label="The Turing Game home">
-          <span className="brand-icon">T</span>THE TURING GAME
-        </button>
-        <div className="header-meta">
-          {lobby?.mock ? <span className="mock-badge">LOCAL TEST · MOCK AI</span> : null}
-          <span className={'connection ' + (connected ? 'online' : '')}>
-            {connected ? 'Connected' : 'Connecting'}
-          </span>
-        </div>
-      </header>
       {error ? (
         <div role="alert" className="error-banner">
           {error}
@@ -153,15 +147,6 @@ function App() {
                   Start game
                 </button>
               </div>
-              {lobby?.queued ? (
-                <div className="compact-queue" role="status">
-                  <span className="waiting-mark" />
-                  Finding a {lobby.queued === 'human' ? 'judge' : 'human'}…
-                  <button className="text-button" onClick={() => send({ type: 'cancel' })}>
-                    Cancel
-                  </button>
-                </div>
-              ) : null}
               {lobby && !lobby.availability.available ? (
                 <p className="capacity" role="status">
                   {lobby.availability.message}
@@ -172,49 +157,75 @@ function App() {
             {startOpen ? (
               <StartDialog
                 close={() => {
+                  if (joining || lobby?.queued) send({ type: 'cancel' });
+                  setJoining(false);
                   setStartOpen(false);
                   setInviteRole(false);
                 }}
               >
-                <p className="eyebrow">PLAYER SELECT</p>
-                <h2>Choose your side</h2>
-                <div className="dialog-modes" aria-label="Game type">
-                  <button
-                    className={!inviteRole ? 'selected' : ''}
-                    aria-pressed={!inviteRole}
-                    onClick={() => setInviteRole(false)}
-                  >
-                    Find a match
-                  </button>
-                  <button
-                    className={inviteRole ? 'selected' : ''}
-                    aria-pressed={inviteRole}
-                    onClick={() => setInviteRole(true)}
-                  >
-                    Invite a friend
-                  </button>
-                </div>
-                <p className="muted">
-                  {inviteRole
-                    ? 'Choose your role, then share the invitation.'
-                    : 'Choose your role. We’ll find your opponent.'}
-                </p>
-                <div className="dialog-roles">
-                  <button
-                    disabled={!connected || joining || !lobby?.availability.available}
-                    onClick={() => play('human', inviteRole)}
-                  >
-                    <strong>Play as human</strong>
-                    <span>Convince the judge you’re human.</span>
-                  </button>
-                  <button
-                    disabled={!connected || joining || !lobby?.availability.available}
-                    onClick={() => play('judge', inviteRole)}
-                  >
-                    <strong>Play as judge</strong>
-                    <span>Chat with both. Identify the human.</span>
-                  </button>
-                </div>
+                {joining || lobby?.queued ? (
+                  <>
+                    <p className="eyebrow">MATCHMAKING</p>
+                    <h2>Finding an opponent</h2>
+                    <div className="compact-queue" role="status">
+                      <span className="waiting-mark" />
+                      {lobby?.queued
+                        ? `Finding a ${lobby.queued === 'human' ? 'judge' : 'human'}…`
+                        : 'Joining…'}
+                    </div>
+                    <button
+                      className="button secondary"
+                      onClick={() => {
+                        send({ type: 'cancel' });
+                        setJoining(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="eyebrow">PLAYER SELECT</p>
+                    <h2>Choose your side</h2>
+                    <div className="dialog-modes" aria-label="Game type">
+                      <button
+                        className={!inviteRole ? 'selected' : ''}
+                        aria-pressed={!inviteRole}
+                        onClick={() => setInviteRole(false)}
+                      >
+                        Find a match
+                      </button>
+                      <button
+                        className={inviteRole ? 'selected' : ''}
+                        aria-pressed={inviteRole}
+                        onClick={() => setInviteRole(true)}
+                      >
+                        Invite a friend
+                      </button>
+                    </div>
+                    <p className="muted">
+                      {inviteRole
+                        ? 'Choose your role, then share the invitation.'
+                        : 'Choose your role. We will find your opponent.'}
+                    </p>
+                    <div className="dialog-roles">
+                      <button
+                        disabled={!connected || joining || !lobby?.availability.available}
+                        onClick={() => play('human', inviteRole)}
+                      >
+                        <strong>Play as human</strong>
+                        <span>Convince the judge you are human.</span>
+                      </button>
+                      <button
+                        disabled={!connected || joining || !lobby?.availability.available}
+                        onClick={() => play('judge', inviteRole)}
+                      >
+                        <strong>Play as judge</strong>
+                        <span>Chat with both. Identify the human.</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </StartDialog>
             ) : null}
             <p className="public-note">Conversations and results are saved.</p>
@@ -227,40 +238,106 @@ function App() {
 function ArcadeStage() {
   return (
     <div className="arcade-stage" aria-label="Two contestants face a judge. Identify the human.">
-      <svg viewBox="0 0 640 210" role="img" aria-hidden="true" shapeRendering="crispEdges">
+      <svg viewBox="0 0 640 250" aria-hidden="true" shapeRendering="crispEdges">
         <defs>
-          <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M24 0H0V24" fill="none" stroke="#173039" strokeWidth="1" />
-          </pattern>
+          <linearGradient id="stage-light" x2="0" y2="1">
+            <stop stopColor="#41616b" stopOpacity=".22" />
+            <stop offset="1" stopColor="#41616b" stopOpacity="0" />
+          </linearGradient>
+          <g id="mystery-player">
+            {/* Identical portraits keep the illustration neutral about identity. */}
+            <path
+              d="M-42 0V-24H-32V-36H-18V-48H-22V-56H-28V-88H-22V-100H-10V-106H14V-100H24V-88H28V-62H22V-48H16V-36H32V-26H42V0Z"
+              fill="#17232a"
+            />
+            <path
+              d="M-28-88H-22V-100H-10V-106H14V-100H24V-94H-12V-86H-20V-62H-28Z"
+              fill="currentColor"
+              opacity=".8"
+            />
+            <path
+              d="M24-88H28V-62H22V-48H16V-36H32V-26H42V0H28V-20H12V-30H4V-48H14V-60H20V-88Z"
+              fill="currentColor"
+              opacity=".25"
+            />
+            <path d="M-18-36L0-20L16-36M0-20V0" fill="none" stroke="#34434a" strokeWidth="4" />
+            <path d="M-38-22H-26V-28H-18" fill="none" stroke="currentColor" strokeWidth="3" />
+          </g>
         </defs>
-        <path d="M0 140H640V210H0Z" fill="url(#grid)" />
+        {/* Overhead lights and a perspective floor establish an arcade stage. */}
+        <path d="M104 16H184L256 192H32ZM456 16H536L608 192H384Z" fill="url(#stage-light)" />
+        <path d="M104 12H184V16H104ZM456 12H536V16H456Z" fill="#47616a" />
         <path
-          d="M70 160V120H90V104H108V72H100V40H110V24H150V32H160V72H150V104H170V120H192V160Z"
-          fill="#0b1114"
-          stroke="#ff642b"
+          d="M0 184H640M0 206H640M0 240H640M320 170L32 250M320 170L168 250M320 170V250M320 170L472 250M320 170L608 250"
+          fill="none"
+          stroke="#19313a"
+          strokeWidth="1"
+        />
+        {/* Contestant stations. */}
+        {[
+          { x: 144, color: '#ff803e' },
+          { x: 496, color: '#42d4fa' },
+        ].map(({ x, color }) => (
+          <g key={x} style={{ color }}>
+            <ellipse cx={x} cy="200" rx="88" ry="10" fill="#020709" />
+            <use href="#mystery-player" transform={`translate(${x} 150)`} />
+            <path d={`M${x - 78} 154H${x + 78}V166H${x - 78}Z`} fill="#34434a" />
+            <path d={`M${x - 72} 166H${x + 72}V196H${x - 72}Z`} fill="#111e24" />
+            <path d={`M${x - 72} 166H${x + 72}V170H${x - 72}Z`} fill={color} />
+            <path
+              d={`M${x - 66} 174H${x - 58}V192H${x - 66}ZM${x + 58} 174H${x + 66}V192H${x + 58}Z`}
+              fill="#263b44"
+            />
+            <rect
+              x={x + 26}
+              y="112"
+              width="42"
+              height="32"
+              fill="#080e12"
+              stroke="#40535b"
+              strokeWidth="3"
+            />
+            <rect x={x + 31} y="117" width="32" height="21" fill={color} opacity=".18" />
+            <path
+              d={`M${x + 36} 124H${x + 55}M${x + 36} 130H${x + 48}`}
+              stroke={color}
+              strokeWidth="2"
+            />
+            <path
+              d={`M${x + 45} 145V151M${x + 35} 152H${x + 58}`}
+              stroke="#647780"
+              strokeWidth="3"
+            />
+            <path d={`M${x - 40} 148H${x - 10}V152H${x - 40}Z`} fill={color} opacity=".5" />
+            <rect x={x - 3} y="180" width="6" height="6" fill={color} />
+          </g>
+        ))}
+        {/* Judge seen from behind, with a broad chair and two contestant feeds. */}
+        <path d="M250 190H390L408 230H232Z" fill="#29383c" />
+        <path d="M250 192H390" stroke="#8f8265" strokeWidth="3" />
+        <path
+          d="M252 165H292V192H252ZM348 165H388V192H348Z"
+          fill="#080e12"
+          stroke="#5b6260"
+          strokeWidth="3"
+        />
+        <path d="M258 172H286V184H258Z" fill="#ff803e" opacity=".35" />
+        <path d="M354 172H382V184H354Z" fill="#42d4fa" opacity=".35" />
+        <path
+          d="M268 235V208H280V190H300V170H294V145H300V132H312V126H332V132H342V146H346V164H340V178H338V190H358V208H372V235Z"
+          fill="#151d20"
+        />
+        <path d="M294 145H300V132H312V126H332V132H342V140H310V148H304V169H294Z" fill="#a78b5b" />
+        <path d="M338 148H346V164H340V178H330V185H314V179H330V170H338Z" fill="#554937" />
+        <path
+          d="M282 208V196H298V202H342V196H358V208"
+          fill="none"
+          stroke="#6a634f"
           strokeWidth="4"
         />
-        <path
-          d="M448 160V120H470V104H488V72H480V40H490V24H530V32H540V72H530V104H550V120H570V160Z"
-          fill="#0b1114"
-          stroke="#36cfff"
-          strokeWidth="4"
-        />
-        <path
-          d="M223 208V166H245V145H280V120H274V90H285V75H350V86H360V120H350V145H385V166H407V208Z"
-          fill="#101113"
-          stroke="#ffc56b"
-          strokeWidth="4"
-        />
-        <path d="M210 196H430V208H210Z" fill="#ff642b" />
-        <path d="M50 158H210V166H50Z" fill="#ff642b" />
-        <path d="M430 158H590V166H430Z" fill="#36cfff" />
-        <path
-          d="M182 91H212V113H182Z M426 91H456V113H426Z"
-          fill="#102b35"
-          stroke="#36cfff"
-          strokeWidth="2"
-        />
+        <path d="M276 216H364V246H276Z" fill="#233139" stroke="#526064" strokeWidth="3" />
+        <path d="M286 223H354M286 229H354" stroke="#33474f" strokeWidth="2" />
+        <path d="M230 239H274M366 239H410" stroke="#cfa76b" strokeWidth="4" />
       </svg>
       <div className="stage-labels">
         <span>A</span>
@@ -375,7 +452,7 @@ function Composer({
           {limit - count} characters remaining
         </span>
         <button className="button primary" disabled={disabled || !value.trim() || count > limit}>
-          {button} <span aria-hidden="true">↗</span>
+          {button}
         </button>
       </div>
     </form>
@@ -466,13 +543,13 @@ function Room({
                 : room.phase === 'ready'
                   ? 'Who is human?'
                   : room.phase === 'verdict'
-                    ? 'Time’s up.'
+                    ? 'Time is up.'
                     : room.phase === 'opening' || room.phase === 'opening_ai'
                       ? 'Opening replies'
                       : 'Who is human?'}
           </h1>
         </div>
-        <Countdown deadline={room.deadline} />
+        {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
       </div>
       {room.phase === 'waiting' ? (
         <div className="waiting-panel">
@@ -509,7 +586,7 @@ function Room({
           </p>
           {room.result.reason ? (
             <blockquote>
-              “{room.result.reason}”<cite>The judge’s reasoning</cite>
+              “{room.result.reason}”<cite>Reasoning from the judge</cite>
             </blockquote>
           ) : null}
         </section>

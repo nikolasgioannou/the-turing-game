@@ -127,7 +127,12 @@ describe('paired opening and group chat', () => {
     await game.tick();
     expect(m.aiRequests).toBe(requests);
     await complete('AI ANSWER');
-    expect(game.view(m).messages.at(-1)?.text).toBe('AI ANSWER');
+    expect(game.view(m).messages.at(-1)?.text).toBe('still here');
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(lastInput.messages.at(-1)?.text).toBe('still here');
+    await complete('yeah im listening');
+    expect(game.view(m).messages.at(-1)?.text).toBe('yeah im listening');
     expect(m.deadline).toBe(deadline);
   });
   test('at 60 seconds messages and audience lock; verdict and reason commit together', async () => {
@@ -200,11 +205,12 @@ describe('paired opening and group chat', () => {
   test('AI stops after an unanswered follow-up and resumes when a person speaks', async () => {
     const { h, m } = await opening();
     await complete('im sam');
-    const label = m.humanLabel === 'A' ? 'B' : 'A';
-    m.messages.push({ id: crypto.randomUUID(), sender: label, text: 'anyone here', sentAt: clock });
-    m.messages.push({ id: crypto.randomUUID(), sender: label, text: 'still here', sentAt: clock });
     clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(lastInput.invocation?.reason).toBe('silence');
+    await complete('anyone here');
     const requests = m.aiRequests;
+    clock += 15_000;
     await game.tick();
     expect(m.aiDueAt).toBeNull();
     expect(m.aiRequests).toBe(requests);
@@ -303,4 +309,98 @@ test('Unicode-aware character counter and server limits', () => {
   expect(characters('é')).toBe(1);
   expect(commandSchema.safeParse({ type: 'message', text: 'a'.repeat(501) }).success).toBe(false);
   expect(commandSchema.safeParse({ type: 'message', text: 'a'.repeat(500) }).success).toBe(true);
+});
+
+test('multiline replies arrive separately with length-based delays and stop at deadline', async () => {
+  const { m } = await opening();
+  await complete('hey\n\nthis is a longer follow up\r\nlast bit');
+  expect(m.messages).toHaveLength(3);
+  expect(m.messages.some((x) => x.text === 'hey')).toBe(true);
+  expect(m.messages.some((x) => x.text.includes('longer'))).toBe(false);
+  const requests = m.aiRequests;
+  clock += 650;
+  await game.tick();
+  expect(m.messages).toHaveLength(3);
+  clock += 1500;
+  await game.tick();
+  expect(m.messages.at(-1)?.text).toBe('this is a longer follow up');
+  expect(m.aiRequests).toBe(requests);
+  clock = m.deadline!;
+  await game.tick();
+  expect(m.phase).toBe('verdict');
+  expect(m.messages.some((x) => x.text === 'last bit')).toBe(false);
+});
+
+test('disconnect cancels pending reply lines', async () => {
+  const { m, h } = await opening();
+  await complete('hey\nmore');
+  await game.disconnect(h.p);
+  clock += 5000;
+  await game.tick();
+  expect(m.messages.some((x) => x.text === 'more')).toBe(false);
+});
+
+test('message bursts debounce with a maximum wait and explain new input', async () => {
+  const { h, j, m } = await opening();
+  await complete('hey');
+  const start = clock;
+  await game.handle(h.p, { type: 'message', text: 'one' });
+  const firstDue = m.aiDueAt!;
+  clock += 1000;
+  await game.handle(j.p, { type: 'message', text: 'two' });
+  expect(m.aiDueAt!).toBeGreaterThan(firstDue);
+  for (let i = 0; i < 3; i++) {
+    clock += 1000;
+    await game.handle(h.p, { type: 'message', text: `more ${i}` });
+  }
+  expect(m.aiDueAt!).toBeLessThanOrEqual(start + 4500);
+  clock = m.aiDueAt! + 1;
+  await game.tick();
+  expect(lastInput.invocation?.newHumanMessages).toBe(5);
+  await complete('[WAIT]');
+  expect(m.aiDueAt).toBeNull();
+});
+
+test('repeated opening output is suppressed regardless of public reveal order', async () => {
+  const { m } = await opening();
+  await complete('me obviously');
+  // Force the public order that previously bypassed the duplicate check.
+  m.messages.splice(1, 2, ...m.messages.slice(1).sort((a) => (a.sender === m.humanLabel ? 1 : -1)));
+  clock = m.aiDueAt! + 1;
+  await game.tick();
+  await complete('me obviously');
+  expect(m.messages.filter((x) => x.text === 'me obviously')).toHaveLength(1);
+  expect(m.aiDueAt).toBeNull();
+  const requests = m.aiRequests;
+  clock += 12000;
+  await game.tick();
+  expect(m.aiRequests).toBe(requests);
+});
+
+test('new input interrupts queued lines without charging extra calls for those lines', async () => {
+  const { h, m } = await opening();
+  await complete('hey\nold follow up');
+  await game.handle(h.p, { type: 'message', text: 'actually new question' });
+  clock = m.aiDueAt! + 1;
+  await game.tick();
+  expect(m.aiRequests).toBe(2);
+  expect(lastInput.messages.some((x) => x.text === 'old follow up')).toBe(false);
+  await complete('fresh reply');
+  expect(m.messages.some((x) => x.text === 'old follow up')).toBe(false);
+  expect(m.messages.at(-1)?.text).toBe('fresh reply');
+});
+
+test('a multiline silence follow up is one contribution and cannot poll again', async () => {
+  const { m } = await opening();
+  await complete('hey');
+  clock = m.aiDueAt! + 1;
+  await game.tick();
+  await complete('anyway\nwhat do you think\nabout that');
+  for (let i = 0; i < 2; i++) {
+    clock += 4000;
+    await game.tick();
+  }
+  expect(m.messages.at(-1)?.text).toBe('about that');
+  expect(m.aiRequests).toBe(2);
+  expect(m.aiDueAt).toBeNull();
 });

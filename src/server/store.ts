@@ -36,7 +36,7 @@ export class Store {
   async recover() {
     // No reconnection: durable unfinished snapshots become failures after process restart.
     await this.db.query(
-      `UPDATE matches SET payload=payload || '{"phase":"failed","deadline":null,"message":"The server restarted. This match wasn’t counted."}'::jsonb WHERE payload->>'phase' NOT IN ('complete','abandoned','failed')`,
+      `UPDATE matches SET payload=payload || '{"phase":"failed","deadline":null,"message":"The server restarted. This match was not counted."}'::jsonb WHERE payload->>'phase' NOT IN ('complete','abandoned','failed')`,
     );
     // In-flight requests were pre-charged; only unused reservations are released.
     await this.db.transaction(async (tx) => {
@@ -68,7 +68,7 @@ export class Store {
       available,
       message: available
         ? null
-        : 'Today’s AI capacity has been reached. You can still watch games and browse replays.',
+        : 'The daily AI capacity has been reached. You can still watch games and browse replays.',
       resetsAt,
     };
   }

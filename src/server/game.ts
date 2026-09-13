@@ -1,4 +1,5 @@
 import {
+  characters,
   commandSchema,
   ended,
   LIMITS,
@@ -41,6 +42,12 @@ export type Match = {
   openingHuman: string | null;
   aiDueAt: number | null;
   aiRequests: number;
+  attention?: {
+    seenHumanIds: string[];
+    burstStarted: number | null;
+    silenceUsed: boolean;
+    lastContribution: string;
+  };
   rounds?: Round[]; // Historical five-round replays only.
   votes: Record<string, Label>;
   choice: Label | null;
@@ -55,6 +62,7 @@ export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
   controllers = new Map<string, AbortController>();
+  private pendingReplies = new Map<string, { lines: string[]; due: number; sender: Label }>();
   private serial: Promise<unknown> = Promise.resolve();
   constructor(
     public store: Store,
@@ -182,7 +190,7 @@ export class Game {
     await this.available();
     const id = crypto.randomUUID();
     if (!(await this.store.reserve(id, this.now())))
-      throw new ActionError('Today’s AI capacity has been reached. Try again tomorrow.');
+      throw new ActionError('The daily AI capacity has been reached. Try again tomorrow.');
     const m: Match = {
       id,
       phase: 'waiting',
@@ -300,7 +308,7 @@ export class Game {
       }
       case 'leave':
         if (m && !ended(m.phase) && this.role(m, p) !== 'spectator')
-          await this.finish(m, 'abandoned', 'A player left. This match wasn’t counted.');
+          await this.finish(m, 'abandoned', 'A player left. This match was not counted.');
         p.queue = undefined;
         p.roomId = undefined;
         await this.lobby(p);
@@ -334,13 +342,20 @@ export class Game {
         return;
       }
       m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
-      // New messages can bring a scheduled reply forward, but never create concurrent requests.
-      const aiLabel = m.humanLabel === 'A' ? 'B' : 'A';
+      // A person interrupts unsent lines. Reconsider against the complete new burst.
+      this.pendingReplies.delete(m.id);
+      const attention = this.attention(m);
+      attention.silenceUsed = false;
+      attention.burstStarted ??= this.now();
       const lastAI =
-        [...m.messages].reverse().find((message) => message.sender === aiLabel)?.sentAt ??
-        m.startedAt!;
-      const due = Math.max(this.now() + 1500, lastAI + 4000);
-      m.aiDueAt = m.aiDueAt === null ? due : Math.min(m.aiDueAt, due);
+        [...m.messages]
+          .reverse()
+          .find((message) => message.sender !== 'judge' && message.sender !== m.humanLabel)
+          ?.sentAt ?? 0;
+      m.aiDueAt = Math.max(
+        lastAI + 2000,
+        Math.min(this.now() + 1200 + Math.random() * 600, attention.burstStarted + 4500),
+      );
       await this.persist(m);
     } else if (c.type === 'verdict') {
       if (role !== 'judge' || m.phase !== 'verdict')
@@ -360,26 +375,64 @@ export class Game {
       await this.persist(m);
     }
   }
+  private attention(m: Match) {
+    return (m.attention ??= {
+      seenHumanIds: [],
+      burstStarted: null,
+      silenceUsed: false,
+      lastContribution: '',
+    });
+  }
+  private humanMessages(m: Match) {
+    return m.messages.filter(
+      (message) => message.sender === 'judge' || message.sender === m.humanLabel,
+    );
+  }
+  private scheduleSilence(m: Match) {
+    m.aiDueAt = this.attention(m).silenceUsed ? null : this.now() + 8000 + Math.random() * 4000;
+  }
+  private queueReplyLines(m: Match, sender: Label, lines: string[]) {
+    if (!lines.length) return;
+    const delay = Math.min(3500, Math.max(650, 400 + characters(lines[0]!) * 45));
+    this.pendingReplies.set(m.id, { lines, sender, due: this.now() + delay });
+    m.aiDueAt = null;
+  }
   async generate(m: Match) {
     const opening = m.phase === 'opening_ai';
     if (
       (!opening && (m.phase !== 'chat' || this.now() >= m.deadline!)) ||
       this.controllers.has(m.id) ||
+      this.pendingReplies.has(m.id) ||
       m.aiRequests >= LIMITS.aiRequests
     )
       return;
-    const aiLabel = m.humanLabel === 'A' ? 'B' : 'A';
-    if (
-      !opening &&
-      m.messages.slice(-2).length === 2 &&
-      m.messages.slice(-2).every((message) => message.sender === aiLabel)
-    ) {
+    const attention = this.attention(m);
+    const humanSnapshot = this.humanMessages(m).map((message) => message.id);
+    const unseen = this.humanMessages(m).filter(
+      (message) => !attention.seenHumanIds.includes(message.id),
+    );
+    const silence = !opening && unseen.length === 0;
+    if (silence && attention.silenceUsed) {
       m.aiDueAt = null;
       return;
     }
+    if (silence) attention.silenceUsed = true;
+    attention.burstStarted = null;
     const input: AIInput = {
       label: m.humanLabel === 'A' ? 'B' : 'A',
       matchId: m.id,
+      ...(!opening
+        ? {
+            invocation: {
+              reason: silence
+                ? ('silence' as const)
+                : unseen.at(-1)?.sender === 'judge'
+                  ? ('judge_message' as const)
+                  : ('opponent_message' as const),
+              newHumanMessages: unseen.length,
+            },
+          }
+        : {}),
       messages: m.messages.map(({ sender, text }) => ({ sender, text })),
       ...(opening ? { privateOpeningReference: m.openingHuman! } : {}),
     };
@@ -390,9 +443,11 @@ export class Game {
         promptVersion: PROMPT_VERSION,
         messageCount: m.messages.length,
         request: m.aiRequests + 1,
+        trigger: opening ? 'opening' : input.invocation?.reason,
+        newHumanMessageIds: unseen.map((message) => message.id),
       });
     } catch {
-      await this.finish(m, 'failed', 'The AI could not start. This match wasn’t counted.');
+      await this.finish(m, 'failed', 'The AI could not start. This match was not counted.');
       return;
     }
     m.aiRequests++;
@@ -411,15 +466,20 @@ export class Game {
             requestId: result.requestId,
             status: 'ok',
           });
+          const lines = result.text
+            .split(/\r\n|[\n\r]/u)
+            .map((line) => line.trim())
+            .filter(Boolean);
+          const firstLine = lines.shift() ?? '';
           if (opening && m.phase === 'opening_ai') {
             if (result.text === '[WAIT]') {
-              await this.finish(m, 'failed', 'The AI did not answer. This match wasn’t counted.');
+              await this.finish(m, 'failed', 'The AI did not answer. This match was not counted.');
               return;
             }
             const sentAt = this.now();
             const pair: ChatMessage[] = [
               { id: crypto.randomUUID(), sender: m.humanLabel, text: m.openingHuman!, sentAt },
-              { id: crypto.randomUUID(), sender: input.label, text: result.text, sentAt },
+              { id: crypto.randomUUID(), sender: input.label, text: firstLine, sentAt },
             ];
             if (Math.random() < 0.5) pair.reverse();
             m.messages.push(...pair);
@@ -427,7 +487,10 @@ export class Game {
             m.phase = 'chat';
             m.startedAt = sentAt;
             m.deadline = sentAt + LIMITS.chatMs;
-            m.aiDueAt = sentAt + 5000 + Math.random() * 4000;
+            attention.seenHumanIds = this.humanMessages(m).map((message) => message.id);
+            attention.lastContribution = result.text;
+            this.scheduleSilence(m);
+            this.queueReplyLines(m, input.label, lines);
             await this.persist(m);
             return;
           }
@@ -436,17 +499,31 @@ export class Game {
             await this.expire(m);
             return;
           }
-          if (
-            result.text !== '[WAIT]' &&
-            !(m.messages.at(-1)?.sender === input.label && m.messages.at(-1)?.text === result.text)
-          )
+          // Never publish a draft composed before an intervening human message.
+          const currentHumanIds = this.humanMessages(m).map((message) => message.id);
+          if (currentHumanIds.at(-1) !== humanSnapshot.at(-1)) {
+            // The message handler has already scheduled reconsideration after the burst.
+            await this.persist(m);
+            return;
+          }
+          attention.seenHumanIds = humanSnapshot;
+          const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ').toLocaleLowerCase();
+          const duplicate = normalize(result.text) === normalize(attention.lastContribution);
+          if (result.text === '[WAIT]' || duplicate || !firstLine) {
+            // Declining to speak must not start another idle polling loop.
+            attention.silenceUsed = true;
+            m.aiDueAt = null;
+          } else {
+            attention.lastContribution = result.text;
             m.messages.push({
               id: crypto.randomUUID(),
               sender: input.label,
-              text: result.text,
+              text: firstLine,
               sentAt: this.now(),
             });
-          m.aiDueAt = this.now() + 5000 + Math.random() * 4000;
+            this.scheduleSilence(m);
+            this.queueReplyLines(m, input.label, lines);
+          }
           await this.persist(m);
         }),
       )
@@ -468,7 +545,7 @@ export class Game {
           await this.finish(
             m,
             'failed',
-            'The AI is temporarily unavailable. This match wasn’t counted.',
+            'The AI is temporarily unavailable. This match was not counted.',
           );
         }),
       )
@@ -480,7 +557,7 @@ export class Game {
         // A storage failure must not leave a live room waiting indefinitely.
         m.phase = 'failed';
         m.deadline = null;
-        m.message = 'The game service is unavailable. This match wasn’t counted.';
+        m.message = 'The game service is unavailable. This match was not counted.';
         this.broadcast(m);
         console.error(
           'Could not persist AI finalization; startup recovery will retain the conservative charge.',
@@ -488,6 +565,7 @@ export class Game {
       });
   }
   async finish(m: Match, phase: Phase, message: string | null) {
+    this.pendingReplies.delete(m.id);
     m.phase = phase;
     m.message = message;
     m.aiDueAt = null;
@@ -500,12 +578,13 @@ export class Game {
     this.peers.delete(p.id);
     const m = p.roomId ? this.rooms.get(p.roomId) : undefined;
     if (m && !ended(m.phase) && this.role(m, p) !== 'spectator')
-      await this.finish(m, 'abandoned', 'A player disconnected. This match wasn’t counted.');
+      await this.finish(m, 'abandoned', 'A player disconnected. This match was not counted.');
     else if (m) this.broadcast(m);
     await this.lobby();
   }
   async expire(m: Match) {
     if (m.phase === 'chat') {
+      this.pendingReplies.delete(m.id);
       m.phase = 'verdict';
       m.deadline = this.now() + LIMITS.actionMs;
       m.aiDueAt = null;
@@ -518,13 +597,27 @@ export class Game {
         'abandoned',
         m.phase === 'waiting'
           ? 'The invitation expired.'
-          : 'Time ran out. This match wasn’t counted.',
+          : 'Time ran out. This match was not counted.',
       );
     }
   }
   async tick() {
     for (const m of this.rooms.values()) {
       if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline) await this.expire(m);
+      const pending = this.pendingReplies.get(m.id);
+      if (m.phase === 'chat' && pending && this.now() >= pending.due) {
+        const text = pending.lines.shift()!;
+        m.messages.push({
+          id: crypto.randomUUID(),
+          sender: pending.sender,
+          text,
+          sentAt: this.now(),
+        });
+        this.pendingReplies.delete(m.id);
+        this.scheduleSilence(m);
+        this.queueReplyLines(m, pending.sender, pending.lines);
+        await this.persist(m);
+      }
       if (m.phase === 'chat' && m.aiDueAt !== null && this.now() >= m.aiDueAt)
         await this.generate(m);
       if (ended(m.phase) && ![...this.peers.values()].some((p) => p.roomId === m.id))

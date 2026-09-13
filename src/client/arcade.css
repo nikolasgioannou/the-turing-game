@@ -338,8 +338,8 @@ main {
   margin-top: 0;
   gap: 10px;
 }
-.active-chat .chat-message,
-.active-chat .chat-message.own-message {
+.room-page .chat-message,
+.room-page .chat-message.own-message {
   max-width: 100%;
   width: 100%;
   margin: 0;
@@ -353,10 +353,10 @@ main {
   box-shadow: none;
   align-items: start;
 }
-.active-chat .chat-message + .chat-message {
+.room-page .chat-message + .chat-message {
   border-top: 1px solid #1c292e;
 }
-.active-chat .chat-message p {
+.room-page .chat-message p {
   font-family: 'Courier New', monospace;
   font-size: 16px;
   line-height: 1.55;
@@ -364,7 +364,7 @@ main {
   margin: 0;
   overflow-wrap: anywhere;
 }
-.active-chat .chat-sender {
+.room-page .chat-sender {
   font-size: 11px;
   gap: 8px;
   color: #ff985c;
@@ -372,13 +372,13 @@ main {
   padding-top: 2px;
   flex-wrap: wrap;
 }
-.active-chat .chat-message[data-sender='B'] .chat-sender {
+.room-page .chat-message[data-sender='B'] .chat-sender {
   color: #67d8fc;
 }
-.active-chat .chat-message[data-sender='judge'] .chat-sender {
+.room-page .chat-message[data-sender='judge'] .chat-sender {
   color: #edcd83;
 }
-.active-chat .chat-message .label-square {
+.room-page .chat-message .label-square {
   border-radius: 0;
   font-family: Arcade, monospace;
   font-size: 10px;
@@ -386,15 +386,15 @@ main {
   height: 25px;
   flex-shrink: 0;
 }
-.active-chat .chat-message[data-sender='A'] .label-square {
+.room-page .chat-message[data-sender='A'] .label-square {
   background: #ff803b;
   color: #111;
 }
-.active-chat .chat-message[data-sender='B'] .label-square {
+.room-page .chat-message[data-sender='B'] .label-square {
   background: #4bd3ff;
   color: #111;
 }
-.active-chat .chat-message[data-sender='judge'] .label-square {
+.room-page .chat-message[data-sender='judge'] .label-square {
   background: #edcd83;
   color: #111;
 }
@@ -550,17 +550,17 @@ textarea::placeholder {
   .active-chat .conversation {
     padding: 8px;
   }
-  .active-chat .chat-message,
-  .active-chat .chat-message.own-message {
+  .room-page .chat-message,
+  .room-page .chat-message.own-message {
     grid-template-columns: 1fr;
     gap: 5px;
     padding: 8px 4px;
   }
-  .active-chat .chat-sender {
+  .room-page .chat-sender {
     flex-wrap: nowrap;
     font-size: 10px;
   }
-  .active-chat .chat-message p {
+  .room-page .chat-message p {
     padding-left: 33px;
     font-size: 14px;
   }
@@ -572,4 +572,92 @@ textarea::placeholder {
   * {
     transition: none !important;
   }
+}
+
+/* Text-only game name; no square logo badge. */
+.site-header {
+  justify-content: space-between;
+}
+
+/* Center the lobby as a whole, allowing it to grow on short viewports. */
+.app-shell:has(.arcade-lobby) {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.app-shell:has(.arcade-lobby) main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 0;
+}
+.app-shell .arcade-lobby {
+  width: 100%;
+  margin-top: 0;
+}
+.app-shell:has(.arcade-lobby) main > .public-note {
+  margin-bottom: 0;
+}
+
+/* Transcript presentation is shared by live games and finished matches. */
+.room-page .chat-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 4px;
+}
+.room-page .chat-message {
+  flex-shrink: 0;
+}
+.room-page .chat-sender .label-square {
+  display: inline-flex;
+}
+.room-page:not(.active-chat) .chat-transcript {
+  max-height: none;
+}
+
+/* Prevent rubber-band overscroll on pages and nested scroll areas. */
+html,
+body,
+#root,
+.chat-transcript,
+.start-dialog,
+textarea {
+  overscroll-behavior: none;
+}
+
+.room-page .chat-sender .label-square {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+/* Keep text-field focus flush with the field instead of a detached outer ring. */
+input:focus-visible,
+textarea:focus-visible,
+.active-chat .composer textarea:focus-visible {
+  border-color: #4bd3ff;
+  outline: 1px solid #4bd3ff;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.dialog-content .compact-queue {
+  margin: 0;
+  max-width: none;
+  padding: 14px 16px;
+  gap: 12px;
+  min-height: 50px;
+}
+.dialog-content .compact-queue + .button {
+  margin-top: 20px;
+  min-height: 44px;
+  padding: 12px 20px;
+  background: #172126;
+  border: 1px solid #52656d;
+  color: #f8eacb;
+  box-shadow: none;
 }

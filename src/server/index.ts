@@ -1,5 +1,6 @@
 import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
+import { networkInterfaces } from 'node:os';
 import { database } from './database';
 import { Store } from './store';
 import { createAI } from './ai';
@@ -7,7 +8,20 @@ import { ActionError, Game, type Match, type Peer } from './game';
 const production = process.env.NODE_ENV === 'production';
 if (production && (!process.env.DATABASE_URL || !process.env.AI_API_KEY || !process.env.APP_ORIGIN))
   throw new Error('Production requires DATABASE_URL, AI_API_KEY and APP_ORIGIN.');
-const origin = process.env.APP_ORIGIN ?? 'http://localhost:5173';
+const port = Number(process.env.PORT ?? 3000);
+const origin = process.env.APP_ORIGIN ?? `http://localhost:${port}`;
+const allowedOrigins = new Set([origin]);
+if (!production) {
+  for (const host of [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    ...Object.values(networkInterfaces()).flatMap((entries) =>
+      (entries ?? []).filter((entry) => entry.family === 'IPv4').map((entry) => entry.address),
+    ),
+  ])
+    allowedOrigins.add(`http://${host}:${port}`);
+}
 const db = await database(process.env.DATABASE_URL);
 const cap = (key: string, fallback: number) => {
   const value = Number(process.env[key] ?? fallback);
@@ -38,7 +52,7 @@ const perIp = new Map<string, { count: number; until: number }>();
 const root = resolve('dist');
 const server = Bun.serve<SocketData>({
   hostname: '0.0.0.0',
-  port: Number(process.env.PORT ?? 3000),
+  port,
   maxRequestBodySize: 16_384,
   async fetch(req, server) {
     const url = new URL(req.url);
@@ -50,7 +64,8 @@ const server = Bun.serve<SocketData>({
       });
     }
     if (url.pathname === '/ws') {
-      if (req.headers.get('origin') !== origin) return json({ error: 'Origin not allowed' }, 403);
+      if (!allowedOrigins.has(req.headers.get('origin') ?? ''))
+        return json({ error: 'Origin not allowed' }, 403);
       const id = session(req);
       if (!id) return json({ error: 'Start a session first' }, 401);
       const ip = server.requestIP(req)?.address ?? 'unknown';
@@ -170,7 +185,7 @@ async function stop() {
   await game.run(async () => {
     for (const m of game.rooms.values())
       if (!['complete', 'failed', 'abandoned'].includes(m.phase))
-        await game.finish(m, 'failed', 'The server restarted. This match wasn’t counted.');
+        await game.finish(m, 'failed', 'The server restarted. This match was not counted.');
   });
   await server.stop(true);
   await db.close();

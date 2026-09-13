@@ -38,7 +38,9 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await h.setViewportSize({ width: 390, height: 844 });
   await h.screenshot({ path: 'work/chat-mobile.png', fullPage: true });
   expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await expect(j.getByRole('heading', { name: 'Who is human?' })).toBeVisible({ timeout: 65_000 });
+  await expect(j.getByRole('button', { name: 'Submit verdict & reveal' })).toBeVisible({
+    timeout: 65_000,
+  });
   await expect(h.getByLabel('Message the group')).toHaveCount(0);
   await j.getByRole('button', { name: `Contestant ${humanLabel}`, exact: true }).click();
   await j.getByLabel('What gave them away?').fill('They kept it simple.');

@@ -29,7 +29,7 @@ The model server listens only on 127.0.0.1:8080. Thinking is disabled by the ins
 In another terminal, using this Mac's current Wi-Fi address:
 
 ```sh
-PORT=3001 APP_ORIGIN=http://192.168.1.233:3001 PGLITE_PATH=./data/wifi AI_DEVTOOLS=true bun run start:local
+PORT=3000 APP_ORIGIN=http://192.168.1.233:3000 PGLITE_PATH=./data/wifi AI_DEVTOOLS=true bun run start:local
 ```
 
 The local game launcher overrides provider URL, model, and credentials for that process. It sends a dummy local key, never the OpenRouter key. Existing .env OpenRouter settings remain available for hosted experiments. `bun start` continues to use .env; `bun run start:local` explicitly selects local inference.

@@ -96,3 +96,27 @@ Final validation: 24 unit tests / 108 assertions and typecheck/build passed. The
 Owner chose sample A (retro arcade) and deferred live viewing to reduce iteration scope. Added an orange/cyan arcade title screen, single Start game action, pixel contestant/judge scene, player-select dialog, and matching chat/verdict components. Press Start 2P font is project-local with OFL license. Removed live directory, watch action, live-share button, viewer counts and audience totals. Spectator protocol and direct match/replay access remain available internally for later restoration; this is not an access-control change.
 
 Validated typecheck/build and 24 unit tests at this milestone. Five focused browser checks passed across lobby, modal focus, invitation flow and short paired-opening chat. Fixed generated selection arrow changing the Start button accessible name. Desktop/mobile screenshots inspected; no overflow and mobile composer remains in viewport. Full one-minute suite was not rerun. Owner prefers full checks at milestones and fast visual iteration in between.
+
+Removed the duplicate mock app on port 3000. The real local-model app remains on port 3001. `bun run dev` now builds and starts that same single-server setup with real local inference; mock fixtures remain restricted to explicit automated test workflows. Removed the duplicate header wordmark during visual iteration.
+
+Owner standardized the game on port 3000. Real local inference now serves the Wi-Fi app at http://192.168.1.233:3000; development default and launch documentation updated. Port 3001 is stopped.
+
+Fixed leaked model speaker tags: prompt v9 clarifies input-only tags and assistant identity; server unwraps one complete contestant/assistant reply wrapper and rejects internal tags or multi-speaker output. Raw provider output remains available in DevTools. Focused regression covers the reported text, normal text and malformed/multi-speaker cases.
+
+Prompt v10 uses system → judge → contestant → assistant ordering for the opening in every model call, independent of the public randomized reveal. The first human reply now uses the ordinary contestant tag; opening privacy is explained by position in the system prompt. History trimming preserves the opening trio. Focused tests cover both labels and reveal orders.
+
+Owner refined the incoming human speaker name to `<opponent>` (instead of `<contestant>`). Judge/opponent are user messages; own replies remain assistant messages. No special opening tag is sent.
+
+AI replies now split on nonempty newline-separated parts. First part posts immediately (paired with human opening when applicable); later parts wait 400ms + 45ms per grapheme, clamped to 650–3500ms. One line drains per server tick, no new generation while parts remain, and pending parts are discarded on deadline/disconnect. Only published parts enter public transcript and subsequent model history. Timing is not extra inference. Typecheck and 19 game tests passed, including delayed publication and cancellation regressions.
+
+Prompt v11 separates shared character/style rules from OPENING_PROMPT and CHAT_PROMPT. The first call sends system, judge, hidden_style_sample. Opening instructions forbid reacting/agreeing with the sample and include the reported "me too" failure. Later calls contain normal opponent/assistant history and no hidden-sample rules. Ten focused adapter tests and typecheck passed; model behavior still needs play-testing, not guaranteed by prompt assembly tests.
+
+## Conversation-aware invocation milestone
+
+Implemented bounded burst debounce, per-invocation trigger/new-message context, one silence opportunity, [WAIT] quiescence, contribution-level duplicate suppression independent of public order, stale-draft discard and split-line interruption. Durable attention metadata stores human message IDs; unpublished lines remain outside model history/public views. No additional classifier calls, existing ten-request budget retained. Shared/phase prompt version is conversation-aware-v12.
+
+34 unit tests / 163 assertions plus typecheck/build passed. Six short browser checks passed. Full lifecycle test needed its old heading selector updated after the arcade redesign; now waits for verdict controls. Real-model and full-minute validation results follow.
+
+Full real-minute browser lifecycle passed; all seven browser checks now pass. First real local-model smoke test verified burst coalescing and one silence follow-up with no socket errors, but exposed the model claiming the opponent's experience. Strengthened live-chat recipient/experience ownership and made silence default to WAIT unless offering a new question. This is prompt guidance, not a guarantee of identity consistency. Repeated real-model smoke result follows.
+
+Repeated real-model test (match 22f13c68-3dc9-4235-8c2d-d1a3f397c80c) again coalesced the three-message burst into one call, allowed one silence follow-up, and had no socket errors. Model still answered the opponent's taco question as its own and later introduced "im sam" during silence despite the stronger instructions. Scheduling and bounded invocation are verified; conversational ownership and relevance remain a model/prompt quality limitation. Do not claim human-like quality is solved.
