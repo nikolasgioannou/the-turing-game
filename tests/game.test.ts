@@ -4,13 +4,19 @@ import {
   Store,
   MATCH_INPUT,
   MATCH_OUTPUT,
-  INPUT_PER_ROUND,
-  OUTPUT_PER_ROUND,
+  INPUT_PER_REQUEST,
+  OUTPUT_PER_REQUEST,
 } from '../src/server/store';
 import { Game, type Peer, type Match } from '../src/server/game';
 import type { AI, AIInput, AIOutput } from '../src/server/ai';
 import { AIError } from '../src/server/ai';
-import { characters, commandSchema, type Event, type RoomView } from '../src/shared/protocol';
+import {
+  characters,
+  commandSchema,
+  LIMITS,
+  type Event,
+  type RoomView,
+} from '../src/shared/protocol';
 process.env.PGLITE_PATH = 'memory://';
 let store: Store,
   game: Game,
@@ -61,72 +67,112 @@ async function complete(text = 'AI ANSWER') {
   await new Promise((r) => setTimeout(r, 10));
   await game.run(async () => {});
 }
-describe('match authority and reveal', () => {
-  test('AI sees current human answer; judge/spectators never receive pending answers or identity', async () => {
+async function opening() {
+  const pairState = await pair();
+  await game.handle(pairState.j.p, { type: 'message', text: 'What did you eat?' });
+  await game.handle(pairState.h.p, { type: 'message', text: 'pasta lol' });
+  return pairState;
+}
+describe('paired opening and group chat', () => {
+  test('opening is hidden, pair reveals atomically, minute begins only after reveal', async () => {
     const { h, j, m } = await pair();
     const s = await peer();
     await game.handle(s.p, { type: 'watch', id: m.id });
-    await game.handle(j.p, { type: 'question', text: 'What did you eat?' });
-    await game.handle(h.p, { type: 'answer', text: 'SECRET HUMAN ANSWER' });
-    expect(lastInput.humanAnswer).toBe('SECRET HUMAN ANSWER');
-    expect(lastInput.history).toHaveLength(0);
+    await expect(game.handle(h.p, { type: 'message', text: 'early' })).rejects.toThrow();
+    await game.handle(j.p, { type: 'message', text: 'What did you eat?' });
+    clock += 20_000;
+    await game.handle(h.p, { type: 'message', text: 'SECRET HUMAN ANSWER' });
+    expect(lastInput.privateOpeningReference).toBe('SECRET HUMAN ANSWER');
+    expect(lastInput.messages).toHaveLength(1);
+    expect(m.startedAt).toBeNull();
     for (const p of [j.p, s.p]) {
       const v = game.view(m, p);
-      expect(v.rounds[0].answers).toBeNull();
+      expect(v.messages).toHaveLength(1);
       expect(v.ownLabel).toBeNull();
       expect(v.result).toBeNull();
       expect(JSON.stringify(v)).not.toContain('SECRET');
       expect(JSON.stringify(v)).not.toContain('humanSession');
     }
+    await expect(game.handle(j.p, { type: 'message', text: 'too soon' })).rejects.toThrow();
+    clock += 5000;
     await complete();
-    expect(game.view(m, j.p).rounds[0].answers?.[m.humanLabel]).toBe('SECRET HUMAN ANSWER');
-    expect(m.phase).toBe('question');
-    await game.handle(j.p, { type: 'question', text: 'Why?' });
-    await game.handle(h.p, { type: 'answer', text: 'NEW SECRET' });
-    expect(JSON.stringify(lastInput.history)).toContain('SECRET HUMAN ANSWER');
-    expect(lastInput.humanAnswer).toBe('NEW SECRET');
-    expect(JSON.stringify(lastInput.history)).not.toContain('NEW SECRET');
-    await complete();
+    const view = game.view(m, j.p);
+    expect(view.messages).toHaveLength(3);
+    expect(
+      view.messages
+        .slice(1)
+        .map((x) => x.text)
+        .sort(),
+    ).toEqual(['AI ANSWER', 'SECRET HUMAN ANSWER']);
+    expect(new Set(view.messages.slice(1).map((x) => x.sentAt)).size).toBe(1);
+    expect(m.startedAt).toBe(clock);
+    expect(m.deadline).toBe(clock + 60_000);
+    expect(m.phase).toBe('chat');
   });
-  test('five rounds then atomic verdict and reasoning; audience remains secret and locks', async () => {
-    const { h, j, m } = await pair();
+  test('all participants can chat immediately while one AI request is pending', async () => {
+    const { h, j, m } = await opening();
+    await complete();
+    clock += 1000;
+    const deadline = m.deadline;
+    await game.handle(h.p, { type: 'message', text: 'what about you B?' });
+    await game.handle(j.p, { type: 'message', text: 'tell me more' });
+    expect(game.view(m, j.p).messages.at(-2)?.text).toBe('what about you B?');
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(lastInput.privateOpeningReference).toBeUndefined();
+    expect(lastInput.messages.at(-1)?.text).toBe('tell me more');
+    const requests = m.aiRequests;
+    clock += 1000;
+    await game.handle(h.p, { type: 'message', text: 'still here' });
+    await game.tick();
+    expect(m.aiRequests).toBe(requests);
+    await complete('yeah me too');
+    expect(game.view(m).messages.at(-1)?.text).toBe('yeah me too');
+    expect(m.deadline).toBe(deadline);
+  });
+  test('at 60 seconds messages and audience lock; verdict and reason commit together', async () => {
+    const { h, j, m } = await opening();
     const s = await peer();
     await game.handle(s.p, { type: 'watch', id: m.id });
-    await game.handle(s.p, { type: 'vote', choice: 'A' });
     await game.handle(s.p, { type: 'vote', choice: 'B' });
-    expect(game.view(m, j.p).result).toBeNull();
-    expect(game.view(m, j.p).vote).toBeNull();
     await expect(game.handle(j.p, { type: 'verdict', choice: 'A' })).rejects.toThrow();
-    for (let i = 0; i < 5; i++) {
-      await game.handle(j.p, { type: 'question', text: `Question ${i}` });
-      await game.handle(h.p, { type: 'answer', text: `Human ${i}` });
-      await complete();
-    }
+    await complete();
+    clock = m.deadline!;
+    await expect(game.handle(h.p, { type: 'message', text: 'late' })).rejects.toThrow();
     expect(m.phase).toBe('verdict');
+    await expect(game.handle(s.p, { type: 'vote', choice: 'A' })).rejects.toThrow();
     await game.handle(j.p, {
       type: 'verdict',
       choice: m.humanLabel,
       reason: 'The details felt real.',
     });
-    const view = game.view(m, s.p);
-    expect(view.result?.humanWon).toBe(true);
-    expect(view.result?.reason).toBe('The details felt real.');
-    expect(view.result?.votes).toEqual({ A: 0, B: 1 });
-    await expect(game.handle(s.p, { type: 'vote', choice: 'A' })).rejects.toThrow();
-    const saved = await store.load<Match>(m.id);
-    expect(saved?.phase).toBe('complete');
-    expect(game.view(saved!).result).toEqual(view.result);
+    expect(game.view(m).result?.humanWon).toBe(true);
+    expect(game.view(m).result?.votes).toEqual({ A: 0, B: 1 });
+    expect(game.view(m).result?.reason).toBe('The details felt real.');
+    expect((await store.load<Match>(m.id))?.phase).toBe('complete');
   });
-  test('cannot submit another role’s actions or self-match across tabs', async () => {
-    const { h, j, m } = await pair();
-    await expect(game.handle(h.p, { type: 'question', text: 'Hack' })).rejects.toThrow();
-    await expect(game.handle(j.p, { type: 'answer', text: 'Hack' })).rejects.toThrow();
+  test('timer tick locks chat and discards a late AI response without a provider outage', async () => {
+    const { m } = await opening();
+    await complete();
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    const count = m.messages.length;
+    clock = m.deadline!;
+    await game.tick();
+    await complete('too late');
+    expect(m.phase).toBe('verdict');
+    expect(m.messages).toHaveLength(count);
+    expect((await store.availability()).available).toBe(true);
+  });
+  test('spectators cannot send and another tab cannot take a seat or vote', async () => {
+    const { h, m } = await pair();
     const tab = await peer(h.p.session);
     await expect(game.handle(tab.p, { type: 'queue', role: 'judge' })).rejects.toThrow();
     await game.handle(tab.p, { type: 'watch', id: m.id });
+    await expect(game.handle(tab.p, { type: 'message', text: 'hack' })).rejects.toThrow();
     await expect(game.handle(tab.p, { type: 'vote', choice: 'A' })).rejects.toThrow();
   });
-  test('invite seat requires secret token; match id grants viewing only', async () => {
+  test('invite token reserves seats; match id only grants viewing', async () => {
     const h = await peer(),
       j = await peer(),
       s = await peer();
@@ -136,36 +182,53 @@ describe('match authority and reveal', () => {
     expect(game.view(m, s.p).inviteToken).toBeUndefined();
     await expect(game.handle(j.p, { type: 'join', token: m.id })).rejects.toThrow();
     await game.handle(j.p, { type: 'join', token: m.inviteToken });
-    expect(m.phase).toBe('question');
-    await expect(game.handle(s.p, { type: 'join', token: m.inviteToken })).rejects.toThrow();
+    expect(m.phase).toBe('ready');
+  });
+  test('AI initiates after quiet periods but never exceeds reserved requests', async () => {
+    const { m } = await opening();
+    await complete();
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(m.aiRequests).toBe(2);
+    await complete('[WAIT]');
+    expect(m.messages).toHaveLength(3);
+    m.aiRequests = LIMITS.aiRequests;
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(game.controllers.has(m.id)).toBe(false);
+  });
+  test('old replay mapping does not expose unfinished private answers', async () => {
+    const { m } = await pair();
+    const legacy = {
+      ...m,
+      messages: undefined,
+      rounds: [{ question: 'old', askedAt: clock, human: 'SECRET', ai: null, revealedAt: null }],
+    } as unknown as Match;
+    expect(JSON.stringify(game.view(legacy))).not.toContain('SECRET');
+    expect(game.view(legacy).messages).toHaveLength(1);
   });
 });
 describe('failure handling', () => {
-  test('disconnect abandons and late AI completion cannot reveal or revive', async () => {
-    const { h, j, m } = await pair();
-    await game.handle(j.p, { type: 'question', text: 'Hi?' });
-    await game.handle(h.p, { type: 'answer', text: 'Secret' });
+  test('disconnect abandons and late opening completion cannot reveal', async () => {
+    const { h, m } = await opening();
     await game.disconnect(h.p);
-    expect(m.phase).toBe('abandoned');
     await complete();
     expect(m.phase).toBe('abandoned');
-    expect(game.view(m, j.p).rounds[0].answers).toBeNull();
+    expect(game.view(m).messages).toHaveLength(1);
     expect((await store.db.query('SELECT * FROM reservations')).length).toBe(0);
   });
-  test('deadline enforced on action even before timer tick; spectator loss does not end match', async () => {
-    const { h, j, m } = await pair();
+  test('opening timeout abandons; spectator disconnect does not', async () => {
+    const { j, m } = await pair();
     const s = await peer();
     await game.handle(s.p, { type: 'watch', id: m.id });
     await game.disconnect(s.p);
-    expect(m.phase).toBe('question');
+    expect(m.phase).toBe('ready');
     clock += 90_001;
-    await expect(game.handle(j.p, { type: 'question', text: 'Too late' })).rejects.toThrow();
+    await expect(game.handle(j.p, { type: 'message', text: 'late' })).rejects.toThrow();
     expect(m.phase).toBe('abandoned');
   });
   test('provider exhaustion pauses admission and preserves technical failure', async () => {
-    const { h, j, m } = await pair();
-    await game.handle(j.p, { type: 'question', text: 'Hi?' });
-    await game.handle(h.p, { type: 'answer', text: 'Hello' });
+    const { m } = await opening();
     rejectAI(new AIError('402', 86_400_000));
     await new Promise((r) => setTimeout(r, 10));
     await game.run(async () => {});
@@ -173,13 +236,13 @@ describe('failure handling', () => {
     expect((await store.availability()).available).toBe(false);
     expect(game.view(m).result).toBeNull();
   });
-  test('restart marks unfinished records failed and preserves charged requests', async () => {
+  test('restart preserves charged requests', async () => {
     const { m } = await pair();
     await store.beginRequest(m.id, { test: true });
     await store.recover();
     expect((await store.load<Match>(m.id))?.phase).toBe('failed');
     const [r] = await store.db.query<any>('SELECT * FROM daily_usage');
-    expect(Number(r.input_used)).toBe(INPUT_PER_ROUND);
+    expect(Number(r.input_used)).toBe(INPUT_PER_REQUEST);
     expect(Number(r.input_reserved)).toBe(0);
   });
 });
@@ -197,8 +260,8 @@ describe('provider-independent usage', () => {
     const id = await store.beginRequest('one', {});
     await store.settleRequest(id, null, {});
     let [r] = await store.db.query<any>('SELECT * FROM daily_usage');
-    expect(Number(r.input_used)).toBe(INPUT_PER_ROUND);
-    expect(Number(r.output_used)).toBe(OUTPUT_PER_ROUND);
+    expect(Number(r.input_used)).toBe(INPUT_PER_REQUEST);
+    expect(Number(r.output_used)).toBe(OUTPUT_PER_REQUEST);
     await store.settleRequest(id, { input: 123, output: 45 }, {});
     [r] = await store.db.query<any>('SELECT * FROM daily_usage');
     expect(Number(r.input_used)).toBe(123);
@@ -221,6 +284,6 @@ describe('provider-independent usage', () => {
 test('Unicode-aware character counter and server limits', () => {
   expect(characters('👨‍👩‍👧‍👦')).toBe(1);
   expect(characters('é')).toBe(1);
-  expect(commandSchema.safeParse({ type: 'question', text: 'a'.repeat(301) }).success).toBe(false);
-  expect(commandSchema.safeParse({ type: 'answer', text: 'a'.repeat(500) }).success).toBe(true);
+  expect(commandSchema.safeParse({ type: 'message', text: 'a'.repeat(501) }).success).toBe(false);
+  expect(commandSchema.safeParse({ type: 'message', text: 'a'.repeat(500) }).success).toBe(true);
 });

@@ -855,3 +855,52 @@ footer span:first-child {
     line-height: 1.6;
   }
 }
+
+.chat-transcript {
+  max-height: 52vh;
+  min-height: 180px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-block: 1px solid var(--border, #343a31);
+  padding: 16px 0;
+  margin-bottom: 20px;
+}
+.chat-message {
+  padding: 12px 18px;
+  margin: 0 0 8px;
+  border-radius: 10px;
+  background: #1a1e19;
+}
+.chat-message.from-judge {
+  background: transparent;
+  border-left: 2px solid #7c8c69;
+}
+.chat-sender {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #afb7a9;
+  font-size: 13px;
+}
+.chat-sender .label-square {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+}
+.chat-message p {
+  margin: 8px 0 0 36px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .chat-transcript {
+    max-height: 44vh;
+  }
+  .chat-message {
+    padding: 10px;
+  }
+  .chat-message p {
+    margin-left: 0;
+  }
+}

@@ -135,7 +135,7 @@ function App() {
                 <br />
                 the difference<span className="accent">?</span>
               </h1>
-              <p className="intro-copy">One human. One AI. Five questions. Choose your role.</p>
+              <p className="intro-copy">One human. One AI. One minute. Choose your role.</p>
             </section>
             <section aria-label="Join a game" className="play-section">
               {lobby?.queued ? (
@@ -231,7 +231,13 @@ function App() {
                       </div>
                       <h3>Match {m.id.slice(0, 6).toUpperCase()}</h3>
                       <div>
-                        <span>Question {m.round} of 5</span>
+                        <span>
+                          {['ready', 'opening', 'opening_ai'].includes(m.phase)
+                            ? 'Starting soon'
+                            : m.phase === 'verdict'
+                              ? 'Making the call'
+                              : 'Chat in progress'}
+                        </span>
                         <span className="accent">Watch ↗</span>
                       </div>
                     </button>
@@ -303,6 +309,7 @@ function Composer({
         e.preventDefault();
         if (!disabled && value.trim() && count <= limit) {
           onSubmit(value);
+          setValue('');
         }
       }}
     >
@@ -313,7 +320,13 @@ function Composer({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={label}
-        rows={3}
+        rows={2}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            e.currentTarget.form?.requestSubmit();
+          }
+        }}
         aria-describedby="character-count"
         maxLength={8000}
         disabled={disabled}
@@ -365,18 +378,26 @@ function Room({
       setCopied(false);
     }
   };
+  const chatRef = useRef<HTMLDivElement>(null);
+  const followChat = useRef(true);
+  useEffect(() => {
+    if (followChat.current && chatRef.current)
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [room.messages.length]);
   const status =
-    room.phase === 'question'
-      ? 'Waiting for the judge’s question'
-      : room.phase === 'answer' || room.phase === 'generating'
-        ? 'Answers will appear together'
-        : room.phase === 'verdict'
-          ? 'The judge is making the final call'
-          : room.phase === 'waiting'
-            ? 'Waiting for your opponent'
-            : room.phase === 'complete'
-              ? 'The verdict is in'
-              : 'Match ended';
+    room.phase === 'ready'
+      ? 'The judge sends the opening question.'
+      : room.phase === 'opening' || room.phase === 'opening_ai'
+        ? 'Opening replies will appear together. Then the minute starts.'
+        : room.phase === 'chat'
+          ? 'Chat is live.'
+          : room.phase === 'verdict'
+            ? 'Chat closed. The judge is making the final call.'
+            : room.phase === 'waiting'
+              ? 'Waiting for your opponent'
+              : room.phase === 'complete'
+                ? 'The verdict is in'
+                : 'Match ended';
   return (
     <div className="room-page">
       <div className="room-topline">
@@ -404,8 +425,13 @@ function Room({
                 : 'Match ended.'
               : room.phase === 'waiting'
                 ? 'Invite your opponent.'
-                : `Question ${Math.min(5, room.phase === 'question' ? room.rounds.length + 1 : Math.max(1, room.rounds.length))}`}
-            <span className="round-total">{done || room.phase === 'waiting' ? '' : ' / 5'}</span>
+                : room.phase === 'ready'
+                  ? 'Ready to chat?'
+                  : room.phase === 'verdict'
+                    ? 'Time’s up.'
+                    : room.phase === 'opening' || room.phase === 'opening_ai'
+                      ? 'The opening.'
+                      : 'The group chat.'}
           </h1>
         </div>
         <Countdown deadline={room.deadline} />
@@ -414,7 +440,7 @@ function Room({
         <div className="waiting-panel">
           <p>
             Share this invitation with your {room.openRole === 'judge' ? 'judge' : 'human opponent'}
-            . The match starts when they join.
+            . Both opening replies appear together, then the one-minute chat starts.
           </p>
           {room.inviteToken ? (
             <>
@@ -464,66 +490,65 @@ function Room({
           {room.message}
         </div>
       ) : null}
-      <div className="transcript">
-        {room.rounds.map((round, i) => (
-          <section className="round" key={i}>
-            <div className="question-line">
-              <span className="question-number">{String(i + 1).padStart(2, '0')}</span>
-              <div>
-                <p className="eyebrow">THE JUDGE ASKED</p>
-                <h2>{round.question}</h2>
-              </div>
-            </div>
-            {round.answers ? (
-              <div className="answer-grid">
-                {(['A', 'B'] as Label[]).map((label) => (
-                  <article className="answer-card" key={label}>
-                    <div className="answer-label">
-                      <span className="label-square">{label}</span>
-                      <span>Contestant {label}</span>
-                      {room.result ? (
-                        <span className="identity">
-                          {room.result.humanLabel === label ? 'HUMAN' : 'AI'}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p>{round.answers![label]}</p>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="unrevealed">
-                <span className="waiting-mark" />
-                <span>
-                  {done
-                    ? 'This round was not completed.'
-                    : isHuman && room.ownAnswer
-                      ? 'Your answer is locked in. Waiting for the reveal.'
-                      : 'Both answers are hidden until they’re ready.'}
+      {room.messages.length ? (
+        <div
+          className="chat-transcript"
+          ref={chatRef}
+          role="log"
+          aria-label="Group chat"
+          aria-live="polite"
+          onScroll={() => {
+            const el = chatRef.current!;
+            followChat.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+          }}
+        >
+          {room.messages.map((message) => (
+            <article
+              className={'chat-message ' + (message.sender === 'judge' ? 'from-judge' : '')}
+              key={message.id}
+            >
+              <div className="chat-sender">
+                <span className="label-square">
+                  {message.sender === 'judge' ? 'J' : message.sender}
                 </span>
+                <span>{message.sender === 'judge' ? 'Judge' : `Contestant ${message.sender}`}</span>
+                {room.result && message.sender !== 'judge' ? (
+                  <span className="identity">
+                    {room.result.humanLabel === message.sender ? 'HUMAN' : 'AI'}
+                  </span>
+                ) : null}
               </div>
-            )}
-          </section>
-        ))}
-      </div>
+              <p>{message.text}</p>
+            </article>
+          ))}
+        </div>
+      ) : null}
       {!done && room.phase !== 'waiting' ? (
-        <section className="action-panel" aria-label="Your turn">
-          {isJudge && room.phase === 'question' ? (
+        <section className="action-panel" aria-label="Chat controls">
+          {(isJudge && room.phase === 'ready') ||
+          (isHuman && room.phase === 'opening') ||
+          ((isJudge || isHuman) && room.phase === 'chat') ? (
             <Composer
-              key={`q${room.rounds.length}`}
-              label={room.rounds.length ? 'Ask your next question' : 'Ask your first question'}
-              limit={LIMITS.question}
-              onSubmit={(text) => send({ type: 'question', text })}
-              button="Ask both contestants"
-              disabled={!connected}
-            />
-          ) : isHuman && room.phase === 'answer' ? (
-            <Composer
-              key={`a${room.rounds.length}`}
-              label="Write your answer"
+              key={room.phase === 'opening' ? 'opening' : 'chat'}
+              label={
+                room.phase === 'ready'
+                  ? 'Ask the opening question'
+                  : room.phase === 'opening'
+                    ? 'Write your opening reply'
+                    : 'Message the group'
+              }
               limit={LIMITS.answer}
-              onSubmit={(text) => send({ type: 'answer', text })}
-              button="Lock in answer"
+              onSubmit={(text) => {
+                followChat.current = true;
+                send({ type: 'message', text });
+              }}
+              button={
+                room.phase === 'ready'
+                  ? 'Ask both contestants'
+                  : room.phase === 'opening'
+                    ? 'Submit opening reply'
+                    : 'Send'
+              }
               disabled={!connected}
             />
           ) : isJudge && room.phase === 'verdict' ? (
@@ -572,7 +597,9 @@ function Room({
             </form>
           ) : (
             <p className="turn-status" role="status">
-              {status}
+              {isHuman && room.ownOpening
+                ? 'Your opening reply is locked in. Waiting for both replies.'
+                : status}
             </p>
           )}
           {room.role === 'spectator' ? (
@@ -587,7 +614,7 @@ function Room({
                     key={label}
                     className={'choice ' + (room.vote === label ? 'selected' : '')}
                     aria-pressed={room.vote === label}
-                    disabled={!connected}
+                    disabled={!connected || room.phase === 'verdict'}
                     onClick={() => send({ type: 'vote', choice: label })}
                   >
                     {label}

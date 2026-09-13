@@ -1,41 +1,42 @@
 # The Turing Game — agreed product specification
 
-## Concept
+## Concept and participation
 
-Two humans participate: one contestant competing with an AI, and one judge trying to identify the human. Both contestants try to convince the judge they are human. Spectators can watch and guess. This is a deployed app, not a mockup.
+Two humans participate: a contestant competing with an AI, and a judge identifying the human. Spectators watch and guess. This is a deployed-app project, currently iterating locally before Fly deployment.
 
-## Match flow
+Choose human or judge for public matchmaking; no waiting-room directory. Invite links reserve the other seat. All matches, including invite rooms, are publicly watchable. Fixed random A/B labels conceal contestant identities until the verdict. No accounts; seats belong to a connected browser session.
 
-1. On the main dashboard choose Play as human or Play as judge. Public matchmaking pairs opposite roles, without listing waiting rooms.
-2. Alternatively create an invite room in either role and share a seat-invitation link. All rooms, including invite rooms, are publicly watchable; only the invitation permits claiming the other seat. Waiting rooms are not listed.
-3. The judge asks the opening question. Contestants receive randomly assigned A/B labels fixed throughout the match.
-4. Human commits an answer first. AI generates from game instructions, current question, previously revealed rounds, and the human’s submitted answer to this question. The AI can adapt its tone and length while composing an independent answer. Both answers are revealed atomically. Contestants see each other's revealed messages.
-5. Judge asks the next question immediately; no extra next-round button. Five rounds, then mandatory verdict. No early guess.
-6. Judge selects A or B as human and may add optional reasoning. Choice and reasoning are submitted before identity reveal. Correct choice means human and judge succeed; otherwise AI wins.
-7. Spectators may choose A/B, revise until verdict, and see aggregate votes only after verdict. One vote per anonymous browser session; no accounts means this is casual voting, not fraud-proof polling.
-8. A permanent public match URL shows completed transcript, identities, verdict, judge explanation and audience totals.
+## Paired opening, then one-minute group chat
+
+1. The judge sends an opening question. The free-chat timer has not started.
+2. The human submits their opening reply privately. The AI receives the question and this reply as a private style reference. Its reply must be independent and must not reveal that it saw the human's reply.
+3. Both opening replies are revealed in a single update, in random order independent of A/B identity. They share a timestamp. The server starts the 60-second timer at this reveal.
+4. The judge, human, and AI may all post freely in one chronological group chat. They may respond to each other and introduce topics. Messages appear immediately as complete messages. There are no turns after the opening and no typing/streaming indicators. All posted messages are shared context; unsent drafts are never transmitted.
+5. At the deadline, chat locks, pending AI work is cancelled and late output is discarded. The judge then chooses A or B as human, with optional reasoning. No early verdict. Identities and audience totals are revealed only after verdict and reasoning commit together.
+6. Permanent public replay shows the transcript and result. Historical five-round replays remain readable; unrevealed historical answers remain private.
+
+Spectators may revise their private guess until chat closes, then guesses lock. One vote per anonymous browser session; participants cannot also vote. Correct verdict means human wins; otherwise AI wins.
 
 ## Time and limits
 
-The original five-minute proposal was replaced by five questions. Each human action has a 90-second deadline (including the verdict); while AI generates it has its own request timeout. Question limit 300 characters, each contestant answer 500, with Twitter-style live remaining counter and enforced submission limit. A separate UTF-8 byte ceiling (four times the character limit) bounds pathological combining-character input. Use Unicode grapheme characters consistently; this means a family emoji counts as one character, not Twitter's special URL weighting. Optional explanation has a 1000-character bound.
+The opening question, opening human reply, invite seat and final verdict each have a 90-second human-action timeout. Opening AI generation has a separate 30-second timeout. The 60-second free-chat clock begins only after both opening replies are revealed and never extends for new messages or AI generation.
 
-Disconnect or leave by either participant ends the match immediately once detected; no reconnection. Missing actions abandon the match. Provider failure ends it as technical failure. Preserve records; no win/loss for either case. Spectators disconnecting never end matches.
+Messages have a 500-grapheme limit and a UTF-8 byte ceiling of 2000. Judge reasoning has a 1000-grapheme limit. Each human participant can send up to 30 messages per match, including their opening. The AI has at most ten requests including its opening, reserved before admission. These are abuse/capacity bounds, not turns. AI starts another response no sooner than its pacing schedule and never runs two requests for a match concurrently. It may return [WAIT] to remain silent during free chat; this consumes a request but posts nothing.
 
-## AI
+Disconnect or leave abandons immediately once detected. No reconnection. Provider failure ends as technical failure, not a loss; preserve records. Spectator disconnection never ends a match.
 
-Use OpenRouter with configurable provider URL, credentials and model. Euryale 3.3 70B is the current play-test default after comparing ten scenarios each with Dolphin Mistral 24B Venice Edition. Prompt independent-style-v3 gives explicit style guidance and examples. The current human answer is a private style reference only: the AI must produce an independent answer, never reacting to, copying, or revealing knowledge of that pending answer. Previously revealed rounds are shared knowledge. Preserve the AI's own identity across rounds. Natural conversation including ordinary profanity is valid. The game is openly an AI-versus-human identity game; no external impersonation. See docs/ai-comparison.md for measured limitations.
+## AI and storage
 
-Store questions, answers, verdict, optional explanation, timestamps, model, prompt version and provider metadata. How to use these records to improve/train models is explicitly deferred. Never expose reasoning traces or pending answers to spectators/judge.
+Local play-testing uses Huihui Qwen3.6 35B-A3B MLX four-bit on this Mac, via a loopback OpenAI-compatible MLX-VLM service. Hosted Euryale and Dolphin remain available through explicit OpenRouter configuration. Local launch commands override the provider and use a dummy key; hosted credentials are retained. See docs/local-ai.md.
 
-## Capacity
+Prompt chat-history-v7 distinguishes the private opening from the public chat, allows ordinary profanity and exact-word matching, and prohibits quotation wrappers and narration. Its objective is to stay in contestant character. Model instruction-following and conversational quality require play-testing; no claim of guaranteed human-likeness.
 
-Owner funds usage. App-level daily input/output-token caps independent of provider billing; initial settings 1,000,000 input / 100,000 output, reset at midnight UTC. Durable ledger and conservative reservations for full five-round matches prevent concurrent over-admission. Count actual reported usage; missing/ambiguous reports keep conservative charges. Include failed requests and retries. Provider credit limit is an additional safeguard, not our implementation.
-When app allowance is exhausted, stop new matches and explain when it resets; viewing and replays continue. Reserve enough for started matches. Provider-wide outages or credit failures pause admissions and terminate affected matches cleanly with a technical-failure message. Operator can restore availability after fixing credentials/credits.
+Persist all submitted human opening replies, public messages, timestamps, judge verdict/reasoning, model/prompt versions, provider metadata and usage. Hidden opening content and identity mapping are serialized only for authorized views. How to use records for training remains deferred.
 
-## Interface
+## Capacity and deployment
 
-Dark, restrained game-show working surface; mobile support. Every text, button and element must serve a specific purpose. No promotional hero, filler copy, decorative dashboards, waiting-room directory or fabricated activity. Clear two-column A/B transcript on desktop, stacked on small screens. Equal contestant styling and no timing/typing indicators identifying the AI. Dashboard contains role choices, invitation creation and live matches.
+Owner funds hosted usage. Provider-independent daily caps initially 1,000,000 input / 100,000 output tokens UTC. Reserve ten requests at 7500 input / 512 output tokens each before admission; bound prompt payload conservatively and reconcile reported usage. Missing or failed requests remain conservatively charged. At chat closure, release unused reservation; in-flight charges remain until settlement. No automatic retries. Viewing/replays continue when new-match capacity is exhausted.
 
-## Stack and working agreement
+Bun/TypeScript game and React/Vite/Tailwind interface. PostgreSQL production; local PGlite for development. Single authoritative Fly machine with Managed Postgres planned, deployment paused pending owner details. Local inference is for development; deployment inference hosting is undecided.
 
-Bun, TypeScript throughout, Tailwind; Fly deployment. Agent chooses architecture, tools, documentation and tests. User suggested TanStack Start as an option, not a requirement. Conventional commits encouraged. Save project at ~/workspace/the-turing-game. No global installations without explicit approval; everything installed for the project stays inside it. Discover relevant skills using vercel-labs/skills/find-skills.
+Every UI element must serve a purpose. Minimal group chat, composer, timer, verdict and audience controls. No filler, decorative metrics or artificial games. Project-local installations only, conventional commits, maintained docs and AGENTS.md.

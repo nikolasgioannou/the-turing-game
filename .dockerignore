@@ -12,3 +12,6 @@ playwright-report
 .env.*
 
 .devtools/
+
+.venv/
+models/

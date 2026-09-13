@@ -8,10 +8,11 @@ async function participants(browser: Browser) {
   await j.goto('/');
   await h.getByRole('button', { name: /Play as human/ }).click();
   await j.getByRole('button', { name: /Play as judge/ }).click();
-  await expect(j.getByLabel('Ask your first question')).toBeVisible();
+  await expect(j.getByLabel('Ask the opening question')).toBeVisible();
   return { h, j, humanContext, judgeContext };
 }
 test('full multiplayer match, spectator vote and public replay', async ({ browser }) => {
+  test.setTimeout(90_000);
   const { h, j, humanContext, judgeContext } = await participants(browser);
   const spectatorContext = await browser.newContext();
   const s = await spectatorContext.newPage();
@@ -19,15 +20,24 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await expect(s.getByRole('heading', { name: 'Who do you think is human?' })).toBeVisible();
   await s.getByRole('button', { name: 'A', exact: true }).click();
   const humanLabel = (await h.getByText(/YOU ARE CONTESTANT/).textContent())!.trim().slice(-1);
-  for (let i = 0; i < 5; i++) {
-    await j
-      .getByLabel(i ? 'Ask your next question' : 'Ask your first question')
-      .fill(`Question ${i + 1}: what is your favorite food?`);
-    await j.getByRole('button', { name: /Ask both contestants/ }).click();
-    await h.getByLabel('Write your answer').fill(`Answer ${i + 1}: pizza, obviously.`);
-    await h.getByRole('button', { name: /Lock in answer/ }).click();
-    await expect(j.getByText(`Answer ${i + 1}: pizza, obviously.`, { exact: true })).toBeVisible();
-  }
+  await j.getByLabel('Ask the opening question').fill('What is your favorite food?');
+  await j.getByRole('button', { name: /Ask both contestants/ }).click();
+  await h.getByLabel('Write your opening reply').fill('pizza, obviously.');
+  await expect(j.getByText('pizza, obviously.', { exact: true })).toHaveCount(0);
+  await h.getByRole('button', { name: /Submit opening reply/ }).click();
+  await expect(j.getByText('pizza, obviously.', { exact: true })).toBeVisible();
+  await j.getByLabel('Message the group').fill('What topping?');
+  await j.getByRole('button', { name: 'Send', exact: false }).click();
+  await h.getByLabel('Message the group').fill('mushrooms');
+  await h.getByLabel('Message the group').press('Enter');
+  await expect(s.getByText('mushrooms', { exact: true })).toBeVisible();
+  await expect(h.getByLabel('Message the group')).toHaveValue('');
+  await s.screenshot({ path: 'work/chat-desktop.png', fullPage: true });
+  await h.setViewportSize({ width: 390, height: 844 });
+  await h.screenshot({ path: 'work/chat-mobile.png', fullPage: true });
+  expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(j.getByRole('heading', { name: 'Who is human?' })).toBeVisible({ timeout: 65_000 });
+  await expect(h.getByLabel('Message the group')).toHaveCount(0);
   await j.getByRole('button', { name: `Contestant ${humanLabel}`, exact: true }).click();
   await j.getByLabel('What gave them away?').fill('They kept it simple.');
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
@@ -58,7 +68,7 @@ test('invite room, public visibility, and disconnect ends the match', async ({ b
   await h.getByRole('button', { name: 'I’ll be the human' }).click();
   const invite = await h.getByLabel('Invitation link').inputValue();
   await j.goto(invite);
-  await expect(j.getByLabel('Ask your first question')).toBeVisible();
+  await expect(j.getByLabel('Ask the opening question')).toBeVisible();
   await hc.close();
   await expect(j.getByRole('status').filter({ hasText: 'A player disconnected' })).toBeVisible();
   await jc.close();

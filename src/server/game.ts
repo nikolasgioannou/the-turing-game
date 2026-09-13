@@ -2,7 +2,7 @@ import {
   commandSchema,
   ended,
   LIMITS,
-  type Command,
+  type ChatMessage,
   type Event,
   type Label,
   type Phase,
@@ -36,7 +36,12 @@ export type Match = {
   humanSession?: string;
   judgeSession?: string;
   inviteToken?: string;
-  rounds: Round[];
+  messages: ChatMessage[];
+  startedAt: number | null;
+  openingHuman: string | null;
+  aiDueAt: number | null;
+  aiRequests: number;
+  rounds?: Round[]; // Historical five-round replays only.
   votes: Record<string, Label>;
   choice: Label | null;
   reason: string;
@@ -79,13 +84,28 @@ export class Game {
   }
   view(m: Match, p?: Peer): RoomView {
     const role = p ? this.role(m, p) : 'spectator';
-    const answers = (r: Round) =>
-      r.revealedAt !== null
-        ? ({ [m.humanLabel]: r.human!, [m.humanLabel === 'A' ? 'B' : 'A']: r.ai! } as Record<
-            Label,
-            string
-          >)
-        : null;
+    // Preserve old replays without exposing answers that were never revealed.
+    const messages =
+      m.messages ??
+      (m.rounds ?? []).flatMap((r, i) => [
+        { id: `legacy-${i}-judge`, sender: 'judge' as const, text: r.question, sentAt: r.askedAt },
+        ...(r.revealedAt === null
+          ? []
+          : [
+              {
+                id: `legacy-${i}-A`,
+                sender: 'A' as const,
+                text: m.humanLabel === 'A' ? r.human! : r.ai!,
+                sentAt: r.revealedAt,
+              },
+              {
+                id: `legacy-${i}-B`,
+                sender: 'B' as const,
+                text: m.humanLabel === 'B' ? r.human! : r.ai!,
+                sentAt: r.revealedAt,
+              },
+            ]),
+      ]);
     return {
       id: m.id,
       phase: m.phase,
@@ -93,13 +113,9 @@ export class Game {
       deadline: m.deadline,
       role,
       ownLabel: role === 'human' ? m.humanLabel : null,
-      ownAnswer: role === 'human' ? (m.rounds.at(-1)?.human ?? null) : null,
-      rounds: m.rounds.map((r) => ({
-        question: r.question,
-        askedAt: r.askedAt,
-        answers: answers(r),
-        revealedAt: r.revealedAt,
-      })),
+      ownOpening: role === 'human' ? (m.openingHuman ?? null) : null,
+      messages: messages.map(({ id, sender, text, sentAt }) => ({ id, sender, text, sentAt })),
+      startedAt: m.startedAt ?? null,
       ...(role !== 'spectator' && m.phase === 'waiting' ? { inviteToken: m.inviteToken } : {}),
       openRole: m.phase === 'waiting' ? (m.humanPeer ? 'judge' : 'human') : null,
       spectatorCount: this.count(m),
@@ -126,7 +142,8 @@ export class Game {
       .filter((m) => !ended(m.phase) && m.phase !== 'waiting')
       .map((m) => ({
         id: m.id,
-        round: Math.max(1, m.rounds.length),
+        phase: m.phase as 'ready' | 'opening' | 'opening_ai' | 'chat' | 'verdict',
+        deadline: m.deadline,
         spectators: this.count(m),
         createdAt: m.createdAt,
       }));
@@ -172,7 +189,11 @@ export class Game {
       createdAt: this.now(),
       deadline: this.now() + LIMITS.actionMs,
       humanLabel: Math.random() < 0.5 ? 'A' : 'B',
-      rounds: [],
+      messages: [],
+      startedAt: null,
+      openingHuman: null,
+      aiDueAt: null,
+      aiRequests: 0,
       votes: {},
       choice: null,
       reason: '',
@@ -206,7 +227,7 @@ export class Game {
     }
     let m = p.roomId ? this.rooms.get(p.roomId) : undefined;
     if (m && !ended(m.phase) && m.deadline !== null && this.now() >= m.deadline)
-      await this.finish(m, 'abandoned', 'Time ran out. This match wasn’t counted.');
+      await this.expire(m);
     if (['queue', 'create', 'join'].includes(c.type)) {
       if (
         p.queue ||
@@ -225,7 +246,7 @@ export class Game {
           const next = await this.newMatch();
           this.assign(next, p, c.role);
           this.assign(next, other, other.queue!);
-          next.phase = 'question';
+          next.phase = 'ready';
           await this.persist(next);
         } else {
           p.roomId = undefined;
@@ -254,7 +275,7 @@ export class Game {
         if (next.humanSession === p.session || next.judgeSession === p.session)
           throw new ActionError('Open the invitation on another device or browser profile.');
         this.assign(next, p, next.humanPeer ? 'judge' : 'human');
-        next.phase = 'question';
+        next.phase = 'ready';
         next.deadline = this.now() + LIMITS.actionMs;
         await this.persist(next);
         return;
@@ -287,27 +308,40 @@ export class Game {
     }
     if (!m || ended(m.phase)) throw new ActionError('This match is no longer accepting actions.');
     const role = this.role(m, p);
-    if (c.type === 'question') {
-      if (role !== 'judge' || m.phase !== 'question')
-        throw new ActionError('It is not your turn to ask a question.');
-      m.rounds.push({
-        question: c.text,
-        askedAt: this.now(),
-        human: null,
-        ai: null,
-        revealedAt: null,
-      });
-      m.phase = 'answer';
-      m.deadline = this.now() + LIMITS.actionMs;
+    if (c.type === 'message') {
+      if (role === 'spectator' || !['ready', 'opening', 'chat'].includes(m.phase))
+        throw new ActionError('Chat is not accepting messages.');
+      if (m.phase === 'ready' && role !== 'judge')
+        throw new ActionError('The judge starts the chat.');
+      if (m.phase === 'opening') {
+        if (role !== 'human') throw new ActionError('Wait for the opening replies.');
+        m.openingHuman = c.text;
+        m.phase = 'opening_ai';
+        m.deadline = null;
+        await this.persist(m);
+        await this.generate(m);
+        return;
+      }
+      const sender = role === 'judge' ? 'judge' : m.humanLabel;
+      const own = m.messages.filter((message) => message.sender === sender);
+      if (own.length >= LIMITS.messagesPerPerson)
+        throw new ActionError('You have reached the message limit for this chat.');
+      if (m.phase === 'ready') {
+        m.phase = 'opening';
+        m.deadline = this.now() + LIMITS.actionMs;
+        m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
+        await this.persist(m);
+        return;
+      }
+      m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
+      // New messages can bring a scheduled reply forward, but never create concurrent requests.
+      const aiLabel = m.humanLabel === 'A' ? 'B' : 'A';
+      const lastAI =
+        [...m.messages].reverse().find((message) => message.sender === aiLabel)?.sentAt ??
+        m.startedAt!;
+      const due = Math.max(this.now() + 1500, lastAI + 4000);
+      m.aiDueAt = m.aiDueAt === null ? due : Math.min(m.aiDueAt, due);
       await this.persist(m);
-    } else if (c.type === 'answer') {
-      if (role !== 'human' || m.phase !== 'answer')
-        throw new ActionError('It is not your turn to answer.');
-      m.rounds.at(-1)!.human = c.text;
-      m.phase = 'generating';
-      m.deadline = null;
-      await this.persist(m);
-      await this.generate(m);
     } else if (c.type === 'verdict') {
       if (role !== 'judge' || m.phase !== 'verdict')
         throw new ActionError('The verdict is not available yet.');
@@ -319,7 +353,7 @@ export class Game {
         role !== 'spectator' ||
         m.humanSession === p.session ||
         m.judgeSession === p.session ||
-        m.phase === 'waiting'
+        !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase)
       )
         throw new ActionError('Only spectators can submit an audience guess.');
       m.votes[p.session] = c.choice;
@@ -327,31 +361,33 @@ export class Game {
     }
   }
   async generate(m: Match) {
-    const current = m.rounds.at(-1)!;
+    const opening = m.phase === 'opening_ai';
+    if (
+      (!opening && (m.phase !== 'chat' || this.now() >= m.deadline!)) ||
+      this.controllers.has(m.id) ||
+      m.aiRequests >= LIMITS.aiRequests
+    )
+      return;
     const input: AIInput = {
       label: m.humanLabel === 'A' ? 'B' : 'A',
-      question: current.question,
-      humanAnswer: current.human!,
       matchId: m.id,
-      history: m.rounds.slice(0, -1).map((r) => ({
-        question: r.question,
-        answers: {
-          [m.humanLabel]: r.human!,
-          [m.humanLabel === 'A' ? 'B' : 'A']: r.ai!,
-        } as Record<Label, string>,
-      })),
+      messages: m.messages.map(({ sender, text }) => ({ sender, text })),
+      ...(opening ? { privateOpeningReference: m.openingHuman! } : {}),
     };
     let requestId: string;
     try {
       requestId = await this.store.beginRequest(m.id, {
         model: this.ai.model,
         promptVersion: PROMPT_VERSION,
-        round: m.rounds.length,
+        messageCount: m.messages.length,
+        request: m.aiRequests + 1,
       });
     } catch {
       await this.finish(m, 'failed', 'The AI could not start. This match wasn’t counted.');
       return;
     }
+    m.aiRequests++;
+    m.aiDueAt = null;
     const controller = new AbortController();
     this.controllers.set(m.id, controller);
     const timer = setTimeout(() => controller.abort(), 30_000);
@@ -366,11 +402,39 @@ export class Game {
             requestId: result.requestId,
             status: 'ok',
           });
-          if (ended(m.phase)) return;
-          current.ai = result.text;
-          current.revealedAt = this.now();
-          m.phase = m.rounds.length === 5 ? 'verdict' : 'question';
-          m.deadline = this.now() + LIMITS.actionMs;
+          if (opening && m.phase === 'opening_ai') {
+            if (result.text === '[WAIT]') {
+              await this.finish(m, 'failed', 'The AI did not answer. This match wasn’t counted.');
+              return;
+            }
+            const sentAt = this.now();
+            const pair: ChatMessage[] = [
+              { id: crypto.randomUUID(), sender: m.humanLabel, text: m.openingHuman!, sentAt },
+              { id: crypto.randomUUID(), sender: input.label, text: result.text, sentAt },
+            ];
+            if (Math.random() < 0.5) pair.reverse();
+            m.messages.push(...pair);
+            m.openingHuman = null;
+            m.phase = 'chat';
+            m.startedAt = sentAt;
+            m.deadline = sentAt + LIMITS.chatMs;
+            m.aiDueAt = sentAt + 5000 + Math.random() * 4000;
+            await this.persist(m);
+            return;
+          }
+          if (m.phase !== 'chat') return;
+          if (this.now() >= m.deadline!) {
+            await this.expire(m);
+            return;
+          }
+          if (result.text !== '[WAIT]')
+            m.messages.push({
+              id: crypto.randomUUID(),
+              sender: input.label,
+              text: result.text,
+              sentAt: this.now(),
+            });
+          m.aiDueAt = this.now() + 5000 + Math.random() * 4000;
           await this.persist(m);
         }),
       )
@@ -380,7 +444,11 @@ export class Game {
             status: 'failed',
             code: error instanceof AIError ? error.code : 'unknown',
           });
-          if (ended(m.phase)) return;
+          if (m.phase !== 'chat' && m.phase !== 'opening_ai') return;
+          if (m.phase === 'chat' && this.now() >= m.deadline!) {
+            await this.expire(m);
+            return;
+          }
           await this.store.pause(
             'The AI is temporarily unavailable. Please try again later.',
             error instanceof AIError ? error.retryMs : 60_000,
@@ -410,6 +478,7 @@ export class Game {
   async finish(m: Match, phase: Phase, message: string | null) {
     m.phase = phase;
     m.message = message;
+    m.aiDueAt = null;
     m.deadline = null;
     this.controllers.get(m.id)?.abort();
     await this.store.release(m.id);
@@ -423,16 +492,29 @@ export class Game {
     else if (m) this.broadcast(m);
     await this.lobby();
   }
+  async expire(m: Match) {
+    if (m.phase === 'chat') {
+      m.phase = 'verdict';
+      m.deadline = this.now() + LIMITS.actionMs;
+      m.aiDueAt = null;
+      this.controllers.get(m.id)?.abort();
+      await this.store.release(m.id);
+      await this.persist(m);
+    } else {
+      await this.finish(
+        m,
+        'abandoned',
+        m.phase === 'waiting'
+          ? 'The invitation expired.'
+          : 'Time ran out. This match wasn’t counted.',
+      );
+    }
+  }
   async tick() {
     for (const m of this.rooms.values()) {
-      if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline)
-        await this.finish(
-          m,
-          'abandoned',
-          m.phase === 'waiting'
-            ? 'The invitation expired.'
-            : 'Time ran out. This match wasn’t counted.',
-        );
+      if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline) await this.expire(m);
+      if (m.phase === 'chat' && m.aiDueAt !== null && this.now() >= m.aiDueAt)
+        await this.generate(m);
       if (ended(m.phase) && ![...this.peers.values()].some((p) => p.roomId === m.id))
         this.rooms.delete(m.id);
     }

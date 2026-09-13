@@ -12,3 +12,6 @@ playwright-report/
 .DS_Store
 
 .devtools/
+
+.venv/
+models/

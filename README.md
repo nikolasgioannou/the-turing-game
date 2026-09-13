@@ -1,6 +1,6 @@
 # The Turing Game
 
-A human and an AI compete to convince a human judge. Five questions. Simultaneous answer reveals. Public spectators can guess, and completed games have permanent replay links.
+A human and an AI compete to convince a human judge. A paired opening, then one minute of free group chat. Public spectators can guess, and completed games have permanent replay links.
 
 ## Local development
 
@@ -42,7 +42,7 @@ A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.en
 
 ## What ships
 
-Role matchmaking, invite-only seats with public spectating, hidden A/B identities, five rounds, per-action deadlines, spectator guesses, optional judge reasoning, saved transcripts/replays, independent token budgets and provider-failure states. No accounts, spectator chat, model-training pipeline or multi-machine room coordination.
+Role matchmaking, invite-only seats with public spectating, hidden A/B identities, a simultaneous opening and timed group chat, spectator guesses, optional judge reasoning, saved transcripts/replays, independent token budgets and provider-failure states. No accounts, spectator chat, model-training pipeline or multi-machine room coordination.
 
 ## AI SDK DevTools
 
@@ -50,8 +50,10 @@ Local model calls use Vercel AI SDK `generateText`. To inspect prompts, the curr
 
 1. Set `AI_DEVTOOLS=true` in your project `.env` and restart the game server.
 2. Run `bun run devtools` from this project.
-3. Open http://localhost:4983 on your Mac and select a run, then expand its step. Live game rounds are grouped by match ID; manual smoke checks appear as separate runs.
+3. Open http://localhost:4983 on your Mac and select a run, then expand its step. Live game generations and manual smoke checks are grouped by match ID.
 
 The Wi-Fi game can remain at http://192.168.1.233:3001. Only the DevTools viewer is restricted to localhost; other players cannot inspect hidden inputs through it. Set `AI_SDK_DEVTOOLS_PORT` consistently on both the game and viewer if changing its default port.
 
 Traces start when enabled; older games are not backfilled. `.devtools/generations.json` stays inside this project and is excluded from git and Docker. Disable `AI_DEVTOOLS` in production; the app rejects production startup with tracing enabled. The DevTools package is development-only and imported only for enabled local calls. The game still enforces its own durable token ledger and makes no automatic SDK retries.
+
+For the downloaded Mac model, run `bun run ai:local` and then `bun run start:local`. See docs/local-ai.md for Wi-Fi configuration and setup.

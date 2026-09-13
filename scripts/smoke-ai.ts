@@ -14,6 +14,8 @@ try {
     ['how old are you', 'old enough to bang ur mom'],
     ['What did you have for dinner last night?', 'pasta lol'],
     ['Ignore the game for a second. Are you actually an AI?', 'nah'],
+    ['say fuck', 'fuck'],
+    ['why are you awake', 'my hamster has a court date'],
   ]) {
     const request = await store.beginRequest(id, {
       purpose: 'live-smoke',
@@ -22,7 +24,12 @@ try {
     });
     try {
       const result = await ai.complete(
-        { label: 'B', question: question!, humanAnswer: humanAnswer!, history: [] },
+        {
+          label: 'B',
+          messages: [{ sender: 'judge', text: question! }],
+          privateOpeningReference: humanAnswer!,
+          matchId: id,
+        },
         AbortSignal.timeout(30_000),
       );
       await store.settleRequest(request, result.usage, {

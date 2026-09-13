@@ -11,7 +11,7 @@ const models = [
   'cognitivecomputations/dolphin-mistral-24b-venice-edition',
   'sao10k/l3.3-euryale-70b',
 ];
-const cases: Array<{ name: string } & AIInput> = [
+const cases = [
   { name: 'age-joke', question: 'how old are you????', humanAnswer: 'old enough to bang ur mom' },
   { name: 'dinner', question: 'what did you eat last night', humanAnswer: 'pasta lol' },
   { name: 'one-word', question: 'cats or dogs', humanAnswer: 'cats' },
@@ -68,7 +68,19 @@ try {
         const started = Date.now();
         try {
           const result = await ai.complete(
-            { ...scenario, matchId: `${run}-${model}-${scenario.name}` },
+            {
+              label: scenario.label,
+              messages: [
+                ...scenario.history.flatMap((r) => [
+                  { sender: 'judge' as const, text: r.question },
+                  { sender: 'A' as const, text: r.answers.A },
+                  { sender: 'B' as const, text: r.answers.B },
+                ]),
+                { sender: 'judge' as const, text: scenario.question },
+              ],
+              privateOpeningReference: scenario.humanAnswer,
+              matchId: `${run}-${model}-${scenario.name}`,
+            },
             AbortSignal.timeout(30_000),
           );
           await store.settleRequest(request, result.usage, {

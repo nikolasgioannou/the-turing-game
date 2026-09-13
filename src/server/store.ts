@@ -1,8 +1,9 @@
+import { LIMITS } from '../shared/protocol';
 import type { Database } from './database';
-export const INPUT_PER_ROUND = 40_000,
-  OUTPUT_PER_ROUND = 512;
-export const MATCH_INPUT = INPUT_PER_ROUND * 5,
-  MATCH_OUTPUT = OUTPUT_PER_ROUND * 5;
+export const INPUT_PER_REQUEST = 7_500,
+  OUTPUT_PER_REQUEST = 512;
+export const MATCH_INPUT = INPUT_PER_REQUEST * LIMITS.aiRequests,
+  MATCH_OUTPUT = OUTPUT_PER_REQUEST * LIMITS.aiRequests;
 export type Allowance = { input: number; output: number };
 export class Store {
   constructor(
@@ -100,19 +101,23 @@ export class Store {
       const [r] = await tx.query<any>('SELECT * FROM reservations WHERE id=$1 FOR UPDATE', [
         matchId,
       ]);
-      if (!r || Number(r.input_left) < INPUT_PER_ROUND || Number(r.output_left) < OUTPUT_PER_ROUND)
+      if (
+        !r ||
+        Number(r.input_left) < INPUT_PER_REQUEST ||
+        Number(r.output_left) < OUTPUT_PER_REQUEST
+      )
         throw new Error('No reserved AI capacity.');
       await tx.query(
         'UPDATE reservations SET input_left=input_left-$2,output_left=output_left-$3 WHERE id=$1',
-        [matchId, INPUT_PER_ROUND, OUTPUT_PER_ROUND],
+        [matchId, INPUT_PER_REQUEST, OUTPUT_PER_REQUEST],
       );
       await tx.query(
         'UPDATE daily_usage SET input_reserved=input_reserved-$2,output_reserved=output_reserved-$3,input_used=input_used+$2,output_used=output_used+$3 WHERE day=$1',
-        [r.day, INPUT_PER_ROUND, OUTPUT_PER_ROUND],
+        [r.day, INPUT_PER_REQUEST, OUTPUT_PER_REQUEST],
       );
       await tx.query(
         'INSERT INTO ai_requests(id,match_id,day,input_tokens,output_tokens,metadata) VALUES($1,$2,$3,$4,$5,$6::jsonb)',
-        [id, matchId, r.day, INPUT_PER_ROUND, OUTPUT_PER_ROUND, JSON.stringify(metadata)],
+        [id, matchId, r.day, INPUT_PER_REQUEST, OUTPUT_PER_REQUEST, JSON.stringify(metadata)],
       );
     });
     return id;

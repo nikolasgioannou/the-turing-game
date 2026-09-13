@@ -13,8 +13,8 @@ Read docs/product.md before changing behavior, docs/architecture.md before chang
 
 ## Product invariants
 
-- Five questions; 90 seconds per human action. No whole-match timer.
-- Human submits first; AI sees the current submitted human answer, previous revealed rounds and the current question. Reveal answers together. Use the pending answer only for style; never react to or disclose its contents in the AI reply.
+- Paired opening, then a 60-second group chat. The clock starts at opening reveal. 90-second opening/verdict action timeouts.
+- Opening: human submits privately; AI uses it only for style. Reveal both in random order together. Then all three may post and respond freely. Cancel late AI replies at chat closure.
 - Serialize explicit public views. Never send hidden answers, identity mapping, participant credentials, prompt, or early audience results to browsers.
 - Anonymous A/B assignments stay fixed. All rooms are publicly watchable; invite tokens reserve seats only.
 - Disconnect/leave abandons a match. No reconnection; socket loss is authoritative, heartbeat detects dead peers.
@@ -26,7 +26,7 @@ Read docs/product.md before changing behavior, docs/architecture.md before chang
 ## Validation
 
 - bun run check before a feature milestone.
-- Test state transitions, authority checks, answer/identity secrecy, simultaneous reveal, usage exhaustion/races, stale AI completions, timeouts and disconnects.
+- Test state transitions, authority checks, opening/identity secrecy, simultaneous opening reveal, chat deadline and pacing, usage exhaustion/races, stale AI completions, timeouts and disconnects.
 - Exercise real HTTP/WebSocket flows with deterministic mock AI. Mock mode must be explicit and prohibited in production.
 - Review desktop/mobile UI, keyboard labels, focus and contrast. Test full journeys in isolated browser contexts.
 - Keep docs/progress.md honest about deployment and credentials. Never claim live AI or deployment tests without running them.

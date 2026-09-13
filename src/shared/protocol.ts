@@ -1,6 +1,8 @@
 import { z } from 'zod';
 export const LIMITS = {
-  rounds: 5,
+  chatMs: 60_000,
+  aiRequests: 10,
+  messagesPerPerson: 30,
   question: 300,
   answer: 500,
   reason: 1000,
@@ -30,8 +32,7 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('join'), token: z.string().min(20).max(100) }),
   z.object({ type: z.literal('watch'), id: z.string().uuid() }),
   z.object({ type: z.literal('home') }),
-  z.object({ type: z.literal('question'), text: text(LIMITS.question) }),
-  z.object({ type: z.literal('answer'), text: text(LIMITS.answer) }),
+  z.object({ type: z.literal('message'), text: text(LIMITS.answer) }),
   z.object({
     type: z.literal('verdict'),
     choice: z.enum(['A', 'B']),
@@ -50,28 +51,30 @@ export type Role = 'human' | 'judge';
 export type Label = 'A' | 'B';
 export type Phase =
   | 'waiting'
-  | 'question'
-  | 'answer'
-  | 'generating'
+  | 'ready'
+  | 'opening'
+  | 'opening_ai'
+  | 'chat'
   | 'verdict'
   | 'complete'
   | 'abandoned'
   | 'failed';
-export type RoundView = {
-  question: string;
-  askedAt: number;
-  answers: Record<Label, string> | null;
-  revealedAt: number | null;
+export type ChatMessage = {
+  id: string;
+  sender: 'judge' | Label;
+  text: string;
+  sentAt: number;
 };
 export type RoomView = {
   id: string;
   phase: Phase;
-  rounds: RoundView[];
+  messages: ChatMessage[];
+  startedAt: number | null;
   createdAt: number;
   deadline: number | null;
   role: Role | 'spectator';
   ownLabel: Label | null;
-  ownAnswer: string | null;
+  ownOpening: string | null;
   inviteToken?: string;
   openRole: Role | null;
   spectatorCount: number;
@@ -86,7 +89,13 @@ export type RoomView = {
   message: string | null;
 };
 export type Lobby = {
-  rooms: { id: string; round: number; spectators: number; createdAt: number }[];
+  rooms: {
+    id: string;
+    phase: 'ready' | 'opening' | 'opening_ai' | 'chat' | 'verdict';
+    deadline: number | null;
+    spectators: number;
+    createdAt: number;
+  }[];
   availability: { available: boolean; message: string | null; resetsAt: number };
   queued: Role | null;
   mock: boolean;
