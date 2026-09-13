@@ -62,7 +62,7 @@ describe('AI SDK adapter', () => {
     expect(body.max_tokens).toBe(512);
     expect(body.temperature).toBe(0.9);
     expect(body.messages[0].content).toBe(SYSTEM_PROMPT);
-    expect(JSON.parse(body.messages[1].content).humanAnswer).toBe('old enough');
+    expect(JSON.parse(body.messages[1].content).privateStyleReference).toBe('old enough');
     expect(result.text).toBe('25 lol');
     expect(result.usage).toEqual({ input: 123, output: 7 });
     expect(result.provider).toBe('fixture-provider');

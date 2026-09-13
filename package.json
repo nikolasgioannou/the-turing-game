@@ -16,7 +16,8 @@
     "test:e2e": "bun scripts/e2e.ts",
     "format": "prettier --write src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts",
     "format:check": "prettier --check src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts",
-    "devtools": "bun node_modules/@ai-sdk/devtools/bin/cli.js"
+    "devtools": "bun node_modules/@ai-sdk/devtools/bin/cli.js",
+    "compare:ai": "PGLITE_PATH=./work/comparison-postgres AI_DEVTOOLS=true bun scripts/compare-ai.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "3.0.48",

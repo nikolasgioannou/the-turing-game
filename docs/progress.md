@@ -50,3 +50,11 @@ Wi-Fi server restarted on http://192.168.1.233:3001 with live AI and data/wifi P
 Installed project-local ai 7.0.99, @ai-sdk/openai-compatible 3.0.48 and @ai-sdk/devtools 1.0.19, plus Vercel's ai-sdk skill. Migrated raw fetch to generateText and local DevToolsTelemetry. Prompt/model behavior unchanged from opponent-context-v2. SDK retries disabled; budget/error/usage behavior covered by four new adapter tests. 16 tests/79 assertions, TypeScript and build passed. Three real model calls succeeded and appeared in DevTools; visually inspected input (including human answer), output, token usage and raw-payload controls. Checked trace file did not contain the configured API key.
 
 Local .env has AI_DEVTOOLS=true. Viewer running at http://localhost:4983 (loopback only); Wi-Fi live server restarted at http://192.168.1.233:3001 with tracing. Traces remain in ignored .devtools/generations.json. No historical trace backfill. Fly remains paused.
+
+## Independent answers and model comparison
+
+Owner caught an information leak in a proposed example: responding to the human's hidden joke would reveal the AI. Prompt independent-style-v3 now explicitly prohibits reacting to pending answers; these are named privateStyleReference in the provider payload. Added independent examples, brevity guidance and continuity rules.
+
+Ran 20 real OpenRouter calls (ten per model). Euryale 3.3 70B gave stronger short replies and passed the embedded-instruction and identity-continuity probes; Dolphin failed both. Euryale selected as configurable default in code, local env, example env and Fly config. One Euryale call took 28.3s; latency remains a play-test concern. Full results and repeat command in docs/ai-comparison.md. All calls traced in DevTools and charged to an isolated local test ledger. No downloads or global installs. Fly remains paused.
+
+Validation after changes: 16 tests / 79 assertions, TypeScript and production build passed. Wi-Fi live server restarted at http://192.168.1.233:3001 with the new default and prompt; health endpoint returned ok. Existing DevTools viewer remains at http://localhost:4983.
