@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.cache/
+.tools/
+.env
+.env.*
+!.env.example
+data/
+work/
+test-results/
+playwright-report/
+.DS_Store
