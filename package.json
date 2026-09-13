@@ -1,0 +1,40 @@
+{
+  "name": "the-turing-game",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.2",
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "dev:server": "bun --watch src/server/index.ts",
+    "dev:client": "bun --bun run vite --host 127.0.0.1",
+    "build": "bun --bun run vite build",
+    "start": "bun src/server/index.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "check": "bun run typecheck && bun test && bun run build",
+    "test:e2e": "bun scripts/e2e.ts",
+    "format": "prettier --write src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts",
+    "format:check": "prettier --check src scripts tests docs README.md AGENTS.md package.json tsconfig.json vite.config.ts playwright.config.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "postgres": "3.4.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/bun": "1.4.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "prettier": "3.9.6",
+    "skills": "1.5.26",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vite": "8.3.0"
+  }
+}
