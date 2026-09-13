@@ -11,6 +11,7 @@ import {
   type RoomView,
 } from '../shared/protocol';
 import './styles.css';
+import './arcade.css';
 const pathCommand = (): Command | null => {
   const path = location.pathname.split('/');
   if (path[1] === 'match' && path[2]) return { type: 'watch', id: path[2] };
@@ -24,8 +25,7 @@ function App() {
     [error, setError] = useState<string | null>(null),
     [joining, setJoining] = useState(false),
     [inviteRole, setInviteRole] = useState(false),
-    [startOpen, setStartOpen] = useState(false),
-    [watchOpen, setWatchOpen] = useState(false);
+    [startOpen, setStartOpen] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
   const send = (command: Command) => {
@@ -132,26 +132,25 @@ function App() {
           <Room room={room} send={send} home={home} connected={connected} />
         ) : (
           <>
-            <section className="compact-lobby">
-              <h1>Who’s human?</h1>
-              <p>One human. One AI. One minute to decide.</p>
+            <section className="compact-lobby arcade-lobby">
+              <div className="cabinet-top">
+                <span>HUMAN VS MACHINE</span>
+                <span>60 SECOND SHOWDOWN</span>
+              </div>
+              <h1 className="arcade-logo">
+                <span>THE</span>TURING GAME
+              </h1>
+              <p className="arcade-tagline">One human. One AI. Sixty seconds.</p>
               <div className="lobby-actions">
                 <button
                   className="button primary"
+                  aria-label="Start game"
                   disabled={
                     !connected || joining || !!lobby?.queued || !lobby?.availability.available
                   }
                   onClick={() => setStartOpen(true)}
                 >
                   Start game
-                </button>
-                <button
-                  className="button secondary"
-                  aria-expanded={watchOpen}
-                  aria-controls="live-games"
-                  onClick={() => setWatchOpen(!watchOpen)}
-                >
-                  Watch live <span className="count">{lobby?.rooms.length ?? 0}</span>
                 </button>
               </div>
               {lobby?.queued ? (
@@ -168,6 +167,7 @@ function App() {
                   {lobby.availability.message}
                 </p>
               ) : null}
+              <ArcadeStage />
             </section>
             {startOpen ? (
               <StartDialog
@@ -176,7 +176,8 @@ function App() {
                   setInviteRole(false);
                 }}
               >
-                <h2>Start a game</h2>
+                <p className="eyebrow">PLAYER SELECT</p>
+                <h2>Choose your side</h2>
                 <div className="dialog-modes" aria-label="Game type">
                   <button
                     className={!inviteRole ? 'selected' : ''}
@@ -216,62 +217,57 @@ function App() {
                 </div>
               </StartDialog>
             ) : null}
-            {watchOpen ? (
-              <section className="live-section compact-live" id="live-games">
-                <div className="section-heading">
-                  <h2>
-                    Watch live <span className="count">{lobby?.rooms.length ?? 0}</span>
-                  </h2>
-                  <span className="muted">Watch and guess.</span>
-                </div>
-                {lobby?.rooms.length ? (
-                  <div className="live-grid">
-                    {lobby.rooms.map((m) => (
-                      <button
-                        key={m.id}
-                        className="live-card"
-                        onClick={() => send({ type: 'watch', id: m.id })}
-                      >
-                        <div>
-                          <span className="eyebrow">
-                            <span className="live-dot" /> LIVE
-                          </span>
-                          <span className="muted">{m.spectators} watching</span>
-                        </div>
-                        <h3>Match {m.id.slice(0, 6).toUpperCase()}</h3>
-                        <div>
-                          <span>
-                            {['ready', 'opening', 'opening_ai'].includes(m.phase)
-                              ? 'Starting soon'
-                              : m.phase === 'verdict'
-                                ? 'Making the call'
-                                : 'Chat in progress'}
-                          </span>
-                          <span className="accent">Watch ↗</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="empty-live">
-                    <span className="empty-symbol" aria-hidden="true">
-                      —
-                    </span>
-                    <p>
-                      No games in progress.
-                      <br />
-                      <span className="muted">Start a game to get one going.</span>
-                    </p>
-                  </div>
-                )}
-              </section>
-            ) : null}
-            <p className="public-note">
-              All games are public. Conversations and results are saved.
-            </p>
+            <p className="public-note">Conversations and results are saved.</p>
           </>
         )}
       </main>
+    </div>
+  );
+}
+function ArcadeStage() {
+  return (
+    <div className="arcade-stage" aria-label="Two contestants face a judge. Identify the human.">
+      <svg viewBox="0 0 640 210" role="img" aria-hidden="true" shapeRendering="crispEdges">
+        <defs>
+          <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="#173039" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <path d="M0 140H640V210H0Z" fill="url(#grid)" />
+        <path
+          d="M70 160V120H90V104H108V72H100V40H110V24H150V32H160V72H150V104H170V120H192V160Z"
+          fill="#0b1114"
+          stroke="#ff642b"
+          strokeWidth="4"
+        />
+        <path
+          d="M448 160V120H470V104H488V72H480V40H490V24H530V32H540V72H530V104H550V120H570V160Z"
+          fill="#0b1114"
+          stroke="#36cfff"
+          strokeWidth="4"
+        />
+        <path
+          d="M223 208V166H245V145H280V120H274V90H285V75H350V86H360V120H350V145H385V166H407V208Z"
+          fill="#101113"
+          stroke="#ffc56b"
+          strokeWidth="4"
+        />
+        <path d="M210 196H430V208H210Z" fill="#ff642b" />
+        <path d="M50 158H210V166H50Z" fill="#ff642b" />
+        <path d="M430 158H590V166H430Z" fill="#36cfff" />
+        <path
+          d="M182 91H212V113H182Z M426 91H456V113H426Z"
+          fill="#102b35"
+          stroke="#36cfff"
+          strokeWidth="2"
+        />
+      </svg>
+      <div className="stage-labels">
+        <span>A</span>
+        <span>JUDGE</span>
+        <span>B</span>
+      </div>
+      <p>Real people? Machines? You decide.</p>
     </div>
   );
 }
@@ -445,9 +441,11 @@ function Room({
           {!done && room.role !== 'spectator' ? 'Leave match' : '← Lobby'}
         </button>
         <span className="eyebrow">MATCH {room.id.slice(0, 6).toUpperCase()}</span>
-        <button className="text-button" onClick={() => copy()}>
-          {copied ? 'Copied' : 'Copy match link'}
-        </button>
+        {done ? (
+          <button className="text-button" onClick={() => copy()}>
+            {copied ? 'Copied' : 'Copy replay link'}
+          </button>
+        ) : null}
       </div>
       <div className="room-title">
         <div>
@@ -466,12 +464,12 @@ function Room({
               : room.phase === 'waiting'
                 ? 'Invite your opponent.'
                 : room.phase === 'ready'
-                  ? 'Group chat'
+                  ? 'Who is human?'
                   : room.phase === 'verdict'
                     ? 'Time’s up.'
                     : room.phase === 'opening' || room.phase === 'opening_ai'
                       ? 'Opening replies'
-                      : 'Group chat'}
+                      : 'Who is human?'}
           </h1>
         </div>
         <Countdown deadline={room.deadline} />
@@ -496,7 +494,7 @@ function Room({
           ) : (
             <p>Waiting for the invited player.</p>
           )}
-          <p className="muted">Anyone can watch. Only the invited player can take the open seat.</p>
+          <p className="muted">Only the invited player can take the open seat.</p>
         </div>
       ) : null}
       {room.result ? (
@@ -514,15 +512,6 @@ function Room({
               “{room.result.reason}”<cite>The judge’s reasoning</cite>
             </blockquote>
           ) : null}
-          <div className="audience-result">
-            <span>Audience guesses</span>
-            <span>
-              A <strong>{room.result.votes.A}</strong>
-            </span>
-            <span>
-              B <strong>{room.result.votes.B}</strong>
-            </span>
-          </div>
         </section>
       ) : null}
       {room.message ? (
@@ -683,8 +672,7 @@ function Room({
         </div>
       ) : (
         <p className="public-note">
-          {room.spectatorCount} watching
-          {room.role !== 'spectator' ? ' · Leaving or disconnecting ends your match.' : ''}
+          {room.role !== 'spectator' ? 'Leaving or disconnecting ends your match.' : ''}
         </p>
       )}
     </div>

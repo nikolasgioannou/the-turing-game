@@ -4,7 +4,7 @@
 
 Two humans participate: a contestant competing with an AI, and a judge identifying the human. Spectators watch and guess. This is a deployed-app project, currently iterating locally before Fly deployment.
 
-Start game opens a dialog to choose matchmaking or an invite room and then a role. Watch live is a secondary button that toggles the public game list; no waiting-room directory. Invite links reserve the other seat. All matches, including invite rooms, are publicly watchable. Fixed random A/B labels conceal contestant identities until the verdict. No accounts; seats belong to a connected browser session.
+Start game opens a dialog to choose matchmaking or an invite room and then a role. Live viewing is deferred from the interface: no Watch live action, game directory, viewer counts, live-share button, or audience totals. Existing spectator protocol and direct match/replay URLs are retained for later restoration. Invite links reserve the other seat. All matches, including invite rooms, are publicly watchable. Fixed random A/B labels conceal contestant identities until the verdict. No accounts; seats belong to a connected browser session.
 
 ## Paired opening, then one-minute group chat
 
@@ -39,4 +39,4 @@ Owner funds hosted usage. Provider-independent daily caps initially 1,000,000 in
 
 Bun/TypeScript game and React/Vite/Tailwind interface. PostgreSQL production; local PGlite for development. Single authoritative Fly machine with Managed Postgres planned, deployment paused pending owner details. Local inference is for development; deployment inference hosting is undecided.
 
-Every UI element must serve a purpose. Minimal group chat, composer, timer, verdict and audience controls. No filler, decorative metrics or artificial games. Project-local installations only, conventional commits, maintained docs and AGENTS.md.
+Visual direction: retro arcade, orange/cyan contestant colors, pixel typography, title-screen lobby and player-select dialog. Every UI element must serve a purpose. Minimal group chat, composer, timer, verdict and audience controls. No filler, decorative metrics or artificial games. Project-local installations only, conventional commits, maintained docs and AGENTS.md.

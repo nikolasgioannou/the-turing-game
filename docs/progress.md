@@ -90,3 +90,9 @@ Replaced the oversized role cards with Start game (primary) and Watch live (seco
 Replaced olive/lime styling with midnight blue surfaces, violet primary actions and cyan timer accents. Added tactile button borders/shadows and equal-weight A/B color badges, while retaining the compact chat bubbles and anchored composer. No additional services or assets installed.
 
 Final validation: 24 unit tests / 108 assertions and typecheck/build passed. The five existing browser journeys passed; the added compact-lobby check also passed after fixing dialog centering and Escape focus restoration. Reviewed the centered modal and mobile chat screenshots. Six browser checks verified in total.
+
+## Arcade direction selected
+
+Owner chose sample A (retro arcade) and deferred live viewing to reduce iteration scope. Added an orange/cyan arcade title screen, single Start game action, pixel contestant/judge scene, player-select dialog, and matching chat/verdict components. Press Start 2P font is project-local with OFL license. Removed live directory, watch action, live-share button, viewer counts and audience totals. Spectator protocol and direct match/replay access remain available internally for later restoration; this is not an access-control change.
+
+Validated typecheck/build and 24 unit tests at this milestone. Five focused browser checks passed across lobby, modal focus, invitation flow and short paired-opening chat. Fixed generated selection arrow changing the Start button accessible name. Desktop/mobile screenshots inspected; no overflow and mobile composer remains in viewport. Full one-minute suite was not rerun. Owner prefers full checks at milestones and fast visual iteration in between.

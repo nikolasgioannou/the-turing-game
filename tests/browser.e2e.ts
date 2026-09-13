@@ -47,7 +47,7 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
     s.getByRole('heading', { name: `Contestant ${humanLabel} was human.` }),
   ).toBeVisible();
   await expect(s.getByText('They kept it simple.', { exact: false })).toBeVisible();
-  await expect(s.getByText('Audience guesses')).toBeVisible();
+  await expect(s.getByText('Audience guesses')).toHaveCount(0);
   await s.screenshot({ path: 'work/match-desktop.png', fullPage: true });
   const url = s.url();
   await spectatorContext.close();
@@ -102,13 +102,12 @@ test('forged cross-origin sockets are rejected', async ({ request }) => {
   expect(response.status()).toBe(403);
 });
 
-test('compact lobby opens a role dialog and toggles live games', async ({ page }) => {
+test('arcade lobby opens a role dialog without live viewing', async ({ page }) => {
   await page.goto('/');
   const start = page.getByRole('button', { name: 'Start game', exact: true });
   await expect(start).toBeEnabled();
   await expect(page.getByRole('button', { name: /Play as human/ })).toHaveCount(0);
-  await page.getByRole('button', { name: /Watch live/ }).click();
-  await expect(page.locator('#live-games')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Watch live/ })).toHaveCount(0);
   await start.click();
   await expect(page.getByRole('dialog', { name: 'Start a game' })).toBeVisible();
   const bounds = await page.getByRole('dialog').boundingBox();
@@ -119,4 +118,20 @@ test('compact lobby opens a role dialog and toggles live games', async ({ page }
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(start).toBeFocused();
+});
+
+test('arcade chat keeps messages and composer readable on mobile', async ({ browser }) => {
+  const { h, j, humanContext, judgeContext } = await participants(browser);
+  await j.getByLabel('Ask the opening question').fill('whats your name');
+  await j.getByRole('button', { name: /Ask both contestants/ }).click();
+  await h.getByLabel('Write your opening reply').fill('im sam');
+  await h.getByRole('button', { name: /Submit opening reply/ }).click();
+  await expect(j.getByText('im sam', { exact: true })).toBeVisible();
+  await j.screenshot({ path: 'work/arcade-chat-desktop.png', fullPage: true });
+  await h.setViewportSize({ width: 390, height: 844 });
+  await expect(h.getByLabel('Message the group')).toBeInViewport();
+  expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await h.screenshot({ path: 'work/arcade-chat-mobile.png', fullPage: true });
+  await humanContext.close();
+  await judgeContext.close();
 });

@@ -25,7 +25,7 @@ Read docs/product.md before changing behavior, docs/architecture.md before chang
 
 ## Validation
 
-- bun run check before a feature milestone.
+- Run full checks at feature milestones, not after every feedback message. Keep visual iteration fast; use focused checks for changed interactions.
 - Test state transitions, authority checks, opening/identity secrecy, simultaneous opening reveal, chat deadline and pacing, usage exhaustion/races, stale AI completions, timeouts and disconnects.
 - Exercise real HTTP/WebSocket flows with deterministic mock AI. Mock mode must be explicit and prohibited in production.
 - Review desktop/mobile UI, keyboard labels, focus and contrast. Test full journeys in isolated browser contexts.
