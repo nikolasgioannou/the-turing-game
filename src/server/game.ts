@@ -368,6 +368,15 @@ export class Game {
       m.aiRequests >= LIMITS.aiRequests
     )
       return;
+    const aiLabel = m.humanLabel === 'A' ? 'B' : 'A';
+    if (
+      !opening &&
+      m.messages.slice(-2).length === 2 &&
+      m.messages.slice(-2).every((message) => message.sender === aiLabel)
+    ) {
+      m.aiDueAt = null;
+      return;
+    }
     const input: AIInput = {
       label: m.humanLabel === 'A' ? 'B' : 'A',
       matchId: m.id,
@@ -427,7 +436,10 @@ export class Game {
             await this.expire(m);
             return;
           }
-          if (result.text !== '[WAIT]')
+          if (
+            result.text !== '[WAIT]' &&
+            !(m.messages.at(-1)?.sender === input.label && m.messages.at(-1)?.text === result.text)
+          )
             m.messages.push({
               id: crypto.randomUUID(),
               sender: input.label,

@@ -4,7 +4,7 @@
 
 Two humans participate: a contestant competing with an AI, and a judge identifying the human. Spectators watch and guess. This is a deployed-app project, currently iterating locally before Fly deployment.
 
-Choose human or judge for public matchmaking; no waiting-room directory. Invite links reserve the other seat. All matches, including invite rooms, are publicly watchable. Fixed random A/B labels conceal contestant identities until the verdict. No accounts; seats belong to a connected browser session.
+Start game opens a dialog to choose matchmaking or an invite room and then a role. Watch live is a secondary button that toggles the public game list; no waiting-room directory. Invite links reserve the other seat. All matches, including invite rooms, are publicly watchable. Fixed random A/B labels conceal contestant identities until the verdict. No accounts; seats belong to a connected browser session.
 
 ## Paired opening, then one-minute group chat
 
@@ -29,7 +29,7 @@ Disconnect or leave abandons immediately once detected. No reconnection. Provide
 
 Local play-testing uses Huihui Qwen3.6 35B-A3B MLX four-bit on this Mac, via a loopback OpenAI-compatible MLX-VLM service. Hosted Euryale and Dolphin remain available through explicit OpenRouter configuration. Local launch commands override the provider and use a dummy key; hosted credentials are retained. See docs/local-ai.md.
 
-Prompt chat-history-v7 distinguishes the private opening from the public chat, allows ordinary profanity and exact-word matching, and prohibits quotation wrappers and narration. Its objective is to stay in contestant character. Model instruction-following and conversational quality require play-testing; no claim of guaranteed human-likeness.
+Prompt style-matched-chat-v8 distinguishes the private opening from the public chat, allows ordinary profanity and exact-word matching, and prohibits quotation wrappers and narration. Its objective is to stay in contestant character. Model instruction-following and conversational quality require play-testing; no claim of guaranteed human-likeness.
 
 Persist all submitted human opening replies, public messages, timestamps, judge verdict/reasoning, model/prompt versions, provider metadata and usage. Hidden opening content and identity mapping are serialized only for authorized views. How to use records for training remains deferred.
 

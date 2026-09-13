@@ -41,3 +41,9 @@ Production prohibits mock mode and requires AI_API_KEY, DATABASE_URL and APP_ORI
 The live provider adapter uses Vercel AI SDK 7 `generateText` with `@ai-sdk/openai-compatible`. The configured endpoint/key/model remain unchanged. OpenRouter reasoning-disable and fallback-disable fields are preserved through `transformRequestBody`; output limit, temperature, abort signal and `maxRetries: 0` preserve accounting behavior. API errors retain status codes for the provider circuit. Missing usage remains unknown and conservatively charged.
 
 `AI_DEVTOOLS=true` enables per-call `DevToolsTelemetry`, using the match ID as its run ID without inserting that ID into the model prompt. Raw body retention supports request/response inspection. The viewer is a separate loopback-only process. Production rejects enabled tracing; the development dependency is lazy-loaded and local files are excluded from both git and the Docker build context.
+
+## Style and conversation continuity
+
+The hidden opening style sample precedes the judge message so the judge is the final prompt to answer. The system prompt adds derived length, casing and punctuation guidance from the latest human contestant message, never from the judge or prior AI verbosity. Only structural style guidance enters the system prompt; raw contestant content remains escaped user-message content. DevTools records the complete derived prompt. The base prompt and version are stored with the match; style can be reconstructed from the input transcript.
+
+Two consecutive AI posts without a human/judge message pause proactive generation until a person speaks. Consecutive exact AI duplicates are suppressed; repeating an answer after a new human/judge message is allowed.

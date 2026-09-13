@@ -60,9 +60,9 @@ describe('AI SDK adapter', () => {
     expect(calls).toBe(1);
     expect(body.max_tokens).toBe(512);
     expect(body.temperature).toBe(0.9);
-    expect(body.messages[0].content).toBe(SYSTEM_PROMPT);
-    expect(body.messages[1]).toEqual({ role: 'user', content: '<judge>how old are you</judge>' });
-    expect(body.messages[2]).toEqual({
+    expect(body.messages[0].content).toStartWith(SYSTEM_PROMPT);
+    expect(body.messages[2]).toEqual({ role: 'user', content: '<judge>how old are you</judge>' });
+    expect(body.messages[1]).toEqual({
       role: 'user',
       content: '<private_opening>old enough</private_opening>',
     });
@@ -90,6 +90,27 @@ describe('AI SDK adapter', () => {
     ]);
     expect(JSON.stringify(messages)).not.toContain('remainingSeconds');
     expect(JSON.stringify(messages)).not.toContain('yourLabel');
+  });
+  test('style follows the human rather than the judge or the AI', () => {
+    const messages = buildMessages({
+      label: 'B',
+      messages: [
+        { sender: 'judge', text: 'Please introduce yourself formally.' },
+        { sender: 'B', text: "I'm Sam. Pleased to meet you." },
+        { sender: 'A', text: 'im nikka' },
+      ],
+    });
+    expect(messages[0].content).toContain('1–3 words');
+    expect(messages[0].content).toContain('without apostrophes');
+    expect(messages[2].role).toBe('assistant');
+    expect(messages[3].role).toBe('user');
+    const formal = buildMessages({
+      label: 'B',
+      messages: [{ sender: 'judge', text: 'Name?' }],
+      privateOpeningReference: 'My name is Clara.',
+    });
+    expect(formal[0].content).toContain('do not force slang or lowercase');
+    expect(formal.at(-1)?.content).toBe('<judge>Name?</judge>');
   });
   test('bounds long history while preserving the opening and latest message', () => {
     const messages = buildMessages({

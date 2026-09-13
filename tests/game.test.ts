@@ -126,8 +126,8 @@ describe('paired opening and group chat', () => {
     await game.handle(h.p, { type: 'message', text: 'still here' });
     await game.tick();
     expect(m.aiRequests).toBe(requests);
-    await complete('yeah me too');
-    expect(game.view(m).messages.at(-1)?.text).toBe('yeah me too');
+    await complete('AI ANSWER');
+    expect(game.view(m).messages.at(-1)?.text).toBe('AI ANSWER');
     expect(m.deadline).toBe(deadline);
   });
   test('at 60 seconds messages and audience lock; verdict and reason commit together', async () => {
@@ -196,6 +196,23 @@ describe('paired opening and group chat', () => {
     clock = m.aiDueAt! + 1;
     await game.tick();
     expect(game.controllers.has(m.id)).toBe(false);
+  });
+  test('AI stops after an unanswered follow-up and resumes when a person speaks', async () => {
+    const { h, m } = await opening();
+    await complete('im sam');
+    const label = m.humanLabel === 'A' ? 'B' : 'A';
+    m.messages.push({ id: crypto.randomUUID(), sender: label, text: 'anyone here', sentAt: clock });
+    m.messages.push({ id: crypto.randomUUID(), sender: label, text: 'still here', sentAt: clock });
+    clock = m.aiDueAt! + 1;
+    const requests = m.aiRequests;
+    await game.tick();
+    expect(m.aiDueAt).toBeNull();
+    expect(m.aiRequests).toBe(requests);
+    await game.handle(h.p, { type: 'message', text: 'yeah im here' });
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(m.aiRequests).toBe(requests + 1);
+    await complete('ok cool');
   });
   test('old replay mapping does not expose unfinished private answers', async () => {
     const { m } = await pair();

@@ -23,7 +23,9 @@ function App() {
     [connected, setConnected] = useState(false),
     [error, setError] = useState<string | null>(null),
     [joining, setJoining] = useState(false),
-    [inviteRole, setInviteRole] = useState(false);
+    [inviteRole, setInviteRole] = useState(false),
+    [startOpen, setStartOpen] = useState(false),
+    [watchOpen, setWatchOpen] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
   const send = (command: Command) => {
@@ -97,6 +99,7 @@ function App() {
   const play = (role: 'human' | 'judge', invite = false) => {
     setJoining(true);
     setInviteRole(false);
+    setStartOpen(false);
     send({ type: invite ? 'create' : 'queue', role });
   };
   return (
@@ -129,133 +132,140 @@ function App() {
           <Room room={room} send={send} home={home} connected={connected} />
         ) : (
           <>
-            <section className="intro">
-              <h1>
-                Can you tell
-                <br />
-                the difference<span className="accent">?</span>
-              </h1>
-              <p className="intro-copy">One human. One AI. One minute. Choose your role.</p>
-            </section>
-            <section aria-label="Join a game" className="play-section">
+            <section className="compact-lobby">
+              <h1>Who’s human?</h1>
+              <p>One human. One AI. One minute to decide.</p>
+              <div className="lobby-actions">
+                <button
+                  className="button primary"
+                  disabled={
+                    !connected || joining || !!lobby?.queued || !lobby?.availability.available
+                  }
+                  onClick={() => setStartOpen(true)}
+                >
+                  Start game
+                </button>
+                <button
+                  className="button secondary"
+                  aria-expanded={watchOpen}
+                  aria-controls="live-games"
+                  onClick={() => setWatchOpen(!watchOpen)}
+                >
+                  Watch live <span className="count">{lobby?.rooms.length ?? 0}</span>
+                </button>
+              </div>
               {lobby?.queued ? (
-                <div className="queue-state" role="status">
+                <div className="compact-queue" role="status">
                   <span className="waiting-mark" />
-                  <div>
-                    <h2>Finding a {lobby.queued === 'human' ? 'judge' : 'human'}…</h2>
-                    <p>You’re playing as {lobby.queued === 'human' ? 'the human' : 'the judge'}.</p>
-                  </div>
-                  <button className="button secondary" onClick={() => send({ type: 'cancel' })}>
+                  Finding a {lobby.queued === 'human' ? 'judge' : 'human'}…
+                  <button className="text-button" onClick={() => send({ type: 'cancel' })}>
                     Cancel
                   </button>
                 </div>
-              ) : (
-                <div className="role-grid">
-                  <button
-                    className="role-card human"
-                    disabled={!connected || joining || !lobby?.availability.available}
-                    onClick={() => play('human')}
-                  >
-                    <div>
-                      <h2>
-                        Play as human <span aria-hidden="true">↗</span>
-                      </h2>
-                      <p>Convince the judge you’re human.</p>
-                    </div>
-                  </button>
-                  <button
-                    className="role-card judge"
-                    disabled={!connected || joining || !lobby?.availability.available}
-                    onClick={() => play('judge')}
-                  >
-                    <div>
-                      <h2>
-                        Play as judge <span aria-hidden="true">↗</span>
-                      </h2>
-                      <p>Ask questions. Identify the human.</p>
-                    </div>
-                  </button>
-                </div>
-              )}
-              {!lobby?.availability.available && lobby ? (
+              ) : null}
+              {lobby && !lobby.availability.available ? (
                 <p className="capacity" role="status">
-                  {lobby.availability.message}{' '}
-                  {lobby.availability.message?.startsWith('Today')
-                    ? `Resets ${new Date(lobby.availability.resetsAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.`
-                    : ''}
+                  {lobby.availability.message}
                 </p>
               ) : null}
-              {!lobby?.queued ? (
-                <div className="invite-row">
+            </section>
+            {startOpen ? (
+              <StartDialog
+                close={() => {
+                  setStartOpen(false);
+                  setInviteRole(false);
+                }}
+              >
+                <h2>Start a game</h2>
+                <div className="dialog-modes" aria-label="Game type">
                   <button
-                    className="text-button"
-                    disabled={!connected || !lobby?.availability.available}
-                    onClick={() => setInviteRole(!inviteRole)}
-                    aria-expanded={inviteRole}
+                    className={!inviteRole ? 'selected' : ''}
+                    aria-pressed={!inviteRole}
+                    onClick={() => setInviteRole(false)}
                   >
-                    Create an invite room <span aria-hidden="true">↗</span>
+                    Find a match
                   </button>
-                  {inviteRole ? (
-                    <div className="invite-options">
-                      <button className="button secondary" onClick={() => play('human', true)}>
-                        I’ll be the human
+                  <button
+                    className={inviteRole ? 'selected' : ''}
+                    aria-pressed={inviteRole}
+                    onClick={() => setInviteRole(true)}
+                  >
+                    Invite a friend
+                  </button>
+                </div>
+                <p className="muted">
+                  {inviteRole
+                    ? 'Choose your role, then share the invitation.'
+                    : 'Choose your role. We’ll find your opponent.'}
+                </p>
+                <div className="dialog-roles">
+                  <button
+                    disabled={!connected || joining || !lobby?.availability.available}
+                    onClick={() => play('human', inviteRole)}
+                  >
+                    <strong>Play as human</strong>
+                    <span>Convince the judge you’re human.</span>
+                  </button>
+                  <button
+                    disabled={!connected || joining || !lobby?.availability.available}
+                    onClick={() => play('judge', inviteRole)}
+                  >
+                    <strong>Play as judge</strong>
+                    <span>Chat with both. Identify the human.</span>
+                  </button>
+                </div>
+              </StartDialog>
+            ) : null}
+            {watchOpen ? (
+              <section className="live-section compact-live" id="live-games">
+                <div className="section-heading">
+                  <h2>
+                    Watch live <span className="count">{lobby?.rooms.length ?? 0}</span>
+                  </h2>
+                  <span className="muted">Watch and guess.</span>
+                </div>
+                {lobby?.rooms.length ? (
+                  <div className="live-grid">
+                    {lobby.rooms.map((m) => (
+                      <button
+                        key={m.id}
+                        className="live-card"
+                        onClick={() => send({ type: 'watch', id: m.id })}
+                      >
+                        <div>
+                          <span className="eyebrow">
+                            <span className="live-dot" /> LIVE
+                          </span>
+                          <span className="muted">{m.spectators} watching</span>
+                        </div>
+                        <h3>Match {m.id.slice(0, 6).toUpperCase()}</h3>
+                        <div>
+                          <span>
+                            {['ready', 'opening', 'opening_ai'].includes(m.phase)
+                              ? 'Starting soon'
+                              : m.phase === 'verdict'
+                                ? 'Making the call'
+                                : 'Chat in progress'}
+                          </span>
+                          <span className="accent">Watch ↗</span>
+                        </div>
                       </button>
-                      <button className="button secondary" onClick={() => play('judge', true)}>
-                        I’ll be the judge
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </section>
-            <section className="live-section">
-              <div className="section-heading">
-                <h2>
-                  Watch live <span className="count">{lobby?.rooms.length ?? 0}</span>
-                </h2>
-                <span className="muted">Watch and guess.</span>
-              </div>
-              {lobby?.rooms.length ? (
-                <div className="live-grid">
-                  {lobby.rooms.map((m) => (
-                    <button
-                      key={m.id}
-                      className="live-card"
-                      onClick={() => send({ type: 'watch', id: m.id })}
-                    >
-                      <div>
-                        <span className="eyebrow">
-                          <span className="live-dot" /> LIVE
-                        </span>
-                        <span className="muted">{m.spectators} watching</span>
-                      </div>
-                      <h3>Match {m.id.slice(0, 6).toUpperCase()}</h3>
-                      <div>
-                        <span>
-                          {['ready', 'opening', 'opening_ai'].includes(m.phase)
-                            ? 'Starting soon'
-                            : m.phase === 'verdict'
-                              ? 'Making the call'
-                              : 'Chat in progress'}
-                        </span>
-                        <span className="accent">Watch ↗</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-live">
-                  <span className="empty-symbol" aria-hidden="true">
-                    —
-                  </span>
-                  <p>
-                    No games in progress.
-                    <br />
-                    <span className="muted">Choose a role above to start one.</span>
-                  </p>
-                </div>
-              )}
-            </section>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-live">
+                    <span className="empty-symbol" aria-hidden="true">
+                      —
+                    </span>
+                    <p>
+                      No games in progress.
+                      <br />
+                      <span className="muted">Start a game to get one going.</span>
+                    </p>
+                  </div>
+                )}
+              </section>
+            ) : null}
             <p className="public-note">
               All games are public. Conversations and results are saved.
             </p>
@@ -263,6 +273,36 @@ function App() {
         )}
       </main>
     </div>
+  );
+}
+function StartDialog({ close, children }: { close: () => void; children: React.ReactNode }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current!;
+    const trigger = document.activeElement as HTMLElement | null;
+    dialog.showModal();
+    return () => {
+      dialog.close();
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, []);
+  return (
+    <dialog
+      ref={ref}
+      className="start-dialog"
+      aria-label="Start a game"
+      onCancel={close}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <div className="dialog-content">
+        <button className="dialog-close" aria-label="Close dialog" onClick={close}>
+          ×
+        </button>
+        {children}
+      </div>
+    </dialog>
   );
 }
 function Countdown({ deadline }: { deadline: number | null }) {
@@ -399,7 +439,7 @@ function Room({
                 ? 'The verdict is in'
                 : 'Match ended';
   return (
-    <div className="room-page">
+    <div className={'room-page ' + (!done && room.phase !== 'waiting' ? 'active-chat' : '')}>
       <div className="room-topline">
         <button className="text-button" onClick={home}>
           {!done && room.role !== 'spectator' ? 'Leave match' : '← Lobby'}
@@ -426,12 +466,12 @@ function Room({
               : room.phase === 'waiting'
                 ? 'Invite your opponent.'
                 : room.phase === 'ready'
-                  ? 'Ready to chat?'
+                  ? 'Group chat'
                   : room.phase === 'verdict'
                     ? 'Time’s up.'
                     : room.phase === 'opening' || room.phase === 'opening_ai'
-                      ? 'The opening.'
-                      : 'The group chat.'}
+                      ? 'Opening replies'
+                      : 'Group chat'}
           </h1>
         </div>
         <Countdown deadline={room.deadline} />
@@ -490,7 +530,7 @@ function Room({
           {room.message}
         </div>
       ) : null}
-      {room.messages.length ? (
+      {room.messages.length || (!done && room.phase !== 'waiting') ? (
         <div
           className="chat-transcript"
           ref={chatRef}
@@ -504,7 +544,15 @@ function Room({
         >
           {room.messages.map((message) => (
             <article
-              className={'chat-message ' + (message.sender === 'judge' ? 'from-judge' : '')}
+              className={
+                'chat-message ' +
+                (message.sender === 'judge' ? 'from-judge ' : '') +
+                ((isHuman && message.sender === room.ownLabel) ||
+                (isJudge && message.sender === 'judge')
+                  ? 'own-message'
+                  : '')
+              }
+              data-sender={message.sender}
               key={message.id}
             >
               <div className="chat-sender">

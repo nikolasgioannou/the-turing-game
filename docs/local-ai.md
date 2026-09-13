@@ -36,7 +36,7 @@ The local game launcher overrides provider URL, model, and credentials for that 
 
 DevTools continues to capture the app's AI SDK requests (`bun run devtools`). The same durable token caps and 30-second generation timeout apply. With local concurrency set to one, simultaneous games can queue and time out; this is a local play-test setup, not a production capacity claim. Fly deployment remains deferred.
 
-Prompt chat-history-v7 allows identical responses to exact-word/factual requests and explicitly forbids quotation wrappers, speaker labels and narration. It restricts the private opening to style reference, then treats all posted messages as shared chat.
+Prompt style-matched-chat-v8 allows identical responses to exact-word/factual requests and explicitly forbids quotation wrappers, speaker labels and narration. It restricts the private opening to style reference, then treats all posted messages as shared chat.
 
 ## Verified on this Mac
 

@@ -6,7 +6,9 @@ async function participants(browser: Browser) {
     j = await judgeContext.newPage();
   await h.goto('/');
   await j.goto('/');
+  await h.getByRole('button', { name: 'Start game', exact: true }).click();
   await h.getByRole('button', { name: /Play as human/ }).click();
+  await j.getByRole('button', { name: 'Start game', exact: true }).click();
   await j.getByRole('button', { name: /Play as judge/ }).click();
   await expect(j.getByLabel('Ask the opening question')).toBeVisible();
   return { h, j, humanContext, judgeContext };
@@ -64,8 +66,9 @@ test('invite room, public visibility, and disconnect ends the match', async ({ b
   const h = await hc.newPage(),
     j = await jc.newPage();
   await h.goto('/');
-  await h.getByRole('button', { name: /Create an invite room/ }).click();
-  await h.getByRole('button', { name: 'I’ll be the human' }).click();
+  await h.getByRole('button', { name: 'Start game', exact: true }).click();
+  await h.getByRole('button', { name: 'Invite a friend' }).click();
+  await h.getByRole('button', { name: /Play as human/ }).click();
   const invite = await h.getByLabel('Invitation link').inputValue();
   await j.goto(invite);
   await expect(j.getByLabel('Ask the opening question')).toBeVisible();
@@ -82,7 +85,7 @@ test('mobile lobby has usable controls and no horizontal overflow', async ({ bro
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
-  await expect(page.getByRole('button', { name: /Play as human/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Start game', exact: true })).toBeEnabled();
   await page.screenshot({ path: 'work/lobby-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
@@ -91,10 +94,29 @@ test('mobile lobby has usable controls and no horizontal overflow', async ({ bro
 test('desktop lobby screenshot', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto('/');
-  await expect(page.getByRole('button', { name: /Play as judge/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Start game', exact: true })).toBeEnabled();
   await page.screenshot({ path: 'work/lobby-desktop.png', fullPage: true });
 });
 test('forged cross-origin sockets are rejected', async ({ request }) => {
   const response = await request.get('/ws', { headers: { Origin: 'https://evil.example' } });
   expect(response.status()).toBe(403);
+});
+
+test('compact lobby opens a role dialog and toggles live games', async ({ page }) => {
+  await page.goto('/');
+  const start = page.getByRole('button', { name: 'Start game', exact: true });
+  await expect(start).toBeEnabled();
+  await expect(page.getByRole('button', { name: /Play as human/ })).toHaveCount(0);
+  await page.getByRole('button', { name: /Watch live/ }).click();
+  await expect(page.locator('#live-games')).toBeVisible();
+  await start.click();
+  await expect(page.getByRole('dialog', { name: 'Start a game' })).toBeVisible();
+  const bounds = await page.getByRole('dialog').boundingBox();
+  const viewport = page.viewportSize()!;
+  expect(Math.abs(bounds!.x + bounds!.width / 2 - viewport.width / 2)).toBeLessThan(2);
+  expect(Math.abs(bounds!.y + bounds!.height / 2 - viewport.height / 2)).toBeLessThan(2);
+  await page.screenshot({ path: 'work/start-dialog.png', fullPage: true });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(start).toBeFocused();
 });

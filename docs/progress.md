@@ -72,3 +72,21 @@ Local model server runs on 127.0.0.1:8080, offline model loading, thinking disab
 Validation: 22 tests / 99 assertions, typecheck/build, five browser tests passed. Browser test runs the real minute, public spectator vote, chat lock, verdict and replay; desktop/mobile screenshots inspected. Native role-mapping and history bounds tested. Three real WebSocket sessions on the Wi-Fi server verified hidden opening, paired timestamp, exactly 60-second deadline, immediate human/judge chat and a local AI follow-up. No socket errors; test match deliberately abandoned afterward. DevTools confirmed system/user/user opening and system/user/assistant/user/user/user follow-up. Those local calls took 1.323s and 1.126s; this is a small sample, not a throughput benchmark.
 
 Local model also returned a correctly parsed lookup_weather({city: "London"}) tool call in a standalone probe (no tool executed). Game itself defines no tools. Exact-word profanity checks succeeded. Model quality is still unresolved: repeated probes showed borrowing from the private opening, excess verbosity and breaking character when challenged. Do not claim local hosting or native history solves those issues.
+
+## Style matching, identity continuity, and chat UI
+
+Investigated the owner's name screenshot in DevTools. The adapter assigned roles correctly, but the model treated the final private-opening user message as something to answer and then spiraled into repeated greetings during silence. Prompt style-matched-chat-v8 places that style sample before the judge's actual question, explains identity ownership using native assistant history, and adds derived word-count/casing/punctuation guidance from the human contestant. Informal lowercase samples request im/dont/youre without apostrophes rather than grammatical cleanup. No response text is forcibly lowercased or rewritten.
+
+Repeated local screenshot probes returned im sam / im alex instead of greeting the hidden name. Three native-history continuity probes with AI Sam and human Nikka returned sam each time. Age/dinner/late-night cases became short independent replies. The formal-name case still tended toward lowercase before the final explicit formal-style guidance; broad style fidelity is not proven. All probes were accounted in an isolated local ledger and traced.
+
+AI now pauses after two consecutive unanswered posts and suppresses consecutive exact repeats, avoiding runaway self-conversation. New human/judge input resumes scheduling. UI is a full-height chat window: compact header/timer, bubbles with participant labels, own messages on the right, scrollable conversation and bottom composer. Desktop/mobile screenshots inspected; mobile composer fits without page scrolling.
+
+Validation: 24 tests / 108 assertions, typecheck/build and all five browser tests passed (including the real one-minute flow). Wi-Fi process restarted with v8 and the new chat UI. Local inference and DevTools continue unchanged.
+
+## Compact lobby and game visual design
+
+Replaced the oversized role cards with Start game (primary) and Watch live (secondary). Start opens a native modal with matchmaking/invite mode and role buttons. Watch live toggles the public game list. Queue cancellation remains visible outside the modal. Modal supports Escape and restores focus. Lobby/header spacing reduced.
+
+Replaced olive/lime styling with midnight blue surfaces, violet primary actions and cyan timer accents. Added tactile button borders/shadows and equal-weight A/B color badges, while retaining the compact chat bubbles and anchored composer. No additional services or assets installed.
+
+Final validation: 24 unit tests / 108 assertions and typecheck/build passed. The five existing browser journeys passed; the added compact-lobby check also passed after fixing dialog centering and Escape focus restoration. Reviewed the centered modal and mobile chat screenshots. Six browser checks verified in total.
