@@ -1,0 +1,45 @@
+# The Turing Game
+
+A human and an AI compete to convince a human judge. Five questions. Simultaneous answer reveals. Public spectators can guess, and completed games have permanent replay links.
+
+## Local development
+
+Use the existing mise-selected Bun. No global installs are needed.
+
+```sh
+BUN_INSTALL_CACHE_DIR="$PWD/.cache/bun" bun install --frozen-lockfile
+cp .env.example .env # only when .env does not already exist
+bun run dev
+```
+
+Open http://localhost:5173. Use separate browsers/profiles/devices for the two human roles. Two tabs in the same browser session cannot take both seats. Development uses project-local PGlite (PostgreSQL WASM) and explicitly labeled mock AI. A refresh/disconnect forfeits a playing seat by design. Spectators can reopen a match link.
+
+To use live AI, put `AI_API_KEY` in `.env` and set `AI_MODE=live`. Keep `APP_ORIGIN` equal to the exact browser origin. Never put secrets in a `VITE_` variable. To use an existing PostgreSQL database locally, set `DATABASE_URL`; otherwise PGlite stores data in `data/postgres`.
+
+```sh
+bun run check           # TypeScript, engine/SQL tests, production build
+bun run test:e2e        # isolated human, judge, spectator Chrome sessions
+bun run format:check
+```
+
+Browser tests use installed Chrome on this Mac. Elsewhere, install the test browser project-locally:
+
+```sh
+PLAYWRIGHT_BROWSERS_PATH="$PWD/.cache/ms-playwright" bun run playwright install chromium
+```
+
+Do not use `--with-deps` without permission: that can install system packages. Browser profiles and caches are temporary/project-local. No live API calls happen in automated tests.
+
+A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.env`; use `PGLITE_PATH=./work/live-ai-postgres` to isolate its usage ledger. It prints the test prompts, responses and token usage, never credentials.
+
+## Documentation
+
+- [Product decisions](docs/product.md)
+- [Architecture](docs/architecture.md)
+- [Fly deployment and operations](docs/deployment.md)
+- [Progress and remaining work](docs/progress.md)
+- [Agent instructions](AGENTS.md)
+
+## What ships
+
+Role matchmaking, invite-only seats with public spectating, hidden A/B identities, five rounds, per-action deadlines, spectator guesses, optional judge reasoning, saved transcripts/replays, independent token budgets and provider-failure states. No accounts, spectator chat, model-training pipeline or multi-machine room coordination.

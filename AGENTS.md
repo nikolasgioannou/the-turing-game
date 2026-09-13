@@ -3,6 +3,7 @@
 Read docs/product.md before changing behavior, docs/architecture.md before changing server boundaries, and docs/progress.md when resuming work.
 
 ## Ownership and tools
+
 - Use Bun and TypeScript end to end, React for UI, Tailwind for styles, Fly for deployment.
 - Use the committed bun.lock. All dependencies, skills, downloaded tools, browser binaries and caches must remain under this project. No global installs/config changes without explicit permission.
 - Use the existing mise-selected Bun. Never download a runtime automatically.
@@ -11,6 +12,7 @@ Read docs/product.md before changing behavior, docs/architecture.md before chang
 - Own routine implementation decisions. Ask only for missing credentials, material product decisions, or global changes.
 
 ## Product invariants
+
 - Five questions; 90 seconds per human action. No whole-match timer.
 - Human submits first; AI sees ONLY previous revealed rounds and the current question. Reveal answers together.
 - Serialize explicit public views. Never send hidden answers, identity mapping, participant credentials, prompt, or early audience results to browsers.
@@ -22,6 +24,7 @@ Read docs/product.md before changing behavior, docs/architecture.md before chang
 - Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production.
 
 ## Validation
+
 - bun run check before a feature milestone.
 - Test state transitions, authority checks, answer/identity secrecy, simultaneous reveal, usage exhaustion/races, stale AI completions, timeouts and disconnects.
 - Exercise real HTTP/WebSocket flows with deterministic mock AI. Mock mode must be explicit and prohibited in production.

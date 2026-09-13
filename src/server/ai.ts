@@ -57,7 +57,7 @@ export function createAI(): AI {
       },
     };
   }
-  const model = process.env.AI_MODEL ?? 'nousresearch/hermes-4-70b';
+  const model = process.env.AI_MODEL ?? 'nousresearch/hermes-4-405b';
   return {
     mock: false,
     model,

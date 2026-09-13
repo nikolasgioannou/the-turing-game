@@ -1,9 +1,11 @@
 # The Turing Game — agreed product specification
 
 ## Concept
+
 Two humans participate: one contestant competing with an AI, and one judge trying to identify the human. Both contestants try to convince the judge they are human. Spectators can watch and guess. This is a deployed app, not a mockup.
 
 ## Match flow
+
 1. On the main dashboard choose Play as human or Play as judge. Public matchmaking pairs opposite roles, without listing waiting rooms.
 2. Alternatively create an invite room in either role and share a seat-invitation link. All rooms, including invite rooms, are publicly watchable; only the invitation permits claiming the other seat. Waiting rooms are not listed.
 3. The judge asks the opening question. Contestants receive randomly assigned A/B labels fixed throughout the match.
@@ -14,21 +16,26 @@ Two humans participate: one contestant competing with an AI, and one judge tryin
 8. A permanent public match URL shows completed transcript, identities, verdict, judge explanation and audience totals.
 
 ## Time and limits
-The original five-minute proposal was replaced by five questions. Each human action has a 90-second deadline (including the verdict); while AI generates it has its own request timeout. Question limit 300 characters, each contestant answer 500, with Twitter-style live remaining counter and enforced submission limit. Use Unicode grapheme characters consistently; this means a family emoji counts as one character, not Twitter's special URL weighting. Optional explanation has a 1000-character bound.
+
+The original five-minute proposal was replaced by five questions. Each human action has a 90-second deadline (including the verdict); while AI generates it has its own request timeout. Question limit 300 characters, each contestant answer 500, with Twitter-style live remaining counter and enforced submission limit. A separate UTF-8 byte ceiling (four times the character limit) bounds pathological combining-character input. Use Unicode grapheme characters consistently; this means a family emoji counts as one character, not Twitter's special URL weighting. Optional explanation has a 1000-character bound.
 
 Disconnect or leave by either participant ends the match immediately once detected; no reconnection. Missing actions abandon the match. Provider failure ends it as technical failure. Preserve records; no win/loss for either case. Spectators disconnecting never end matches.
 
 ## AI
-Start with OpenRouter; Hermes 4 70B is the initial configurable model, subject to actual play-testing. Keep provider URL, credentials and model configurable. Simple system prompt describes the competition and goal of convincing the judge it is human, without prescribing a biography. Natural conversation including ordinary profanity is valid. The game is openly an AI-versus-human identity game; no external impersonation.
+
+Start with OpenRouter. Hermes 4 70B was the original candidate, but the live API returned 404 and no longer listed it. Hermes 4 405B was verified with three real requests and is the configurable default. It permits ordinary profanity and stays in character, but its conversational quality still needs play-testing. Keep provider URL, credentials and model configurable. Simple system prompt describes the competition and goal of convincing the judge it is human, without prescribing a biography. Natural conversation including ordinary profanity is valid. The game is openly an AI-versus-human identity game; no external impersonation.
 
 Store questions, answers, verdict, optional explanation, timestamps, model, prompt version and provider metadata. How to use these records to improve/train models is explicitly deferred. Never expose reasoning traces or pending answers to spectators/judge.
 
 ## Capacity
+
 Owner funds usage. App-level daily input/output-token caps independent of provider billing; initial settings 1,000,000 input / 100,000 output, reset at midnight UTC. Durable ledger and conservative reservations for full five-round matches prevent concurrent over-admission. Count actual reported usage; missing/ambiguous reports keep conservative charges. Include failed requests and retries. Provider credit limit is an additional safeguard, not our implementation.
 When app allowance is exhausted, stop new matches and explain when it resets; viewing and replays continue. Reserve enough for started matches. Provider-wide outages or credit failures pause admissions and terminate affected matches cleanly with a technical-failure message. Operator can restore availability after fixing credentials/credits.
 
 ## Interface
+
 Dark, restrained game-show working surface; mobile support. Every text, button and element must serve a specific purpose. No promotional hero, filler copy, decorative dashboards, waiting-room directory or fabricated activity. Clear two-column A/B transcript on desktop, stacked on small screens. Equal contestant styling and no timing/typing indicators identifying the AI. Dashboard contains role choices, invitation creation and live matches.
 
 ## Stack and working agreement
+
 Bun, TypeScript throughout, Tailwind; Fly deployment. Agent chooses architecture, tools, documentation and tests. User suggested TanStack Start as an option, not a requirement. Conventional commits encouraged. Save project at ~/workspace/the-turing-game. No global installations without explicit approval; everything installed for the project stays inside it. Discover relevant skills using vercel-labs/skills/find-skills.
