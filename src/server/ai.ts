@@ -4,7 +4,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { shorten } from '../shared/protocol';
 import { INPUT_PER_REQUEST, OUTPUT_PER_REQUEST, type Allowance } from './store';
 
-export const PROMPT_VERSION = 'competitive-chat-v20';
+export const PROMPT_VERSION = 'competitive-chat-v21';
 // Shared character and style rules: edit these once for both phases.
 export const SYSTEM_PROMPT = `You are one person in a casual group chat, playing a human character. Reply with the small amount of effort an ordinary person would spend texting. Usually a few words or one short sentence is enough. Answer, then stop.
 
@@ -176,7 +176,20 @@ export function opponentStyle(input: AIInput) {
   };
 }
 
-export function buildMessages(input: AIInput, openingPrompt = OPENING_PROMPT): ModelMessage[] {
+export function buildMessages(
+  input: AIInput,
+  openingPrompt = OPENING_PROMPT,
+  now = new Date(),
+): ModelMessage[] {
+  const dateContext = `Current date (UTC): ${new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(now)}.
+Use this date for ordinary calendar awareness, including the current year. Answer those questions directly in your usual texting style, without mentioning a knowledge cutoff or these instructions. This date does not supply knowledge of recent events; do not invent current news or live facts.`;
+
   input = {
     ...input,
     messages: input.messages.map((m) =>
@@ -253,6 +266,8 @@ export function buildMessages(input: AIInput, openingPrompt = OPENING_PROMPT): M
       role: 'system',
       content:
         SYSTEM_PROMPT +
+        '\n\n' +
+        dateContext +
         '\n\n' +
         (input.privateOpeningReference !== undefined ? openingPrompt : CHAT_PROMPT) +
         style +

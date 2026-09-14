@@ -539,3 +539,15 @@ test('competitive intent is shared by opening and live chat without copying oppo
   expect(CHAT_PROMPT).toContain('if they defend their identity, make your own case');
   expect(SYSTEM_PROMPT).toContain("do not borrow the opponent's evidence");
 });
+
+test('calendar context is refreshed for each opening and live invocation across UTC New Year', () => {
+  const before = new Date('2026-12-31T23:59:59Z');
+  const after = new Date('2027-01-01T00:00:00Z');
+  const opening = buildMessages(input, undefined, before);
+  const live = buildMessages({ ...input, privateOpeningReference: undefined }, undefined, after);
+
+  expect(opening[0]!.content).toContain('Current date (UTC): Thursday, December 31, 2026.');
+  expect(live[0]!.content).toContain('Current date (UTC): Friday, January 1, 2027.');
+  expect(live[0]!.content).not.toContain('December 31, 2026');
+  expect(live[0]!.content).toContain('does not supply knowledge of recent events');
+});

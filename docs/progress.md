@@ -464,3 +464,13 @@ cleanup was followed by focused invitation/dialog checks. Desktop/mobile visual 
 dialog, chat, verdict, replay and feedback; active chat/verdict dimensions are unchanged, with no
 horizontal overflow. Small button/typography differences on lobby and replay are limited to a few
 pixels.
+
+## Current calendar context
+
+Prompt v21 includes the server's current UTC date (weekday, month, day and year), recomputed for
+every opening/live invocation and current-profile lab request. It distinguishes ordinary calendar
+awareness from unknown recent events. The frozen lab baseline remains unchanged.
+
+Typecheck and 25 focused AI tests pass, including a UTC New Year boundary. Two real local-model
+checks answered the year with 2026 and the date with Sept 14, matching UTC at execution time. No
+active matches were present before refreshing the port-3000 game server.
