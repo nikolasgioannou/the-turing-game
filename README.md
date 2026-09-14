@@ -39,4 +39,5 @@ Browser tests use installed Chrome on this Mac. Model output is stochastic; beha
 - [Architecture](docs/architecture.md)
 - [Deployment](docs/deployment.md)
 - [Progress](docs/progress.md)
+- [Issue tracking](docs/issues.md)
 - [Component library](src/client/ui/README.md)

@@ -39,3 +39,7 @@ This repository is the canonical implementation. Describe bot behavior directly 
 - Exercise real HTTP/WebSocket flows using real OpenRouter for browser journeys. Unit tests may inject controlled completions to verify state transitions and failures; no application mock mode or canned-response provider.
 - Review desktop/mobile UI, keyboard labels, focus and contrast. Test full journeys in isolated browser contexts.
 - Keep docs/progress.md honest about deployment and credentials. Never claim live AI or deployment tests without running them.
+
+## Issue tracking
+
+Use Moth for repository-local tickets. Run `moth schema --json` to inspect the legal fields and statuses, and `moth list --unblocked` to find available work. Create and update tickets through the CLI; move claimed tickets to `in-progress` and completed tickets to `done`. Run `moth check` before committing ticket changes. Commit `.moth/` tickets alongside related code. Do not put credentials or private conversations in tickets.
