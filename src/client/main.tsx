@@ -738,7 +738,7 @@ function Room({
         : room.phase === 'opening'
           ? isHuman
             ? 'Your turn — answer the opening question.'
-            : 'You can keep asking while the opening replies are prepared.'
+            : null
           : room.phase === 'opening_ai'
             ? 'Opening replies are being prepared. You can keep chatting.'
             : room.phase === 'verdict'
@@ -931,17 +931,19 @@ function Room({
           className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"
         >
-          <p
-            className={
-              room.phase === 'chat' && canSend
-                ? 'sr-only'
-                : 'mb-2 text-xs leading-normal text-muted'
-            }
-            role="status"
-          >
-            {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
-            {status}
-          </p>
+          {status ? (
+            <p
+              className={
+                room.phase === 'chat' && canSend
+                  ? 'sr-only'
+                  : 'mb-2 text-xs leading-normal text-muted'
+              }
+              role="status"
+            >
+              {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
+              {status}
+            </p>
+          ) : null}
           {isJudge || isHuman ? (
             <Composer
               label="Message the group"
