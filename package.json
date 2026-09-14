@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "bun run scripts/dev.ts",
     "dev:server": "bun --watch src/server/index.ts",
-    "dev:client": "bun --bun run vite --host 127.0.0.1",
+    "dev:client": "bun --bun run vite",
     "build": "bun --bun run vite build",
     "start": "bun src/server/index.ts",
     "test": "bun test",

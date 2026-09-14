@@ -1,20 +1,38 @@
-// Build and serve the game with OpenRouter.
-const build = Bun.spawn(['bun', 'run', 'build'], { stdio: ['inherit', 'inherit', 'inherit'] });
+// Run Vite HMR and the watched API server together on loopback interfaces.
+const env = {
+  ...process.env,
+  NODE_ENV: 'development',
+  PORT: '3000',
+  APP_ORIGIN: 'http://localhost:5173',
+  DATABASE_URL: '',
+  PGLITE_PATH: './data/local',
+};
+const children = [
+  Bun.spawn([process.execPath, '--watch', 'src/server/index.ts'], {
+    stdio: ['inherit', 'inherit', 'inherit'],
+    env,
+  }),
+  Bun.spawn([process.execPath, 'node_modules/vite/bin/vite.js'], {
+    stdio: ['inherit', 'inherit', 'inherit'],
+    env,
+  }),
+];
+let stopping = false;
 
-if (await build.exited) process.exit(1);
+function stop() {
+  if (stopping) return;
 
-const port = process.env.DEV_PORT ?? '3000';
-const child = Bun.spawn(['bun', 'run', 'start'], {
-  stdio: ['inherit', 'inherit', 'inherit'],
-  env: {
-    ...process.env,
-    PORT: port,
-    APP_ORIGIN: process.env.DEV_APP_ORIGIN ?? `http://localhost:${port}`,
-    PGLITE_PATH: './data/wifi',
-  },
-});
+  stopping = true;
 
-for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => child.kill(signal));
+  for (const child of children) child.kill('SIGTERM');
+}
 
-process.exitCode = await child.exited;
+for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, stop);
+
+const code = await Promise.race(children.map((child) => child.exited));
+const interrupted = stopping;
+
+stop();
+await Promise.all(children.map((child) => child.exited));
+process.exitCode = interrupted ? 0 : code;
 export {};

@@ -1,6 +1,5 @@
 import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
-import { networkInterfaces } from 'node:os';
 import { database } from './database';
 import { Store } from './store';
 import { createAI } from './ai';
@@ -16,14 +15,7 @@ const origin = process.env.APP_ORIGIN ?? `http://localhost:${port}`;
 const allowedOrigins = new Set([origin]);
 
 if (!production) {
-  for (const host of [
-    'localhost',
-    '127.0.0.1',
-    '[::1]',
-    ...Object.values(networkInterfaces()).flatMap((entries) =>
-      (entries ?? []).filter((entry) => entry.family === 'IPv4').map((entry) => entry.address),
-    ),
-  ])
+  for (const host of ['localhost', '127.0.0.1', '[::1]'])
     allowedOrigins.add(`http://${host}:${port}`);
 }
 
@@ -69,7 +61,7 @@ const sockets = new Set<ServerWebSocket<SocketData>>();
 const perIp = new Map<string, { count: number; until: number }>();
 const root = resolve('dist');
 const server = Bun.serve<SocketData>({
-  hostname: '0.0.0.0',
+  hostname: production ? '0.0.0.0' : '127.0.0.1',
   port,
   maxRequestBodySize: 16_384,
   async fetch(req, server) {

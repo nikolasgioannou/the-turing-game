@@ -26,7 +26,7 @@ export async function database(url?: string): Promise<Database> {
     };
   }
 
-  const path = process.env.PGLITE_PATH ?? './data/postgres';
+  const path = process.env.PGLITE_PATH ?? './data/local';
 
   if (!path.startsWith('memory:')) mkdirSync(path, { recursive: true });
 

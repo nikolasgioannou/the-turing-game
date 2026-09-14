@@ -730,3 +730,16 @@ fixtures, 10 response-filtering/retry fixtures, cancellation, hedging and the re
 worker. Typecheck and production build pass. Fixture data is synthetic; no player conversations or
 drafts were added. All 17 real-OpenRouter browser journeys pass, including the full timed match,
 public replay, refresh and independent live replies.
+
+## Local development workflow
+
+Development now runs Vite on localhost:5173 with HMR and a watched Bun API on loopback port 3000.
+The supervisor stops both children on interruption or either child exiting. Vite proxies API and
+WebSocket traffic; development no longer discovers or permits LAN interface origins. Production
+keeps its container listener and configured origin. Local development uses PGlite in data/local,
+independent of production database settings. Removed the custom development origin/port overrides
+and Wi-Fi setup instructions; the clipboard permission fallback remains useful locally.
+
+Validation: 187 tests, typecheck and production build pass. Verified the proxied session/API and
+WebSocket lobby, LAN-origin rejection, loopback listeners, a real Chrome HMR update, server watch
+restarts, and supervisor shutdown. Both development servers were stopped after verification.

@@ -1,4 +1,4 @@
-// HTTP LAN games lack the secure-context clipboard API.
+// Preserve copying when the Clipboard API is unavailable or permission is denied.
 export async function copyText(text: string) {
   try {
     if (navigator.clipboard) {

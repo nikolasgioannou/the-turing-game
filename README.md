@@ -15,13 +15,19 @@ cp .env.example .env # only if .env does not already exist
 bun run dev
 ```
 
-Open http://localhost:3000. For a friend on the same Wi-Fi, share this computer's LAN address on
-port 3000. Use different browsers/profiles/devices for the two human roles. Refresh restores your
-seat; the game clock continues while disconnected. Development uses PGlite in `data/wifi`.
+Open http://localhost:5173. Vite hot-reloads the UI and proxies API/WebSocket requests to the
+watched Bun server on port 3000. Both servers listen only on loopback interfaces. Ctrl+C stops both.
+Use separate browser profiles for the two human roles. Refresh restores your seat; the game clock
+continues while disconnected. Server code changes restart the backend and end active matches.
+Development always uses local PGlite storage in `data/local`.
 
-`bun run build && bun run start` serves a production build. Set `DATABASE_URL` to use PostgreSQL;
-otherwise development storage uses `PGLITE_PATH`. Production requires `DATABASE_URL` and
-`APP_ORIGIN`. Never put credentials in client code or `VITE_` variables.
+`bun run dev` sets its own local ports, origin and storage; it does not use `DATABASE_URL`. The
+separate `dev:client` / `dev:server` commands are available when needed; set the server's
+`APP_ORIGIN=http://localhost:5173` when running them together.
+
+`bun run build && bun run start` serves the built app at http://localhost:3000. Set `DATABASE_URL`
+to use PostgreSQL; otherwise development storage uses `PGLITE_PATH`. Production requires
+`DATABASE_URL` and `APP_ORIGIN`. Never put credentials in client code or `VITE_` variables.
 
 ## Bot behavior
 
