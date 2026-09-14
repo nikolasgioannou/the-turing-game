@@ -394,3 +394,7 @@ GitHub Actions run 34899228657 deployed commit ac8d1a0 successfully. Production 
 ## Stable homepage score loading
 
 The score card renders immediately with a loading placeholder instead of appearing after lobby data arrives. Reserved number width and text height keep its layout stable; incoming results fade in and meter colors transition, with reduced-motion support. Typecheck, production build and a local browser regression pass. The browser check verifies identical card position and height before/after loading at 390px and 1280px widths without creating games or making model calls. Not deployed.
+
+## Arcade score animation
+
+Replaced the score fade with a 20-step counter and cyan pixel sweep. While loading, the cursor loops across the meter; incoming data starts a 900ms stepped count toward the actual percentage and fills orange blocks. A zero score still receives the sweep. Reduced-motion users see the settled values immediately, and assistive technology reads the actual score without counter chatter. Typecheck, build and the desktop/mobile loading-layout regression pass. No model calls or production games. Not deployed.

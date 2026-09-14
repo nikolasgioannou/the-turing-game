@@ -1,22 +1,34 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import type { Lobby } from '../shared/protocol';
 
 export function LiveScore({ score, connected }: { score?: Lobby['score']; connected: boolean }) {
-  const values = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    if (!score || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    const animation = values.current?.animate([{ opacity: 0.35 }, { opacity: 1 }], {
-      duration: 450,
-      easing: 'ease-out',
-    });
+    if (motion.matches) {
+      setStep(20);
 
-    return () => animation?.cancel();
+      return;
+    }
+
+    setStep(0);
+
+    let frame = 0;
+    const timer = window.setInterval(() => {
+      frame++;
+      setStep(score ? Math.min(frame, 20) : frame % 20);
+
+      if (score && frame >= 20) window.clearInterval(timer);
+    }, 45);
+
+    return () => window.clearInterval(timer);
   }, [score?.completed, score?.aiWins]);
 
   const rate = score?.completed ? Math.round((score.aiWins / score.completed) * 100) : null;
-  const filled = rate === null ? 0 : Math.round(rate / 5);
+  const displayedRate = rate === null ? null : Math.round(rate * (step / 20));
+  const filled = displayedRate === null ? 0 : Math.round(displayedRate / 5);
 
   return (
     <section
@@ -35,13 +47,18 @@ export function LiveScore({ score, connected }: { score?: Lobby['score']; connec
         </span>
       </div>
       <div
-        ref={values}
         className="mt-4 flex items-center gap-5 max-[640px]:gap-3.5"
         aria-live="polite"
         aria-atomic="true"
       >
-        <strong className="w-[4ch] shrink-0 font-arcade text-[30px] leading-tight text-accent tabular-nums [text-shadow:2px_2px_0_#713119] max-[640px]:text-[24px]">
-          {rate === null ? '—' : `${rate}%`}
+        <span className="sr-only">
+          {rate === null ? 'No percentage yet.' : `${rate}% of judges fooled.`}
+        </span>
+        <strong
+          aria-hidden="true"
+          className="w-[4ch] shrink-0 font-arcade text-[30px] leading-tight text-accent tabular-nums [text-shadow:2px_2px_0_#713119] max-[640px]:text-[24px]"
+        >
+          {displayedRate === null ? '—' : `${displayedRate}%`}
         </strong>
         <div className="min-w-0 text-xs leading-5">
           <span className="block font-bold text-ink">Judges fooled</span>
@@ -58,7 +75,7 @@ export function LiveScore({ score, connected }: { score?: Lobby['score']; connec
         {Array.from({ length: 20 }, (_, index) => (
           <span
             key={index}
-            className={`h-2 transition-colors duration-500 motion-reduce:transition-none ${index < filled ? 'bg-accent shadow-[0_0_5px_#ff682e30]' : 'bg-line/60'}`}
+            className={`h-2 ${step < 20 && index === step ? 'bg-player-b shadow-[2px_-2px_0_#f8ebc8]' : index < filled ? 'bg-accent shadow-[0_0_5px_#ff682e30]' : 'bg-line/60'}`}
           />
         ))}
       </div>
