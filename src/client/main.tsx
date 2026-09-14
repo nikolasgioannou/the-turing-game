@@ -1,3 +1,15 @@
+import { AppShell, RoomTitle, RoomToolbar } from './ui/layout';
+import {
+  Button,
+  ButtonLink,
+  ChoiceButton,
+  RoleButton,
+  SegmentButton,
+  Dialog,
+  Input,
+  Textarea,
+  Panel,
+} from './ui';
 import { FeedbackLab } from './lab';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -179,9 +191,12 @@ function App() {
   };
 
   return (
-    <div className="app-shell">
+    <AppShell>
       {error ? (
-        <div role="alert" className="error-banner">
+        <div
+          role="alert"
+          className="error-banner mt-5 flex justify-between gap-5 rounded-none border border-[#f17b49] bg-[#351c17] p-4 text-[15px] leading-[1.6] text-[#ffcfaf] [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-inherit [&_button]:underline"
+        >
           {error}
           {!connected ? (
             <button onClick={() => location.reload()}>Retry now</button>
@@ -192,13 +207,13 @@ function App() {
           )}
         </div>
       ) : null}
-      <main>
+      <main className="pt-6 max-[640px]:pt-4 [.app-shell:has(.active-chat)_&]:min-h-0 [.app-shell:has(.active-chat)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex [.app-shell:has(.arcade-lobby)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex-col [.app-shell:has(.arcade-lobby)_&]:justify-center [.app-shell:has(.arcade-lobby)_&]:py-6">
         {room && !waitingInvite ? (
           <Room room={room} send={send} home={home} connected={connected} />
         ) : (
           <>
-            <section className="compact-lobby arcade-lobby">
-              <div className="cabinet-top">
+            <section className="arcade-lobby">
+              <div className="cabinet-top flex justify-between gap-3 text-[10px] tracking-[2px] text-[#8aafb9] max-[640px]:text-[8px] max-[640px]:tracking-normal">
                 <span>HUMAN VS MACHINE</span>
                 <span>90 SECOND SHOWDOWN</span>
               </div>
@@ -206,9 +221,10 @@ function App() {
                 <span>THE</span>TURING GAME
               </h1>
               <p className="arcade-tagline">One human. One AI. Ninety seconds.</p>
-              <div className="lobby-actions">
-                <button
-                  className="button primary"
+              <div className="lobby-actions mt-0 flex items-center justify-center gap-2.5">
+                <Button
+                  variant="arcade"
+                  size="arcade"
                   aria-label="Start game"
                   disabled={
                     !connected || joining || !!lobby?.queued || !lobby?.availability.available
@@ -216,21 +232,25 @@ function App() {
                   onClick={() => setStartOpen(true)}
                 >
                   Start game
-                </button>
+                </Button>
               </div>
               {lobby && !lobby.availability.available ? (
-                <p className="capacity" role="status">
+                <p
+                  className="capacity rounded-[5px] border border-[#735742] bg-[#30261f] p-4 text-[15px] leading-[1.6] text-[#f6d7b9]"
+                  role="status"
+                >
                   {lobby.availability.message}
                 </p>
               ) : null}
               <ArcadeStage />
-              <a href="/lab" className="text-button">
+              <ButtonLink href="/lab" variant="ghost" size="text">
                 Help improve the AI →
-              </a>
+              </ButtonLink>
             </section>
             {startOpen ? (
-              <StartDialog
-                close={() => {
+              <Dialog
+                label="Start a game"
+                onClose={() => {
                   if (waitingInvite) {
                     cancelInvite(true);
 
@@ -250,72 +270,78 @@ function App() {
                   <>
                     <p className="eyebrow">MATCHMAKING</p>
                     <h2>Finding an opponent</h2>
-                    <div className="compact-queue" role="status">
-                      <span className="waiting-mark" />
+                    <div
+                      className="compact-queue m-0 flex min-h-12.5 items-center gap-3 border border-player-b bg-[#152125] px-4 py-3.5 text-[13px] text-[#ccecf6]"
+                      role="status"
+                    >
+                      <span className="waiting-mark size-3.75 shrink-0 animate-[spin_1.5s_linear_infinite] rounded-full border-2 border-[#59604e] border-t-[#77def2]" />
                       {lobby?.queued
                         ? `Finding a ${lobby.queued === 'human' ? 'judge' : 'human'}…`
                         : 'Joining…'}
                     </div>
-                    <button
-                      className="button secondary"
+                    <Button
+                      variant="secondary"
+                      className="mt-5"
                       onClick={() => {
                         send({ type: 'cancel' });
                         setJoining(false);
                       }}
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <>
                     <p className="eyebrow">PLAYER SELECT</p>
                     <h2>Choose your side</h2>
-                    <div className="dialog-modes" aria-label="Game type">
-                      <button
-                        className={!inviteRole ? 'selected' : ''}
+                    <div
+                      className="dialog-modes flex rounded-none border border-[#39484e] bg-[#080d10] p-1"
+                      aria-label="Game type"
+                    >
+                      <SegmentButton
                         aria-pressed={!inviteRole}
                         onClick={() => setInviteRole(false)}
                       >
                         Find a match
-                      </button>
-                      <button
-                        className={inviteRole ? 'selected' : ''}
-                        aria-pressed={inviteRole}
-                        onClick={() => setInviteRole(true)}
-                      >
+                      </SegmentButton>
+                      <SegmentButton aria-pressed={inviteRole} onClick={() => setInviteRole(true)}>
                         Invite a friend
-                      </button>
+                      </SegmentButton>
                     </div>
                     <p className="muted">
                       {inviteRole
                         ? 'Choose your role, then share the invitation.'
                         : 'Choose your role. We will find your opponent.'}
                     </p>
-                    <div className="dialog-roles">
-                      <button
+                    <div className="dialog-roles grid gap-2.5">
+                      <RoleButton
+                        tone="a"
+                        title="Play as human"
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('human', inviteRole)}
                       >
-                        <strong>Play as human</strong>
-                        <span>Convince the judge you are human.</span>
-                      </button>
-                      <button
+                        Convince the judge you are human.
+                      </RoleButton>
+                      <RoleButton
+                        tone="b"
+                        title="Play as judge"
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('judge', inviteRole)}
                       >
-                        <strong>Play as judge</strong>
-                        <span>Chat with both. Identify the human.</span>
-                      </button>
+                        Chat with both. Identify the human.
+                      </RoleButton>
                     </div>
                   </>
                 )}
-              </StartDialog>
+              </Dialog>
             ) : null}
-            <p className="public-note">Conversations and results are saved.</p>
+            <p className="public-note my-5.5 text-center text-[11px] leading-[1.6] text-[#76898f] group-[.active-chat]/room:mt-0 group-[.active-chat]/room:mb-2.5 group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:text-[11px] max-[640px]:text-[10px]">
+              Conversations and results are saved.
+            </p>
           </>
         )}
       </main>
-    </div>
+    </AppShell>
   );
 }
 
@@ -330,15 +356,16 @@ function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void })
       <p className="muted">
         Share this link with your {room.openRole === 'judge' ? 'judge' : 'human opponent'}.
       </p>
-      <input
+      <Input
+        className="my-4 w-full min-w-0 p-3 text-[13px]"
         aria-label="Invitation link"
         readOnly
         value={link}
         onFocus={(e) => e.currentTarget.select()}
       />
-      <div className="invite-actions">
-        <button
-          className="button primary"
+      <div className="invite-actions mb-5 flex flex-wrap gap-3">
+        <Button
+          variant="primary"
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(link);
@@ -349,10 +376,10 @@ function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void })
           }}
         >
           {copied ? 'Copied' : 'Copy invitation'}
-        </button>
-        <button className="button secondary" onClick={cancel}>
+        </Button>
+        <Button variant="secondary" onClick={cancel}>
           Cancel
-        </button>
+        </Button>
       </div>
       <p className="muted" role="status">
         Waiting for your opponent to join…
@@ -363,8 +390,16 @@ function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void })
 
 function ArcadeStage() {
   return (
-    <div className="arcade-stage" aria-label="Two contestants face a judge. Identify the human.">
-      <svg viewBox="0 0 640 250" aria-hidden="true" shapeRendering="crispEdges">
+    <div
+      className="arcade-stage mx-auto mt-6.5 max-w-160 max-[640px]:mt-8.75"
+      aria-label="Two contestants face a judge. Identify the human."
+    >
+      <svg
+        className="block h-auto w-full"
+        viewBox="0 0 640 250"
+        aria-hidden="true"
+        shapeRendering="crispEdges"
+      >
         <defs>
           <linearGradient id="stage-light" x2="0" y2="1">
             <stop stopColor="#41616b" stopOpacity=".22" />
@@ -465,49 +500,15 @@ function ArcadeStage() {
         <path d="M286 223H354M286 229H354" stroke="#33474f" strokeWidth="2" />
         <path d="M230 239H274M366 239H410" stroke="#cfa76b" strokeWidth="4" />
       </svg>
-      <div className="stage-labels">
+      <div className="stage-labels grid grid-cols-3 py-2.5 font-arcade text-xs text-[#ff8b46] max-[640px]:text-[9px]">
         <span>A</span>
-        <span>JUDGE</span>
-        <span>B</span>
+        <span className="text-[#ffc56b]">JUDGE</span>
+        <span className="text-player-b">B</span>
       </div>
-      <p>Real people? Machines? You decide.</p>
+      <p className="mt-2.5 mb-4 text-xs tracking-[2px] text-[#96aab0] uppercase max-[640px]:text-[10px] max-[640px]:tracking-normal">
+        Real people? Machines? You decide.
+      </p>
     </div>
-  );
-}
-
-function StartDialog({ close, children }: { close: () => void; children: React.ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = ref.current!;
-    const trigger = document.activeElement as HTMLElement | null;
-
-    dialog.showModal();
-
-    return () => {
-      dialog.close();
-
-      if (trigger?.isConnected) trigger.focus();
-    };
-  }, []);
-
-  return (
-    <dialog
-      ref={ref}
-      className="start-dialog"
-      aria-label="Start a game"
-      onCancel={close}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) close();
-      }}
-    >
-      <div className="dialog-content">
-        <button className="dialog-close" aria-label="Close dialog" onClick={close}>
-          ×
-        </button>
-        {children}
-      </div>
-    </dialog>
   );
 }
 
@@ -526,7 +527,7 @@ function Countdown({ deadline }: { deadline: number | null }) {
 
   return (
     <span
-      className={'timer ' + (seconds < 20 ? 'urgent' : '')}
+      className={`timer border-0 p-0 font-arcade text-[32px] font-bold tracking-[-0.025em] tabular-nums text-shadow-[2px_3px_#692e1c] max-[640px]:text-[23px] ${seconds < 20 ? 'bg-[#33243a] text-[#ffc88e]' : 'bg-transparent text-player-a'}`}
       aria-label={`${seconds} seconds remaining`}
     >
       {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
@@ -559,7 +560,7 @@ function Composer({
 
   return (
     <form
-      className="composer"
+      className="composer grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-2 [&_label]:sr-only"
       onSubmit={(e) => {
         e.preventDefault();
 
@@ -570,7 +571,8 @@ function Composer({
       }}
     >
       <label htmlFor="message">{label}</label>
-      <textarea
+      <Textarea
+        className="block h-12 max-h-30 min-h-12 w-full resize-none px-3.5 py-2.75 text-base leading-6 placeholder:text-[#8993b4]"
         ref={input}
         id="message"
         value={value}
@@ -587,16 +589,22 @@ function Composer({
         maxLength={8000}
         disabled={disabled}
       />
-      <div className="composer-bottom">
+      <div className="composer-bottom contents text-[10px]">
         <span
           id="character-count"
-          className={count > limit ? 'over-limit' : count > limit - 30 ? 'near-limit' : 'muted'}
+          className={`col-span-full row-start-2 pl-1 text-[11px] ${count > limit ? 'text-[#ffab9c]' : count > limit - 30 ? 'text-[#e6c784]' : 'text-muted'}`}
         >
           {limit - count} characters remaining
         </span>
-        <button className="button primary" disabled={disabled || !value.trim() || count > limit}>
+        <Button
+          type="submit"
+          className="col-start-2 row-start-1 w-auto uppercase"
+          size="composer"
+          variant="primary"
+          disabled={disabled || !value.trim() || count > limit}
+        >
           {button}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -664,23 +672,25 @@ function Room({
   return (
     <div
       className={
-        'room-page ' +
-        (!done && room.phase !== 'waiting' ? 'active-chat' : '') +
+        'room-page group/room ' +
+        (!done && room.phase !== 'waiting'
+          ? 'active-chat flex h-full min-h-0 flex-col pt-3.5'
+          : 'pt-7 pb-[calc(48px+env(safe-area-inset-bottom,0px))]') +
         (room.phase === 'verdict' ? ' verdict-chat' : '')
       }
     >
-      <div className="room-topline">
-        <button className="text-button" onClick={home}>
+      <RoomToolbar>
+        <Button variant="ghost" size="text" onClick={home}>
           {!done && room.role !== 'spectator' ? 'Leave match' : '← Lobby'}
-        </button>
+        </Button>
         <span className="eyebrow">MATCH {room.id.slice(0, 6).toUpperCase()}</span>
         {done ? (
-          <button className="text-button" onClick={() => copy()}>
+          <Button variant="ghost" size="text" onClick={() => copy()}>
             {copied ? 'Copied' : 'Copy replay link'}
-          </button>
+          </Button>
         ) : null}
-      </div>
-      <div className="room-title">
+      </RoomToolbar>
+      <RoomTitle>
         <div>
           <p className="eyebrow">
             {room.role === 'spectator'
@@ -706,32 +716,32 @@ function Room({
           </h1>
         </div>
         {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
-      </div>
+      </RoomTitle>
       {room.phase === 'waiting' ? (
-        <div className="waiting-panel">
+        <Panel className="waiting-panel [&_.muted]:mb-0 [&_.muted]:text-sm [&_input]:mt-2.5 [&_input]:mb-5 [&_input]:w-full [&_input]:p-3 [&_p]:leading-[1.6]">
           <p>
             Share this invitation with your {room.openRole === 'judge' ? 'judge' : 'human opponent'}
             . Both opening replies appear together, then the 90-second chat starts.
           </p>
           {room.inviteToken ? (
             <>
-              <input
+              <Input
                 aria-label="Invitation link"
                 readOnly
                 value={`${location.origin}/#invite=${room.inviteToken}`}
               />
-              <button className="button primary" onClick={() => copy(true)}>
+              <Button variant="primary" onClick={() => copy(true)}>
                 {copied ? 'Copied' : 'Copy invitation'}
-              </button>
+              </Button>
             </>
           ) : (
             <p>Waiting for the invited player.</p>
           )}
           <p className="muted">Only the invited player can take the open seat.</p>
-        </div>
+        </Panel>
       ) : null}
       {room.result ? (
-        <section className="result-panel">
+        <Panel className="result-panel mb-8 [&_.eyebrow]:text-[#77def2] [&_blockquote]:my-5.5 [&_blockquote]:border-l-2 [&_blockquote]:border-[#8292d9] [&_blockquote]:pl-4 [&_blockquote]:text-[17px] [&_blockquote]:leading-[1.6] [&_blockquote]:wrap-anywhere [&_blockquote]:whitespace-pre-wrap [&_cite]:mt-2.5 [&_cite]:block [&_cite]:text-[13px] [&_cite]:text-[#b2c39e] [&_cite]:not-italic [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:font-arcade [&_h2]:text-[clamp(18px,3vw,28px)] [&_h2]:leading-normal [&_h2]:font-medium [&_h2]:tracking-[-1px] [&_h2]:uppercase [&>p]:leading-[1.6]">
           <p className="eyebrow">
             {room.result.humanWon ? 'HUMAN IDENTIFIED' : 'THE AI FOOLED THE JUDGE'}
           </p>
@@ -745,12 +755,15 @@ function Room({
               “{room.result.reason}”<cite>Reasoning from the judge</cite>
             </blockquote>
           ) : null}
-        </section>
+        </Panel>
       ) : null}
       {room.message ? (
-        <div className="ended-panel" role="status">
+        <Panel
+          className="ended-panel mb-6.5 text-[15px] leading-[1.6] text-[#f6d7b9]"
+          role="status"
+        >
           {room.message}
-        </div>
+        </Panel>
       ) : null}
       {room.messages.length || (!done && room.phase !== 'waiting') ? (
         <div
@@ -778,7 +791,10 @@ function Room({
         </div>
       ) : null}
       {!done && room.phase !== 'waiting' ? (
-        <section className="action-panel" aria-label="Chat controls">
+        <section
+          className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
+          aria-label="Chat controls"
+        >
           {(isJudge && room.phase === 'ready') ||
           (isHuman && room.phase === 'opening') ||
           ((isJudge || isHuman) && room.phase === 'chat') ? (
@@ -807,7 +823,7 @@ function Room({
             />
           ) : isJudge && room.phase === 'verdict' ? (
             <form
-              className="verdict-form"
+              className="verdict-form [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-medium [&_label]:mb-1.5 [&_label]:block [&_label]:text-[13px] [&_textarea]:block [&_textarea]:h-16 [&_textarea]:min-h-16 [&_textarea]:w-full [&_textarea]:resize-none [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:text-base [&_textarea]:leading-[1.6]"
               onSubmit={(e) => {
                 e.preventDefault();
 
@@ -815,66 +831,68 @@ function Room({
               }}
             >
               <h2>Who is human?</h2>
-              <div className="choice-row">
+              <div className="choice-row flex flex-wrap gap-2.5 group-[.verdict-chat]/room:mb-3.5">
                 {(['A', 'B'] as Label[]).map((label) => (
-                  <button
-                    type="button"
-                    className={'choice ' + (choice === label ? 'selected' : '')}
+                  <ChoiceButton
+                    compact
+                    tone={label === 'A' ? 'a' : 'b'}
                     aria-pressed={choice === label}
                     onClick={() => setChoice(label)}
                     key={label}
                   >
                     Contestant {label}
-                  </button>
+                  </ChoiceButton>
                 ))}
               </div>
               <label htmlFor="reason">
                 What gave them away? <span className="muted">(optional)</span>
               </label>
-              <textarea
+              <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={2}
                 maxLength={8000}
               />
-              <div className="composer-bottom">
+              <div className="composer-bottom mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px]">
                 <span className={characters(reason) > LIMITS.reason ? 'over-limit' : 'muted'}>
                   {LIMITS.reason - characters(reason)} characters remaining
                 </span>
-                <button
-                  className="button primary"
+                <Button
+                  type="submit"
+                  size="compact"
+                  variant="primary"
                   disabled={!choice || !connected || characters(reason) > LIMITS.reason}
                 >
                   Submit verdict & reveal
-                </button>
+                </Button>
               </div>
             </form>
           ) : (
-            <p className="turn-status" role="status">
+            <p className="my-2 text-[13px] leading-normal text-[#adbbc1]" role="status">
               {isHuman && room.ownOpening
                 ? 'Your opening reply is locked in. Waiting for both replies.'
                 : status}
             </p>
           )}
           {room.role === 'spectator' ? (
-            <div className="spectator-vote">
+            <div className="spectator-vote mt-2 flex items-center justify-between gap-5 border-t border-[#414d37] pt-2.5 max-[700px]:flex-col max-[700px]:items-start [&_h2]:mb-2 [&_h2]:text-[17px] [&_h2]:font-medium [&_p]:m-0 [&_p]:text-sm [&_p]:leading-[1.6] [&_p]:text-[#a3b098]">
               <div>
                 <h2>Who do you think is human?</h2>
                 <p>Your guess stays hidden until the verdict.</p>
               </div>
-              <div className="choice-row">
+              <div className="choice-row flex flex-wrap gap-2.5 group-[.verdict-chat]/room:mb-3.5">
                 {(['A', 'B'] as Label[]).map((label) => (
-                  <button
+                  <ChoiceButton
                     key={label}
-                    className={'choice ' + (room.vote === label ? 'selected' : '')}
+                    tone={label === 'A' ? 'a' : 'b'}
                     aria-pressed={room.vote === label}
                     disabled={!connected || room.phase === 'verdict'}
                     onClick={() => send({ type: 'vote', choice: label })}
                   >
                     {label}
                     {room.vote === label ? ' ✓' : ''}
-                  </button>
+                  </ChoiceButton>
                 ))}
               </div>
             </div>
@@ -882,14 +900,14 @@ function Room({
         </section>
       ) : null}
       {done ? (
-        <div className="postgame">
-          <button className="button primary" onClick={home}>
+        <div className="postgame mt-7.5 flex items-center gap-5.5 text-sm max-[700px]:flex-col max-[700px]:items-start">
+          <Button variant="primary" onClick={home}>
             Back to lobby ↗
-          </button>
+          </Button>
           <span className="muted">This match is saved. Share its link to replay.</span>
         </div>
       ) : (
-        <p className="public-note">
+        <p className="public-note my-5.5 text-center text-[11px] leading-[1.6] text-[#76898f] group-[.active-chat]/room:mt-0 group-[.active-chat]/room:mb-2.5 group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:text-[11px] max-[640px]:text-[10px]">
           {room.role !== 'spectator' ? 'Leaving ends your match. Refreshing keeps your seat.' : ''}
         </p>
       )}

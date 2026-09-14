@@ -140,3 +140,10 @@ functions and control-flow statements. bun run format:check checks both. The spa
 Prettier's bundled TypeScript parser, leaving strings, JSX text and object/array data intact.
 Tracked project files and new non-ignored files are included; generated assets, model weights,
 databases, dependencies and vendored skills remain excluded.
+
+The project-owned component library now lives in `src/client/ui` (see its README for variants and
+usage). Buttons, links, selection controls, fields, panels, modal behavior and game layout wrappers
+own their static Tailwind classes. Both game and feedback routes consume these components. Native
+form/ARIA props are forwarded; submit buttons are explicit and the modal restores trigger focus. The
+stylesheet is limited to theme/font/global rules and custom arcade effects. Workspace VS Code
+settings associate CSS with the Tailwind language mode, with IntelliSense recommended locally.

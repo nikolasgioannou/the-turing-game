@@ -1,3 +1,4 @@
+import { Button, ButtonLink, Chip, ChoiceButton, Textarea } from './ui';
 import { useEffect, useState } from 'react';
 import { feedbackTags, type LabChoice, type LabState } from '../shared/lab';
 
@@ -138,11 +139,14 @@ export function FeedbackLab() {
         </p>
       )}
       {error && (
-        <div role="alert" className="error-banner">
+        <div
+          role="alert"
+          className="error-banner mt-5 flex justify-between gap-5 rounded-none border border-[#f17b49] bg-[#351c17] p-4 text-[15px] leading-[1.6] text-[#ffcfaf] [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-inherit [&_button]:underline"
+        >
           {error}
-          <button className="text-button" onClick={() => setError('')}>
+          <Button variant="ghost" size="text" onClick={() => setError('')}>
             Dismiss
-          </button>
+          </Button>
         </div>
       )}
       {state?.pair ? (
@@ -180,16 +184,15 @@ export function FeedbackLab() {
           <fieldset className="lab-votes my-5 flex flex-wrap gap-2.5 border-0 p-0 [&_.choice]:text-[13px] max-[600px]:[&_.choice]:flex-[1_1_44%] [&_kbd]:mr-1 [&_kbd]:text-[11px] [&_kbd]:opacity-55 [&_legend]:mb-2.5 [&_legend]:text-[13px] [&_legend]:text-caption">
             <legend>Your pick</legend>
             {choices.map((c, i) => (
-              <button
-                type="button"
-                className={'choice ' + (choice === c.id ? 'selected' : '')}
+              <ChoiceButton
+                tone={i === choices.length - 1 ? 'b' : 'a'}
                 key={c.id}
                 aria-pressed={choice === c.id}
                 onClick={() => setChoice(c.id)}
                 disabled={busy}
               >
                 <kbd aria-hidden="true">{i + 1}</kbd> {c.label}
-              </button>
+              </ChoiceButton>
             ))}
           </fieldset>
           <details
@@ -199,9 +202,9 @@ export function FeedbackLab() {
             <summary>
               What felt off? <span className="muted">Optional</span>
             </summary>
-            <div className="lab-chips my-4 flex flex-wrap gap-2 [&_button]:border [&_button]:border-[#46575e] [&_button]:bg-[#111c21] [&_button]:px-3 [&_button]:py-2 [&_button]:text-xs [&_button]:text-[#becdd1] [&_button[aria-pressed=true]]:border-player-b [&_button[aria-pressed=true]]:bg-[#132c35] [&_button[aria-pressed=true]]:text-player-b">
+            <div className="lab-chips my-4 flex flex-wrap gap-2">
               {feedbackTags.map((tag) => (
-                <button
+                <Chip
                   type="button"
                   key={tag}
                   aria-pressed={tags.includes(tag)}
@@ -211,13 +214,13 @@ export function FeedbackLab() {
                   disabled={busy}
                 >
                   {tag}
-                </button>
+                </Chip>
               ))}
             </div>
             <div className="lab-edits grid grid-cols-2 gap-4 max-[600px]:grid-cols-1 [&_label]:text-[13px] [&_label]:leading-relaxed [&_textarea]:mt-2 [&_textarea]:block [&_textarea]:min-h-[74px] [&_textarea]:w-full [&_textarea]:resize-y [&_textarea]:p-2.5 [&_textarea]:text-sm">
               <label>
                 What would you say instead? <span className="muted">Optional</span>
-                <textarea
+                <Textarea
                   value={rewrite}
                   onChange={(e) => setRewrite(e.target.value)}
                   maxLength={500}
@@ -228,7 +231,7 @@ export function FeedbackLab() {
               </label>
               <label>
                 Anything else? <span className="muted">Optional</span>
-                <textarea
+                <Textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={1000}
@@ -241,9 +244,9 @@ export function FeedbackLab() {
           </details>
           <footer className="lab-footer mt-[22px] flex items-center justify-between gap-4 max-[600px]:flex-col max-[600px]:items-stretch [&_.button]:px-5 [&_.button]:py-3 [&_.button]:text-sm [&_.button]:whitespace-nowrap [&>span]:text-xs [&>span]:leading-relaxed [&>span]:text-[#80969e]">
             <span>Reply order is randomized. Neither is marked as the current version.</span>
-            <button className="button primary" disabled={!choice || busy} onClick={save}>
+            <Button variant="primary" disabled={!choice || busy} onClick={save}>
               {busy ? 'Saving…' : 'Save feedback'}
-            </button>
+            </Button>
           </footer>
         </>
       ) : (
@@ -266,15 +269,15 @@ export function FeedbackLab() {
                 : 'Read the question and human sample, compare two replies, then pick A, B, both bad or both good. A rewrite is helpful but never required.'}
           </p>
           {!complete && (
-            <button className="button primary" onClick={next} disabled={!state || busy}>
+            <Button variant="primary" onClick={next} disabled={!state || busy}>
               {busy ? 'Writing two replies…' : saved ? 'Next comparison' : 'Start comparing'}
-            </button>
+            </Button>
           )}
           {busy && <p role="status">Using the local model. This usually takes a few seconds.</p>}
           {complete && (
-            <a className="button primary" href="/api/lab/export" download>
+            <ButtonLink href="/api/lab/export" download>
               Download feedback
-            </a>
+            </ButtonLink>
           )}
         </section>
       )}

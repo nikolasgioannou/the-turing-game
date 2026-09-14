@@ -441,3 +441,26 @@ active match from the mobile chat test, whose cleanup only closed sockets (now i
 preserved for reconnects). Updated that test to explicitly leave, then reran mobile chat and the
 real-model feedback/rating journey together: both passed. All eight journeys are covered by these
 runs; the entire suite was not repeated after the cleanup change.
+
+## Component library and Tailwind editor support
+
+Created the project-owned `src/client/ui` library with typed buttons/links, selection controls, role
+cards, fields, panels, a native modal with focus restoration, and game layout wrappers. Integrated
+it into game and feedback screens. Explicit submit buttons preserve form behavior; selection styling
+follows aria-pressed. See the library README for supported variants and usage.
+
+Moved remaining dialog, form, room, replay and lobby layout rules into static component utilities.
+styles.css is now 239 lines (previously 1,225), retaining theme/font defaults, global behavior and
+custom arcade effects. This is a maintainability change, not a bundle-size optimization: generated
+CSS is 43.04 KB / 8.99 KB gzip because the responsive utility variants emit additional rules.
+
+Added workspace-only .vscode/settings.json with CSS associated to tailwindcss and string completion
+enabled, plus the Tailwind IntelliSense extension recommendation. No global editor configuration or
+extension installation was performed. The language association follows the extension documentation:
+https://github.com/tailwindlabs/tailwindcss-intellisense#recommended-vs-code-settings
+
+Typecheck and build pass. All eight real-model browser journeys passed. Final invitation/link
+cleanup was followed by focused invitation/dialog checks. Desktop/mobile visual checks cover lobby,
+dialog, chat, verdict, replay and feedback; active chat/verdict dimensions are unchanged, with no
+horizontal overflow. Small button/typography differences on lobby and replay are limited to a few
+pixels.
