@@ -31,7 +31,7 @@ test('full multiplayer match and private participant results', async ({ browser 
   test.setTimeout(120_000);
 
   const { h, j, humanContext, judgeContext } = await participants(browser);
-  const humanLabel = (await h.getByText(/YOU ARE CONTESTANT/).textContent())!.trim().slice(-1);
+  const humanLabel = (await h.getByLabel('Your contestant').textContent())!.trim().slice(-1);
 
   await j.getByLabel('Message the group').fill('What is your favorite food?');
   await j.getByRole('button', { name: /Send/ }).click();
@@ -57,14 +57,12 @@ test('full multiplayer match and private participant results', async ({ browser 
   await expect(h.getByLabel('Message the group')).toBeEnabled();
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
 
-  await j
-    .getByRole('button', { name: `Contestant ${humanLabel === 'A' ? 'B' : 'A'}`, exact: true })
-    .click();
+  await j.getByRole('button', { name: `Contestant ${humanLabel}`, exact: true }).click();
 
   await j.getByLabel('What gave them away?').fill('They kept it simple.');
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
 
-  await expect(j.getByRole('heading', { name: `Contestant ${humanLabel} wins!` })).toBeVisible();
+  await expect(j.getByRole('heading', { name: 'You won!' })).toBeVisible();
 
   await expect(j.getByText('They kept it simple.', { exact: false })).toBeVisible();
   await expect(j.getByText('Audience guesses')).toHaveCount(0);
@@ -109,12 +107,12 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
 
   const matchUrl = j.url();
-  const label = await h.getByText(/YOU ARE CONTESTANT/).textContent();
+  const label = await h.getByLabel('Your contestant').textContent();
 
   await h.reload();
   await j.reload();
   await expect(j.getByLabel('Message the group')).toBeEnabled();
-  await expect(h.getByText(/YOU ARE CONTESTANT/)).toHaveText(label!);
+  await expect(h.getByLabel('Your contestant')).toHaveText(label!);
   await j.getByLabel('Message the group').fill('hi');
   await j.getByRole('button', { name: /Send/ }).click();
   await h.getByLabel('Message the group').fill('hey');
@@ -136,13 +134,13 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
   const restored = await hc.newPage();
 
   await restored.goto(matchUrl);
-  await expect(restored.getByText(/YOU ARE CONTESTANT/)).toHaveText(label!);
+  await expect(restored.getByLabel('Your contestant')).toHaveText(label!);
   await expect(restored.getByText('back after reconnect', { exact: true })).toBeVisible();
   await expect(j.getByText(/A player disconnected/)).toHaveCount(0);
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: 'Contestant B wins!' })).toBeVisible();
+  await expect(j.getByRole('heading', { name: /You (won!|lost\.)/ })).toBeVisible();
 
   await hc.close();
   await jc.close();
@@ -256,7 +254,7 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: 'Contestant B wins!' })).toBeVisible();
+  await expect(j.getByRole('heading', { name: /You (won!|lost\.)/ })).toBeVisible();
 
   await humanContext.close();
   await judgeContext.close();
@@ -277,8 +275,8 @@ test('judge can return to chat or submit an early guess', async ({ browser }) =>
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: /Contestant [AB] wins!/ })).toBeVisible();
-  await expect(h.getByRole('heading', { name: /Contestant [AB] wins!/ })).toBeVisible();
+  await expect(j.getByRole('heading', { name: /You (won!|lost\.)/ })).toBeVisible();
+  await expect(h.getByRole('heading', { name: /You (won!|lost\.)/ })).toBeVisible();
   await expect(h.getByLabel('Message the group')).toHaveCount(0);
   await humanContext.close();
   await judgeContext.close();
@@ -286,7 +284,7 @@ test('judge can return to chat or submit an early guess', async ({ browser }) =>
 
 test('AI answers a shared live question before the human types', async ({ browser }) => {
   const { h, j, humanContext, judgeContext } = await participants(browser);
-  const humanLabel = (await h.getByText(/YOU ARE CONTESTANT/).textContent())!.trim().slice(-1);
+  const humanLabel = (await h.getByLabel('Your contestant').textContent())!.trim().slice(-1);
   const aiLabel = humanLabel === 'A' ? 'B' : 'A';
 
   await j.getByLabel('Message the group').fill('what is your name');
@@ -308,7 +306,7 @@ test('AI answers a shared live question before the human types', async ({ browse
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: /Contestant B wins/ })).toBeVisible();
+  await expect(j.getByRole('heading', { name: /You (won!|lost\.)/ })).toBeVisible();
   await humanContext.close();
   await judgeContext.close();
 });
@@ -432,7 +430,7 @@ test('names, ongoing opening and independent live reply', async ({ browser }) =>
     await j.getByRole('button', { name: 'Make a guess', exact: true }).click();
     await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
     await j.getByRole('button', { name: 'Submit verdict & reveal', exact: true }).click();
-    await expect(j.getByRole('heading', { name: /Contestant .* wins!/ })).toBeVisible();
+    await expect(j.getByRole('heading', { name: /You (won!|lost\.)/ })).toBeVisible();
   } finally {
     await humanContext.close();
     await judgeContext.close();
@@ -587,3 +585,80 @@ test('old public match URLs and APIs do not expose games', async ({ page, reques
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Start game', exact: true })).toBeVisible();
 });
+
+for (const correct of [true, false]) {
+  test(`personal results and clean chat controls: ${correct ? 'win' : 'loss'}`, async ({
+    browser,
+  }) => {
+    const { h, j, humanContext, judgeContext } = await participants(browser);
+    const humanLabel = (await h.getByLabel('Your contestant').textContent())!.trim().slice(-1);
+
+    await j.getByLabel('Message the group').fill('what food do you like?');
+    await j.getByRole('button', { name: 'Send', exact: true }).click();
+    await h.getByLabel('Message the group').fill('pizza');
+    await h.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(j.getByRole('timer')).toBeVisible();
+    await expect(j.getByText('500 characters remaining')).toHaveCount(0);
+    await expect(j.getByText('Refreshing keeps your seat.')).toHaveCount(0);
+    await expect(j.getByText('YOU ARE THE JUDGE')).toHaveCount(0);
+    await expect(j.getByRole('log').locator('svg')).toHaveCount(0);
+
+    for (const width of [1280, 390]) {
+      for (const page of [j, h]) {
+        await page.setViewportSize({ width, height: 844 });
+
+        const toolbar = await page.locator('header[aria-label="Match controls"]').boundingBox();
+        const timer = await page.getByRole('timer').boundingBox();
+
+        expect(
+          Math.abs(timer!.x + timer!.width / 2 - (toolbar!.x + toolbar!.width / 2)),
+        ).toBeLessThan(2);
+
+        await expect(page.getByLabel('Message the group')).toBeInViewport();
+
+        await page.screenshot({
+          path: `work/clean-${page === j ? 'judge' : 'player'}-${width}.png`,
+        });
+      }
+
+      await expect(
+        j
+          .locator('header[aria-label="Match controls"]')
+          .getByRole('button', { name: 'Make a guess' }),
+      ).toBeVisible();
+    }
+
+    await j.getByLabel('Message the group').fill('x'.repeat(450));
+    await expect(j.getByText('50 characters remaining')).toBeVisible();
+    await j.getByLabel('Message the group').fill('x'.repeat(501));
+    await expect(j.getByText('1 characters over limit')).toBeVisible();
+    await expect(j.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
+    await j.getByLabel('Message the group').fill('');
+    await j.getByRole('button', { name: 'Make a guess' }).click();
+
+    await j
+      .getByRole('button', {
+        name: `Contestant ${correct ? humanLabel : humanLabel === 'A' ? 'B' : 'A'}`,
+        exact: true,
+      })
+      .click();
+
+    await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
+
+    for (const page of [j, h]) {
+      await expect(
+        page.getByRole('heading', { name: correct ? 'You won!' : 'You lost.', exact: true }),
+      ).toBeVisible();
+
+      await expect(page.getByRole('log').locator('svg').first()).toBeVisible();
+
+      await page.screenshot({
+        path: `work/result-${page === j ? 'judge' : 'player'}-${correct ? 'win' : 'loss'}.png`,
+        fullPage: true,
+      });
+    }
+
+    await humanContext.close();
+    await judgeContext.close();
+  });
+}

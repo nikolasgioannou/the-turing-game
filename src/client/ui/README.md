@@ -13,7 +13,7 @@ Project-owned React components built with Tailwind v4. Import from `./ui` in cli
 | `Dialog` | Native modal, Escape/backdrop close and focus restoration | Required `label`, `onClose` |
 | `AppShell`, `RoomTitle` | Responsive game layout | Room state via the ancestor `group/room` |
 
-`ChatMessageItem` in `../chat-message.tsx` is the shared domain component for live and saved messages.
+`ChatMessageItem` in `../chat-message.tsx` is the shared domain component for live and revealed messages.
 
 ## Usage
 
@@ -44,3 +44,5 @@ Use `className` for surrounding layout. Add a named component variant when chang
 Run `bun run format` and `bun run format:check`. The workspace VS Code configuration associates CSS with the Tailwind language mode; accept the recommended Tailwind CSS IntelliSense extension if it is not installed. No global editor settings are changed.
 
 `Slider` is a native range input with a square cyan thumb, inset track, keyboard focus and disabled states. Supply a label or `aria-label`, native `min`/`max`/`step`, and layout width via `className`. It accepts controlled or uncontrolled values and forwards refs. Music uses it for volume.
+
+`MatchToolbar` keeps the countdown centered between optional identity and action slots. `IdentityIcon` provides pixel human/bot icons for revealed results; live contestants retain anonymous A/B badges. `MatchResult` in `../match-result.tsx` presents the participant’s win or loss and the judge’s selection.

@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 export function AppShell({ className = '', ...props }: ComponentProps<'div'>) {
   return (
@@ -15,5 +15,26 @@ export function RoomTitle({ className = '', ...props }: ComponentProps<'div'>) {
       className={`room-title my-9.5 flex items-center justify-between gap-5 border-2 border-accent bg-[#0c1317] p-5 group-[.active-chat]/room:mt-4 group-[.active-chat]/room:mb-3 group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:py-4 max-[700px]:my-7.5 max-[640px]:group-[.active-chat]/room:gap-2 max-[640px]:group-[.active-chat]/room:p-3 max-[600px]:group-[.active-chat]/room:mt-3 max-[600px]:group-[.active-chat]/room:mb-2 [&_.eyebrow]:mb-3 group-[.active-chat]/room:[&_.eyebrow]:mb-1.5 group-[.active-chat]/room:[&_.eyebrow]:text-[10px] max-[640px]:group-[.active-chat]/room:[&_.eyebrow]:text-[9px] [&_h1]:m-0 [&_h1]:font-arcade [&_h1]:text-[clamp(18px,3vw,28px)] [&_h1]:leading-normal [&_h1]:font-medium [&_h1]:tracking-[-1px] [&_h1]:text-ink [&_h1]:uppercase group-[.active-chat]/room:[&_h1]:text-[19px] group-[.active-chat]/room:[&_h1]:tracking-[-0.02em] max-[640px]:group-[.active-chat]/room:[&_h1]:text-[13px] max-[640px]:group-[.active-chat]/room:[&_h1]:tracking-[-0.5px] ${className}`}
       {...props}
     />
+  );
+}
+
+export function MatchToolbar({
+  identity,
+  action,
+  children,
+}: {
+  identity?: ReactNode;
+  action?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <header
+      aria-label="Match controls"
+      className="grid min-h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-2"
+    >
+      <div className="min-w-0 text-xs leading-snug">{identity}</div>
+      <div className="justify-self-center">{children}</div>
+      <div className="min-w-0 justify-self-end">{action}</div>
+    </header>
   );
 }

@@ -1,6 +1,6 @@
 # The Turing Game
 
-A human and an AI compete to convince a judge. Find the AI during a 90-second group chat. Matches are visible only to their two participants. Results remain on screen until you return to the lobby.
+A human and an AI compete to convince a judge. Find the human during a 90-second group chat. Matches are visible only to their two participants. Results remain on screen until you return to the lobby.
 
 ## Development
 

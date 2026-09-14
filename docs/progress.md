@@ -336,3 +336,11 @@ Removed live spectating, audience guesses/counts, room listings, public match en
 New persistence stores only match IDs and win/loss outcomes for the homepage aggregate, alongside provider usage accounting. Messages, names, drafts and judge reasoning are not saved. The application no longer reads or writes the old matches table. After explicit approval, deleted the retired matches table from the local data/local database. Outcome and provider-usage tables were retained.
 
 Validation: 189 unit/integration checks, typecheck, build and formatting checks pass. All 18 real-browser journeys pass, including a complete timed match, refresh/reconnect, early verdict, participant results and 404 responses from retired public match routes. The local stack was restarted after the database cleanup.
+
+## Clear match controls and personal results
+
+Centered the countdown and moved the judge’s guess action into the match toolbar. Removed the judge role announcement and refresh footer. The composer stays editable and focused while sending is blocked, and character counts appear only within 50 characters of the limit. Waiting instructions and the private draft disclosure remain available.
+
+The judge now selects the human. Selecting the human gives both judge and player a win; selecting the bot gives both a loss. Updated instructions, scoring, homepage outcome accounting and personal result explanations. A single result panel shows “You won!” or “You lost.” with the selected identity. Human and bot pixel icons replace anonymous A/B badges only after the verdict. Bot prompts and invocation mechanics are unchanged.
+
+Validation: all 189 unit/integration checks, typecheck, build and formatting pass. All 20 browser journeys pass across the full run and four focused reruns after fixing outdated winner-text and toolbar selectors. Real OpenRouter games cover both personal outcomes, identity secrecy, composer limits, refresh and early guesses. Reviewed desktop/mobile chat and revealed result screenshots.

@@ -210,7 +210,7 @@ test('deadline stops worker and rejects late replies, sending and spectator gues
 
   await game.handle(j.p, {
     type: 'verdict',
-    choice: m.humanLabel === 'A' ? 'B' : 'A',
+    choice: m.humanLabel,
     reason: 'found the bot',
   });
 
@@ -222,7 +222,12 @@ test('early verdict commits reason and identity together, cancels work and settl
   const hooks = sessions.get(m.id)!.hooks;
   const request = await hooks.reserve({ input: 12345, output: 400 });
 
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'guess' });
+  await game.handle(j.p, {
+    type: 'verdict',
+    choice: m.humanLabel === 'A' ? 'B' : 'A',
+    reason: 'guess',
+  });
+
   expect(m.phase).toBe('complete');
   expect(game.view(m, j.p).result?.humanWon).toBe(false);
   expect(sessions.get(m.id)!.stopped).toBe(true);
@@ -299,10 +304,10 @@ test('provider credentials failure closes match rather than awarding a win', asy
   expect(game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result).toBeNull();
 });
 
-test('judge identifies the AI using current scoring', async () => {
+test('judge identifies the human using current scoring', async () => {
   const { j, m } = await opening();
 
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel === 'A' ? 'B' : 'A', reason: '' });
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
 
   expect(
     game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result?.humanWon,
@@ -439,9 +444,9 @@ test('verdict broadcasts the updated aggregate to people on the homepage', async
 
   expect(lastScore()).toEqual({ completed: 0, aiWins: 0 });
   await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
-  expect(lastScore()).toEqual({ completed: 1, aiWins: 1 });
+  expect(lastScore()).toEqual({ completed: 1, aiWins: 0 });
   await game.tick();
-  expect(lastScore()).toEqual({ completed: 1, aiWins: 1 });
+  expect(lastScore()).toEqual({ completed: 1, aiWins: 0 });
 });
 
 test('opening allows both players to continue and preserves worker publication order', async () => {
@@ -634,7 +639,7 @@ test('completed matches store only an outcome and are not rejoined after returni
   await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'private explanation' });
 
   expect(await store.db.query('SELECT * FROM match_outcomes')).toEqual([
-    { id: m.id, ai_won: true },
+    { id: m.id, ai_won: false },
   ]);
 
   expect(

@@ -2,7 +2,7 @@ import { copyText } from './clipboard';
 import { Music } from './music';
 import { CreatorCredits, LiveScore } from './home-details';
 import { HowToPlay } from './how-to-play';
-import { AppShell, RoomTitle } from './ui/layout';
+import { AppShell, RoomTitle, MatchToolbar } from './ui/layout';
 import {
   Button,
   ChoiceButton,
@@ -29,6 +29,7 @@ import {
 } from '../shared/protocol';
 import './styles.css';
 import { ChatMessageItem } from './chat-message';
+import { MatchResult } from './match-result';
 
 const pathCommand = (): Command | null => {
   const invite = new URLSearchParams(location.hash.slice(1)).get('invite');
@@ -222,7 +223,7 @@ function App() {
               <h1 className="arcade-logo">
                 <span>THE</span>TURING GAME
               </h1>
-              <p className="arcade-tagline">One human. One AI. Find the AI.</p>
+              <p className="arcade-tagline">One human. One AI. Find the human.</p>
               <div className="lobby-actions mt-0 flex flex-col items-center justify-center gap-2.5">
                 <Button
                   variant="arcade"
@@ -326,7 +327,7 @@ function App() {
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('judge', inviteRole)}
                       >
-                        Find the AI.
+                        Find the human.
                       </RoleButton>
                     </div>
                   </>
@@ -388,7 +389,7 @@ function ArcadeStage() {
   return (
     <div
       className="arcade-stage mx-auto mt-6.5 max-w-160 max-[640px]:mt-8.75"
-      aria-label="Two contestants face a judge. Identify the AI."
+      aria-label="Two contestants face a judge. Identify the human."
     >
       <svg
         className="block h-auto w-full"
@@ -524,6 +525,7 @@ function Countdown({ deadline }: { deadline: number | null }) {
   return (
     <span
       className={`timer border-0 p-0 font-arcade text-[32px] font-bold tracking-[-0.025em] tabular-nums text-shadow-[2px_3px_#692e1c] max-[640px]:text-[23px] ${seconds < 20 ? 'bg-[#33243a] text-[#ffc88e]' : 'bg-transparent text-player-a'}`}
+      role="timer"
       aria-label={`${seconds} seconds remaining`}
     >
       {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
@@ -562,6 +564,7 @@ function Composer({
   }, []);
 
   const count = characters(value);
+  const nearLimit = count >= limit - 50;
 
   return (
     <form
@@ -602,17 +605,29 @@ function Composer({
             if (!sendBlocked) e.currentTarget.form?.requestSubmit();
           }
         }}
-        aria-describedby="character-count"
+        aria-describedby={
+          [nearLimit ? 'character-count' : '', onDraft ? 'draft-note' : '']
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
         maxLength={8000}
       />
       <div className="composer-bottom contents text-[10px]">
-        <span
-          id="character-count"
-          className={`col-span-full row-start-2 pl-1 text-[11px] ${count > limit ? 'text-[#ffab9c]' : count > limit - 30 ? 'text-[#e6c784]' : 'text-muted'}`}
-        >
-          {limit - count} characters remaining
-          {onDraft ? ' · Draft shared privately with AI' : null}
-        </span>
+        {nearLimit || onDraft ? (
+          <div className="col-span-full row-start-2 flex flex-wrap justify-between gap-x-3 gap-y-1 px-1 text-[11px] text-muted">
+            {onDraft ? <span id="draft-note">Draft shared privately with AI</span> : null}
+            {nearLimit ? (
+              <span
+                id="character-count"
+                className={count > limit ? 'ml-auto text-[#ffab9c]' : 'ml-auto text-[#e6c784]'}
+              >
+                {count > limit
+                  ? `${count - limit} characters over limit`
+                  : `${limit - count} characters remaining`}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         <Button
           type="submit"
           className="col-start-2 row-start-1 w-auto uppercase"
@@ -692,14 +707,6 @@ function Room({
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [room.messages.length]);
 
-  const winner = room.result
-    ? room.result.humanWon
-      ? room.result.humanLabel
-      : room.result.humanLabel === 'A'
-        ? 'B'
-        : 'A'
-    : null;
-
   const canSend =
     connected &&
     room.contextReady !== false &&
@@ -723,10 +730,10 @@ function Room({
             ? 'Opening replies are being prepared. You can keep chatting.'
             : room.phase === 'verdict'
               ? isJudge
-                ? 'Choose who is the AI to finish the match.'
+                ? 'Choose who is human to finish the match.'
                 : 'Waiting for the judge to choose.'
               : guessing
-                ? 'Choose who is the AI, or go back to chat.'
+                ? 'Choose who is human, or go back to chat.'
                 : room.phase === 'chat'
                   ? isJudge
                     ? 'Ask questions or make a guess anytime.'
@@ -738,7 +745,7 @@ function Room({
       className={
         'room-page group/room ' +
         (!done && room.phase !== 'waiting'
-          ? 'active-chat flex h-full min-h-0 flex-col pt-3.5'
+          ? 'active-chat flex h-full min-h-0 flex-col pt-2 pb-[max(8px,env(safe-area-inset-bottom,0px))]'
           : 'pt-7 pb-[calc(48px+env(safe-area-inset-bottom,0px))]') +
         (room.phase === 'verdict' || guessing ? ' verdict-chat' : '')
       }
@@ -790,31 +797,41 @@ function Room({
         </Dialog>
       ) : null}
       {done ? (
-        <RoomTitle>
-          <div>
-            <p className="eyebrow">
-              {isJudge ? 'YOU ARE THE JUDGE' : `YOU ARE CONTESTANT ${room.ownLabel}`}
-            </p>
-            <h1>
-              {room.phase !== 'complete'
-                ? 'Match ended.'
-                : isJudge
-                  ? room.result?.humanWon
-                    ? 'You guessed correctly!'
-                    : 'You guessed wrong.'
-                  : room.result?.humanWon
-                    ? 'You won!'
-                    : 'You lost.'}
-            </h1>
-          </div>
-        </RoomTitle>
+        room.result ? (
+          <MatchResult result={room.result} role={room.role} />
+        ) : (
+          <RoomTitle>
+            <h1>Match ended.</h1>
+          </RoomTitle>
+        )
       ) : (
-        <div className="flex shrink-0 items-center justify-between gap-4 py-3">
-          <p className="text-sm text-muted">
-            {isJudge ? 'YOU ARE THE JUDGE' : `YOU ARE CONTESTANT ${room.ownLabel}`}
-          </p>
+        <MatchToolbar
+          identity={
+            isHuman ? (
+              <span
+                aria-label="Your contestant"
+                className={room.ownLabel === 'A' ? 'text-player-a' : 'text-player-b'}
+              >
+                Contestant {room.ownLabel}
+              </span>
+            ) : null
+          }
+          action={
+            isJudge && room.phase === 'chat' && !guessing ? (
+              <Button
+                variant="secondary"
+                size="compact"
+                className="px-3 text-xs max-[400px]:px-2 max-[400px]:text-[11px]"
+                disabled={!connected}
+                onClick={() => setGuessing(true)}
+              >
+                Make a guess
+              </Button>
+            ) : null
+          }
+        >
           {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
-        </div>
+        </MatchToolbar>
       )}
       {room.phase === 'waiting' ? (
         <Panel className="waiting-panel [&_.muted]:mb-0 [&_.muted]:text-sm [&_input]:mt-2.5 [&_input]:mb-5 [&_input]:w-full [&_input]:p-3 [&_p]:leading-[1.6]">
@@ -839,40 +856,7 @@ function Room({
           <p className="muted">Only the invited player can take the open seat.</p>
         </Panel>
       ) : null}
-      {room.result ? (
-        <Panel className="result-panel mb-8 [&_.eyebrow]:text-[#77def2] [&_blockquote]:my-5.5 [&_blockquote]:border-l-2 [&_blockquote]:border-[#8292d9] [&_blockquote]:pl-4 [&_blockquote]:text-[17px] [&_blockquote]:leading-[1.6] [&_blockquote]:wrap-anywhere [&_blockquote]:whitespace-pre-wrap [&_cite]:mt-2.5 [&_cite]:block [&_cite]:text-[13px] [&_cite]:text-[#b2c39e] [&_cite]:not-italic [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:font-arcade [&_h2]:text-[clamp(18px,3vw,28px)] [&_h2]:leading-normal [&_h2]:font-medium [&_h2]:tracking-[-1px] [&_h2]:uppercase [&>p]:leading-[1.6]">
-          <p className="eyebrow">FINAL RESULT</p>
-          <h2>Contestant {winner} wins!</h2>
-          <div className="my-5 grid gap-3 sm:grid-cols-2">
-            {([winner, winner === 'A' ? 'B' : 'A'] as Label[]).map((label, index) => (
-              <div
-                key={label}
-                className={`border-l-4 px-4 py-3 ${index === 0 ? 'border-player-b bg-player-b/10' : 'border-muted/40 bg-white/5'}`}
-              >
-                <p
-                  className={`mb-2 text-sm font-bold uppercase ${index === 0 ? 'text-player-b' : 'text-muted'}`}
-                >
-                  {index === 0 ? 'Winner' : 'Loser'}
-                </p>
-                <p className="text-lg text-ink">
-                  Contestant {label} · {label === room.result!.humanLabel ? 'Human' : 'AI'}
-                </p>
-              </div>
-            ))}
-          </div>
-          <p>
-            The judge chose Contestant {room.result.choice} as the AI.{' '}
-            {room.result.humanWon
-              ? 'Correct guess — the AI was caught.'
-              : 'Wrong guess — the AI fooled the judge.'}
-          </p>
-          {room.result.reason ? (
-            <blockquote>
-              “{room.result.reason}”<cite>Reasoning from the judge</cite>
-            </blockquote>
-          ) : null}
-        </Panel>
-      ) : null}
+
       {room.message ? (
         <Panel
           className="ended-panel mb-6.5 text-[15px] leading-[1.6] text-[#f6d7b9]"
@@ -897,7 +881,7 @@ function Room({
           {!room.messages.length ? (
             <div className="m-auto max-w-md px-4 py-8 text-center text-sm leading-relaxed text-muted">
               <h2 className="mb-4 text-lg font-bold text-ink">
-                {isJudge ? 'Find the AI' : 'Blend in. Stay human.'}
+                {isJudge ? 'Find the human' : 'Blend in. Stay human.'}
               </h2>
               <p className="mb-3">
                 {isJudge
@@ -914,6 +898,13 @@ function Room({
             <ChatMessageItem
               key={message.id}
               message={message}
+              revealedIdentity={
+                room.result && message.sender !== 'judge'
+                  ? message.sender === room.result.humanLabel
+                    ? 'human'
+                    : 'bot'
+                  : undefined
+              }
               own={
                 (isHuman && message.sender === room.ownLabel) ||
                 (isJudge && message.sender === 'judge')
@@ -927,7 +918,14 @@ function Room({
           className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"
         >
-          <p className="mb-2 text-xs leading-normal text-muted" role="status">
+          <p
+            className={
+              room.phase === 'chat' && canSend
+                ? 'sr-only'
+                : 'mb-2 text-xs leading-normal text-muted'
+            }
+            role="status"
+          >
             {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
             {status}
           </p>
@@ -958,7 +956,7 @@ function Room({
               }}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2>Who is the AI?</h2>
+                <h2>Who is human?</h2>
                 {room.phase === 'chat' ? (
                   <Button variant="ghost" size="text" onClick={() => setGuessing(false)}>
                     Back to chat
@@ -993,10 +991,12 @@ function Room({
                 rows={2}
                 maxLength={8000}
               />
-              <div className="composer-bottom mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px]">
-                <span className={characters(reason) > LIMITS.reason ? 'over-limit' : 'muted'}>
-                  {LIMITS.reason - characters(reason)} characters remaining
-                </span>
+              <div className="composer-bottom mt-3 flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-[11px]">
+                {characters(reason) >= LIMITS.reason - 50 ? (
+                  <span className={characters(reason) > LIMITS.reason ? 'over-limit' : 'muted'}>
+                    {LIMITS.reason - characters(reason)} characters remaining
+                  </span>
+                ) : null}
                 <Button
                   type="submit"
                   size="compact"
@@ -1008,17 +1008,6 @@ function Room({
               </div>
             </form>
           ) : null}
-          {isJudge && room.phase === 'chat' && !guessing ? (
-            <Button
-              className="mt-2"
-              variant="secondary"
-              size="compact"
-              disabled={!connected}
-              onClick={() => setGuessing(true)}
-            >
-              Make a guess
-            </Button>
-          ) : null}
         </section>
       ) : null}
       {done ? (
@@ -1027,11 +1016,7 @@ function Room({
             Back to lobby ↗
           </Button>
         </div>
-      ) : (
-        <p className="public-note my-5.5 text-center text-[11px] leading-[1.6] text-[#76898f] group-[.active-chat]/room:mt-0 group-[.active-chat]/room:mb-2.5 group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:text-[11px] max-[640px]:text-[10px]">
-          Refreshing keeps your seat.
-        </p>
-      )}
+      ) : null}
     </div>
   );
 }

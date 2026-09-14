@@ -1,3 +1,4 @@
+import { IdentityIcon } from './ui/identity-icon';
 import type { ChatMessage } from '../shared/protocol';
 
 const senderStyles = {
@@ -6,7 +7,15 @@ const senderStyles = {
   judge: { text: 'text-judge', badge: 'bg-judge' },
 };
 
-export function ChatMessageItem({ message, own }: { message: ChatMessage; own: boolean }) {
+export function ChatMessageItem({
+  message,
+  own,
+  revealedIdentity,
+}: {
+  message: ChatMessage;
+  own: boolean;
+  revealedIdentity?: 'human' | 'bot';
+}) {
   const colors = senderStyles[message.sender];
 
   return (
@@ -17,12 +26,26 @@ export function ChatMessageItem({ message, own }: { message: ChatMessage; own: b
       <div
         className={`chat-sender flex flex-wrap items-center gap-2 text-[11px] leading-normal max-[640px]:flex-nowrap max-[640px]:text-[10px] ${colors.text}`}
       >
-        <span
-          className={`inline-flex size-5 shrink-0 items-center justify-center font-arcade text-[10px] leading-none text-[#111] ${colors.badge}`}
-        >
-          {message.sender === 'judge' ? 'J' : message.sender}
+        {revealedIdentity ? (
+          <IdentityIcon kind={revealedIdentity} />
+        ) : (
+          <span
+            className={`inline-flex size-5 shrink-0 items-center justify-center font-arcade text-[10px] leading-none text-[#111] ${colors.badge}`}
+          >
+            {message.sender === 'judge' ? 'J' : message.sender}
+          </span>
+        )}
+        <span>
+          {revealedIdentity
+            ? own
+              ? 'You'
+              : revealedIdentity === 'bot'
+                ? 'Bot'
+                : 'Human'
+            : message.sender === 'judge'
+              ? 'Judge'
+              : `Contestant ${message.sender}`}
         </span>
-        <span>{message.sender === 'judge' ? 'Judge' : `Contestant ${message.sender}`}</span>
       </div>
       <p className="m-0 text-base leading-[1.55] wrap-anywhere whitespace-pre-wrap text-[#f3e9d5] max-[640px]:text-sm">
         {message.text}

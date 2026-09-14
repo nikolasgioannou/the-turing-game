@@ -1,6 +1,6 @@
 # Product
 
-Two humans participate: a contestant competing with AI and a judge trying to identify the AI. The judge choosing the AI means the human wins; choosing the human means the AI wins.
+Two humans participate: a contestant competing with AI and a judge trying to identify the human. Choosing the human means both judge and human player win; choosing the AI means both lose.
 
 The lobby supports matchmaking or an invited opponent. Anonymous A/B assignments remain fixed. Only the authenticated human and judge can view a match. Invite tokens reserve seats; they do not expose private context. A judge may guess early during live chat. Verdict and optional reasoning commit together before the reveal.
 
