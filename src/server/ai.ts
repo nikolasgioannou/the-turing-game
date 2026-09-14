@@ -188,10 +188,15 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
   return {
     model: MODEL,
     unavailable: () =>
-      process.env.OPENROUTER_API_KEY
-        ? null
-        : 'Set OPENROUTER_API_KEY in .env and restart the server.',
+      process.env.AI_DISABLED === '1'
+        ? 'The AI is temporarily disabled by the operator. Try again later.'
+        : process.env.OPENROUTER_API_KEY
+          ? null
+          : 'Set OPENROUTER_API_KEY in .env and restart the server.',
     start(id, humanLabel, hooks) {
+      if (process.env.AI_DISABLED === '1')
+        throw new AIError('The AI is temporarily disabled by the operator. Try again later.');
+
       if (!process.env.OPENROUTER_API_KEY)
         throw new AIError('Set OPENROUTER_API_KEY in .env and restart the server.');
 

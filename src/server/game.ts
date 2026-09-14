@@ -17,6 +17,7 @@ import { Store } from './store';
 export interface Peer {
   id: string;
   session: string;
+  ip?: string;
   send: (event: Event) => void;
   roomId?: string;
   queue?: QueuePreference;
@@ -185,8 +186,71 @@ export class Game {
     if (!state.available) throw new ActionError(state.message!);
   }
 
-  async newMatch() {
+  // Provider failures that mean every further request would be billed for nothing.
+  static readonly CREDENTIAL_FAILURE = /openrouter_(401|402|403)/;
+  static readonly MATCHES_PER_IP_PER_HOUR = 6;
+  static readonly BREAKER_FAILURES = 3;
+  static readonly BREAKER_WINDOW_MS = 10 * 60_000;
+  static readonly BREAKER_PAUSE_MS = 10 * 60_000;
+  static readonly CREDENTIAL_PAUSE_MS = 30 * 60_000;
+
+  matchStarts = new Map<string, number[]>();
+  providerFailures: number[] = [];
+
+  // Bound automated match creation: one network cannot burn the day's capacity alone.
+  admitCreators(creators: Peer[]) {
+    const now = this.now();
+
+    for (const p of creators) {
+      if (!p.ip) continue;
+
+      const recent = (this.matchStarts.get(p.ip) ?? []).filter((t) => now - t < 60 * 60_000);
+
+      if (recent.length >= Game.MATCHES_PER_IP_PER_HOUR)
+        throw new ActionError(
+          'Too many games from your network in the last hour. Try again later.',
+        );
+
+      this.matchStarts.set(p.ip, recent);
+    }
+
+    for (const p of creators) if (p.ip) this.matchStarts.get(p.ip)!.push(now);
+  }
+
+  // Stop admitting matches when the provider is rejecting us; every retry would be wasted spend.
+  async providerFailed(error: unknown) {
+    const now = this.now();
+    const code = error instanceof AIError ? error.code : '';
+
+    if (Game.CREDENTIAL_FAILURE.test(code)) {
+      await this.store.pauseAI(
+        'The AI provider rejected requests (credentials or credit). AI matches are paused; an operator has been notified.',
+        now + Game.CREDENTIAL_PAUSE_MS,
+      );
+
+      console.error('AI admission paused: provider credential/credit failure', code);
+    } else {
+      this.providerFailures = this.providerFailures.filter((t) => now - t < Game.BREAKER_WINDOW_MS);
+      this.providerFailures.push(now);
+
+      if (this.providerFailures.length >= Game.BREAKER_FAILURES) {
+        this.providerFailures = [];
+
+        await this.store.pauseAI(
+          'The AI provider is failing repeatedly. AI matches are paused for a few minutes.',
+          now + Game.BREAKER_PAUSE_MS,
+        );
+
+        console.error('AI admission paused: repeated provider failures');
+      }
+    }
+
+    await this.lobby();
+  }
+
+  async newMatch(creators: Peer[] = []) {
     await this.available();
+    this.admitCreators(creators);
 
     const id = crypto.randomUUID();
 
@@ -263,7 +327,7 @@ export class Game {
         );
 
         if (other) {
-          const next = await this.newMatch();
+          const next = await this.newMatch([p, other]);
 
           const role: Role =
             c.role !== 'either'
@@ -294,7 +358,7 @@ export class Game {
 
         return;
       case 'create': {
-        const next = await this.newMatch();
+        const next = await this.newMatch([p]);
 
         next.inviteToken = crypto.randomUUID() + crypto.randomUUID();
 
@@ -516,6 +580,8 @@ export class Game {
               'Bot unavailable:',
               error instanceof AIError ? error.code : 'worker_error',
             );
+
+            await this.providerFailed(error);
           });
         },
       });

@@ -9,7 +9,7 @@ import {
   OUTPUT_PER_REQUEST,
 } from '../src/server/store';
 import { Game, type Peer, type Match } from '../src/server/game';
-import type { AI, BotHooks, BotCommand, BotState } from '../src/server/ai';
+import { AIError, type AI, type BotHooks, type BotCommand, type BotState } from '../src/server/ai';
 import { characters, type Event } from '../src/shared/protocol';
 
 process.env.PGLITE_PATH = 'memory://';
@@ -754,3 +754,123 @@ for (const [randomValue, expectedRole] of [
     }
   });
 }
+
+describe('spending guardrails', () => {
+  test('a daily USD cap is enforced alongside the token caps, including reservations', async () => {
+    store.caps = { input: 1_000_000, output: 100_000, usd: 0.1 };
+
+    // One match reservation costs 75K in + 5.12K out = $0.1006 at list price: over the cap.
+    expect((await store.availability(clock)).available).toBe(false);
+    expect(await store.reserve('one', clock)).toBe(false);
+
+    store.caps = { input: 1_000_000, output: 100_000, usd: 0.2 };
+    expect(await store.reserve('one', clock)).toBe(true);
+    expect(await store.reserve('two', clock)).toBe(false);
+
+    const id = await store.beginRequest('one', {}, { input: 7_500, output: 512 });
+
+    await store.settleRequest(id, { input: 100, output: 10 }, {});
+    await store.release('one');
+
+    // Settling to real usage frees the difference; the day now holds only $0.00015 of use.
+    expect((await store.availability(clock)).available).toBe(true);
+  });
+
+  test('credential or credit failures pause admission until an operator resumes it or it expires', async () => {
+    const { m } = await question();
+    const hooks = sessions.get(m.id)!.hooks;
+
+    hooks.failed(new AIError('openrouter_402'));
+    await game.run(async () => {});
+
+    expect(m.phase).toBe('failed');
+
+    const paused = await store.availability(clock);
+
+    expect(paused.available).toBe(false);
+    expect(paused.message).toContain('paused');
+
+    const p = await peer();
+
+    await expect(game.handle(p.p, { type: 'create', role: 'judge' })).rejects.toThrow(/paused/);
+
+    // Expires on its own after the pause window.
+    clock += Game.CREDENTIAL_PAUSE_MS + 1;
+    expect((await store.availability(clock)).available).toBe(true);
+
+    // An operator can also resume early.
+    hooks.failed(new AIError('openrouter_401'));
+    await game.run(async () => {});
+    await store.resumeAI();
+    expect((await store.availability(clock)).available).toBe(true);
+  });
+
+  test('repeated provider failures trip a circuit breaker; a single failure does not', async () => {
+    const first = await question();
+
+    sessions.get(first.m.id)!.hooks.failed(new AIError('openrouter_503'));
+    await game.run(async () => {});
+    expect((await store.availability(clock)).available).toBe(true);
+
+    for (let i = 0; i < Game.BREAKER_FAILURES - 1; i++) {
+      const next = await question();
+
+      sessions.get(next.m.id)!.hooks.failed(new AIError('openrouter_503'));
+      await game.run(async () => {});
+    }
+
+    const paused = await store.availability(clock);
+
+    expect(paused.available).toBe(false);
+    expect(paused.message).toContain('failing repeatedly');
+
+    clock += Game.BREAKER_PAUSE_MS + 1;
+    expect((await store.availability(clock)).available).toBe(true);
+  });
+
+  test('one network cannot create more than the hourly match limit', async () => {
+    const creators: Peer[] = [];
+
+    for (let i = 0; i < Game.MATCHES_PER_IP_PER_HOUR; i++) {
+      const p = await peer();
+
+      p.p.ip = '203.0.113.9';
+      creators.push(p.p);
+      await game.handle(p.p, { type: 'create', role: 'judge' });
+    }
+
+    const extra = await peer();
+
+    extra.p.ip = '203.0.113.9';
+
+    await expect(game.handle(extra.p, { type: 'create', role: 'judge' })).rejects.toThrow(
+      /Too many games/,
+    );
+
+    // A different network is unaffected, and the limit rolls off after an hour.
+    const other = await peer();
+
+    other.p.ip = '198.51.100.4';
+    await game.handle(other.p, { type: 'create', role: 'judge' });
+
+    clock += 60 * 60_000 + 1;
+    await game.handle(extra.p, { type: 'create', role: 'judge' });
+    expect(extra.p.roomId).toBeDefined();
+  });
+
+  test('the operator kill switch refuses new matches without touching the database', async () => {
+    const original = ai.unavailable;
+
+    ai.unavailable = () => 'The AI is temporarily disabled by the operator. Try again later.';
+
+    try {
+      const p = await peer();
+
+      await expect(game.handle(p.p, { type: 'create', role: 'human' })).rejects.toThrow(
+        /disabled by the operator/,
+      );
+    } finally {
+      ai.unavailable = original;
+    }
+  });
+});

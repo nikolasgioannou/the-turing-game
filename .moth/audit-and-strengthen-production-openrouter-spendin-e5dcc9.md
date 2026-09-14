@@ -1,7 +1,7 @@
 ---
 id: 'e5dcc9'
 title: Audit and strengthen production OpenRouter spending guardrails
-status: backlog
+status: done
 priority: urgent
 labels:
   - cost
@@ -22,3 +22,7 @@ Acceptance criteria:
 - Verify exhaustion and provider failures stop further billable work, present a clear unavailable state and allow controlled recovery.
 - Add meaningful regression tests for overspend risks without intentionally generating large production bills. Provide a conservative cost estimate under the configured caps, operational visibility and an emergency procedure to stop AI spending.
 - Keep keys, prompts and private drafts out of logs, tickets and committed files.
+
+## Resolution
+
+Inventory: atomic daily token caps with per-match and per-request reservations, hedges/retries reserved separately, pinned model with provider fallbacks disabled, per-IP connection throttle, per-session concurrency, restart recovery. Gaps closed: the admission pause was never set automatically (credential/credit failures now pause admission for 30 minutes; repeated provider failures trip a ten-minute breaker); no emergency stop existed (`AI_DISABLED=1` kill switch and `ops.ts pause-ai`); token caps were the only monetary bound (`DAILY_USD_CAP` at the pinned model's list price); one network could exhaust the day (six matches per IP per hour). Cost estimate, provider-side credit-limit guidance and the emergency procedure are in docs/deployment.md. Regression tests cover every guardrail without model calls. The provider-side credit limit on the production key remains an owner action.

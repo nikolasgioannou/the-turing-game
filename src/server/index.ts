@@ -27,9 +27,14 @@ const cap = (key: string, fallback: number) => {
 
   return value;
 };
+const usdCap = process.env.DAILY_USD_CAP ? Number(process.env.DAILY_USD_CAP) : 2;
+
+if (!Number.isFinite(usdCap) || usdCap < 0) throw new Error('Invalid DAILY_USD_CAP');
+
 const store = new Store(db, {
   input: cap('DAILY_INPUT_TOKEN_CAP', 1_000_000),
   output: cap('DAILY_OUTPUT_TOKEN_CAP', 100_000),
+  usd: usdCap,
 });
 
 await store.init();
@@ -102,7 +107,7 @@ const server = Bun.serve<SocketData>({
       )
         return json({ error: 'Connection limit reached' }, 429);
 
-      const peer: Peer = { id: crypto.randomUUID(), session: id, send: () => {} };
+      const peer: Peer = { id: crypto.randomUUID(), session: id, ip, send: () => {} };
 
       if (
         server.upgrade(req, {

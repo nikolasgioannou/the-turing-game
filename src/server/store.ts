@@ -7,11 +7,43 @@ export const MATCH_INPUT = 75_000,
 
 export type Allowance = { input: number; output: number };
 
+// USD per million tokens for the pinned model (anthropic/claude-haiku-4.5 via OpenRouter).
+// Token caps bound tokens; this bounds money even if a cap is misconfigured.
+export const PRICE_PER_MILLION = { input: 1, output: 5 } as const;
+
+export const costUsd = (usage: Allowance) =>
+  (usage.input * PRICE_PER_MILLION.input + usage.output * PRICE_PER_MILLION.output) / 1_000_000;
+
+export type Caps = Allowance & { usd?: number };
+
 export class Store {
   constructor(
     public db: Database,
-    public caps: Allowance = { input: 1_000_000, output: 100_000 },
+    public caps: Caps = { input: 1_000_000, output: 100_000 },
   ) {}
+
+  // True when adding `extra` to the day's used + reserved totals would exceed any cap.
+  exceeds(row: any, extra: Allowance) {
+    const input = Number(row?.input_used ?? 0) + Number(row?.input_reserved ?? 0) + extra.input;
+    const output = Number(row?.output_used ?? 0) + Number(row?.output_reserved ?? 0) + extra.output;
+
+    return (
+      input > this.caps.input ||
+      output > this.caps.output ||
+      (this.caps.usd !== undefined && costUsd({ input, output }) > this.caps.usd)
+    );
+  }
+
+  async pauseAI(reason: string, untilAt: number) {
+    await this.db.query('UPDATE service_state SET reason=$1,until_at=$2 WHERE id=1', [
+      reason,
+      untilAt,
+    ]);
+  }
+
+  async resumeAI() {
+    await this.db.query('UPDATE service_state SET reason=null,until_at=0 WHERE id=1');
+  }
 
   async init() {
     for (const sql of [
@@ -58,11 +90,7 @@ export class Store {
         new Date(now).toISOString().slice(0, 10),
       ])
     )[0];
-    const available =
-      Number(row?.input_used ?? 0) + Number(row?.input_reserved ?? 0) + MATCH_INPUT <=
-        this.caps.input &&
-      Number(row?.output_used ?? 0) + Number(row?.output_reserved ?? 0) + MATCH_OUTPUT <=
-        this.caps.output;
+    const available = !this.exceeds(row, { input: MATCH_INPUT, output: MATCH_OUTPUT });
 
     return {
       available,
@@ -87,11 +115,7 @@ export class Store {
 
       const [r] = await tx.query<any>('SELECT * FROM daily_usage WHERE day=$1 FOR UPDATE', [day]);
 
-      if (
-        Number(r.input_used) + Number(r.input_reserved) + MATCH_INPUT > this.caps.input ||
-        Number(r.output_used) + Number(r.output_reserved) + MATCH_OUTPUT > this.caps.output
-      )
-        return false;
+      if (this.exceeds(r, { input: MATCH_INPUT, output: MATCH_OUTPUT })) return false;
 
       await tx.query(
         'UPDATE daily_usage SET input_reserved=input_reserved+$2,output_reserved=output_reserved+$3 WHERE day=$1',
@@ -137,10 +161,7 @@ export class Store {
         r.day,
       ]);
 
-      if (
-        Number(day.input_used) + Number(day.input_reserved) + extraInput > this.caps.input ||
-        Number(day.output_used) + Number(day.output_reserved) + extraOutput > this.caps.output
-      )
+      if (this.exceeds(day, { input: extraInput, output: extraOutput }))
         throw new Error('No daily AI capacity.');
 
       await tx.query(
