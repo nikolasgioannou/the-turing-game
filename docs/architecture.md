@@ -105,13 +105,15 @@ independently. Only clear peer-directed input can prompt a reply after the AI ha
 are no idle calls. This is conservative routing rather than a semantic classifier, so ambiguous peer
 remarks may be skipped.
 
-Generation snapshots public message IDs and private draft revision. Changes discard unpublished work
-while settling measured usage. Draft changes also invalidate queued draft-based responses. Published
-lines never trigger new calls. A contribution may contain multiple delayed lines, interrupted by new
-public input. Duplicate contributions and [WAIT] stop further work until new evidence. The
-controller uses recent median human reply delays and measured typing rates to calibrate publication
-timing. Draft timing lives in match attention; draft text remains transient. No training or
-cross-match learning.
+Generation snapshots public message IDs and private draft revision. Changes discard unpublished
+draft-based work while settling measured usage. Answers based on submitted messages survive
+intervening messages and are associated internally with their original question through replyTo;
+this is excluded from public views. A late answer never counts as answering a newer question. Draft
+changes also invalidate queued draft-based responses. Published lines never trigger new calls. A
+contribution may contain multiple delayed lines, interrupted by new public input. Duplicate
+contributions and [WAIT] stop further work until new evidence. The controller uses recent median
+human reply delays and measured typing rates to calibrate publication timing. Draft timing lives in
+match attention; draft text remains transient. No training or cross-match learning.
 
 Bounded model history prefers retaining the opening but protects the current judge question, latest
 assistant identity context and latest input before removing older context. Local development origin

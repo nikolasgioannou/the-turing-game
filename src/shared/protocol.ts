@@ -76,6 +76,7 @@ export type Phase =
   | 'failed';
 
 export type ChatMessage = {
+  replyTo?: string;
   id: string;
   sender: 'judge' | Label;
   text: string;

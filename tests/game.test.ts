@@ -696,3 +696,38 @@ test('early judge verdict finishes atomically and rejects late AI output and vot
   await complete('late AI');
   expect(m.messages).toHaveLength(count);
 });
+
+test('submitted-turn replies survive new questions during generation and typing', async () => {
+  const { h, j, m } = await opening();
+
+  await complete('caring about someone');
+  await game.handle(j.p, { type: 'message', text: 'when did you first feel it?' });
+
+  const question = m.messages.at(-1)!.id;
+
+  await game.handle(h.p, { type: 'message', text: 'when i was in my early 20s' });
+  clock += 651;
+  await game.tick();
+  expect(m.aiRequests).toBe(2);
+  await game.handle(j.p, { type: 'message', text: 'where' });
+  await complete('when i was younger', false);
+  expect(game['pendingReplies'].has(m.id)).toBe(true);
+  await game.handle(h.p, { type: 'message', text: 'at my home' });
+
+  const nextQuestion = m.messages.find((message) => message.text === 'where')!.id;
+  const due = game['pendingReplies'].get(m.id)!.due;
+
+  clock = due;
+  await game.tick();
+  expect(m.messages.at(-1)?.text).toBe('when i was younger');
+  expect(m.messages.at(-1)?.replyTo).toBe(question);
+  expect(m.aiRequests).toBe(3);
+  await complete('at school', false);
+  await game.handle(j.p, { type: 'message', text: 'with who' });
+  clock = game['pendingReplies'].get(m.id)!.due;
+  await game.tick();
+  expect(m.messages.at(-1)?.text).toBe('at school');
+  expect(m.messages.at(-1)?.replyTo).toBe(nextQuestion);
+  expect(m.aiDueAt).toBeNull();
+  expect(game.view(m).messages.every((message) => message.replyTo === undefined)).toBe(true);
+});

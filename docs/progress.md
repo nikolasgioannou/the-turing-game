@@ -528,3 +528,20 @@ finish path. The normal deadline-driven verdict flow is unchanged.
 Validation: 58 unit tests, typecheck and build pass. A real-model browser journey verifies opening
 availability, returning to chat, choosing a contestant and immediate shared reveal. Server coverage
 checks authorization, durable verdict/reason, vote/message locking and late AI suppression.
+
+## Prevent replies being starved by an active conversation
+
+Inspected match d7080a05-d92e-4917-8566-f3befb01a9ca: six provider requests succeeded, but only the
+opening was published. Public-input traces contained live answers; strict invalidation during
+continued typing/new messages discarded unpublished output. Slow observed typing amplified the
+window.
+
+First replies based on submitted messages now survive intervening input during generation and
+publication delays. Internal replyTo records the originating turn, so a late answer does not satisfy
+a newer judge question. When delivery completes, the controller can handle that newer question.
+Draft-derived replies still invalidate on edits/new input, continuation lines still stop on new
+messages, and deadline/verdict cancellation is unchanged. No prompt changes or canned replies.
+
+Validation: 59 tests, typecheck and production build pass. A regression follows the reported
+sequence with new judge/human messages during generation and typing, verifies both answers arrive,
+and checks that internal reply targeting is absent from public views.

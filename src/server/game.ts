@@ -79,6 +79,8 @@ export class Game {
       text: string;
       charsPerSecond: number;
       draftRevision?: number;
+      replyTo?: string;
+      published?: boolean;
     }
   >();
   private serial: Promise<unknown> = Promise.resolve();
@@ -500,8 +502,13 @@ export class Game {
       }
 
       m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
-      // A person interrupts unsent lines. Reconsider against the complete new burst.
-      this.pendingReplies.delete(m.id);
+      // Preserve the first answer to an earlier turn while humans keep chatting.
+      // Draft-derived work and continuation lines can still become obsolete.
+
+      const pending = this.pendingReplies.get(m.id);
+
+      if (pending?.draftRevision !== undefined || pending?.published)
+        this.pendingReplies.delete(m.id);
 
       this.scheduleConversation(m);
 
@@ -596,9 +603,16 @@ export class Game {
       this.attention(m).seenHumanIds = this.humanMessages(m).map((message) => message.id);
       pending.opening = false;
     } else {
-      m.messages.push({ id: crypto.randomUUID(), sender: pending.sender, text, sentAt });
+      m.messages.push({
+        id: crypto.randomUUID(),
+        sender: pending.sender,
+        text,
+        sentAt,
+        replyTo: pending.replyTo,
+      });
     }
 
+    pending.published = true;
     this.attention(m).lastContribution = pending.text;
 
     if (pending.lines.length) {
@@ -611,7 +625,7 @@ export class Game {
       m.aiDueAt = null;
     } else {
       this.pendingReplies.delete(m.id);
-      m.aiDueAt = null;
+      this.scheduleConversation(m);
     }
 
     await this.persist(m);
@@ -750,7 +764,7 @@ export class Game {
 
           const currentHumanIds = this.humanMessages(m).map((message) => message.id);
 
-          if (currentHumanIds.at(-1) !== humanSnapshot.at(-1)) {
+          if (draftRevision !== undefined && currentHumanIds.at(-1) !== humanSnapshot.at(-1)) {
             // The message handler has already scheduled reconsideration after the burst.
             await this.persist(m);
 
@@ -778,6 +792,7 @@ export class Game {
               sender: input.label,
               opening: false,
               draftRevision,
+              replyTo: opportunity?.key,
               text: result.text,
               charsPerSecond,
               due: invokedAt + thinkingMs + (characters(firstLine) / charsPerSecond) * 1000,

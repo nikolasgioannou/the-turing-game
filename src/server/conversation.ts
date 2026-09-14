@@ -41,10 +41,12 @@ export function conversationOpportunity(
   const judge = [...messages].reverse().find((message) => message.sender === 'judge');
   const judgeIndex = judge ? messages.indexOf(judge) : -1;
   const sinceJudge = messages.slice(judgeIndex + 1);
-  const answered = sinceJudge.some((message) => message.sender === ai);
+  const answered = sinceJudge.some(
+    (message) => message.sender === ai && (!message.replyTo || message.replyTo === judge?.id),
+  );
   const latest = messages.at(-1);
 
-  if (!latest || latest.sender === ai) return null;
+  if (!latest) return null;
 
   if (judge && !answered) {
     if (addresses(judge.text, human) && !addresses(judge.text, ai)) return null;

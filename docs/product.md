@@ -53,10 +53,11 @@ sent answer (650 ms), letting the AI infer response behavior before replying ind
 questions to the AI need not wait. After answering, parallel human replies do not trigger
 acknowledgments; clear peer-directed questions can. Silence alone never invokes the model. The
 controller passes the reply target and evidence type to the model. Revised/deleted drafts and
-intervening messages invalidate unpublished work. Only one request runs per match. Generation runs
-immediately when eligible; publication waits for thinking plus length-based typing time, calibrated
-to recent human response delays and observed draft typing speed. Newline-separated parts arrive
-separately and new human messages cancel unsent parts. [WAIT] posts nothing and stops
+intervening messages invalidate draft-based work. Answers based on submitted messages survive new
+conversation input, so typing delays cannot starve delivery. Only one request runs per match.
+Generation runs immediately when eligible; publication waits for thinking plus length-based typing
+time, calibrated to recent human response delays and observed draft typing speed. Newline-separated
+parts arrive separately and new human messages cancel unsent parts. [WAIT] posts nothing and stops
 reconsideration until fresh evidence arrives. These rules improve turn-taking, not a guarantee of
 human-like text.
 
