@@ -1,14 +1,14 @@
-"""One isolated reference bot per match; no credentials or persisted draft text."""
+"""One isolated bot per match; no credentials or persisted draft text."""
 import asyncio
 import json
 import sys
 from transport import emit, pending
-from reference import Game
+from brain import Game
 import re
 
-# Upstream diagnostics contain drafts/output. Never retain those logs.
-import reference
-reference.print = lambda *args, **kwargs: None
+# Bot diagnostics contain drafts/output. Never retain those logs.
+import brain
+brain.print = lambda *args, **kwargs: None
 
 
 class Bot(Game):

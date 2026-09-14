@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { Label } from '../shared/protocol';
 import type { Allowance } from './store';
 
-export const PROMPT_VERSION = 'mbaghadjian-a2bc11a';
+export const PROMPT_VERSION = 'turing-v1';
 export const SYSTEM_PROMPT = readFileSync(new URL('./bot/system.txt', import.meta.url), 'utf8');
 export const MODEL = 'anthropic/claude-haiku-4.5';
 
@@ -160,7 +160,7 @@ export async function requestCompletion(
           ![408, 409, 429].includes(status))
       )
         throw error;
-      // Match the reference Anthropic client's single automatic transport retry.
+      // Allow one automatic retry for transient transport failures.
 
       const delay = retryDelay(responseHeaders);
 
@@ -197,7 +197,7 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
 
       const python = process.env.BOT_PYTHON ?? Bun.which('python3');
 
-      if (!python) throw new AIError('Python 3.9+ is required for the reference bot.');
+      if (!python) throw new AIError('Python 3.9+ is required for the bot.');
 
       const child = Bun.spawn([python, '-u', resolve(import.meta.dir, 'bot/worker.py')], {
         stdin: 'pipe',

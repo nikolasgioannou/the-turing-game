@@ -11,19 +11,19 @@ project-local PGlite in development. Shared Zod schemas validate public socket c
 - `server/store.ts`: snapshots, request ledger, daily capacity and reservations.
 - `server/game.ts`: sessions, matchmaking, deadlines, scoring and public serialization.
 - `server/ai.ts`: private worker lifecycle and OpenRouter transport/accounting.
-- `server/bot`: pinned Python reference brain, private transport and source-parity manifest.
+- `server/bot`: Python conversation engine, private transport and behavior-integrity manifest.
 - `client/ui`: shared controls and layouts with static Tailwind classes.
 
-One Python standard-library worker per match runs the original reference scheduling loop. JSON lines
-carry game input and private drafts into it, and public transcript updates/provider requests out.
-Bun routes requests to OpenRouter and returns the text in the response shape expected by the
-reference. No direct Anthropic SDK or local inference dependency is needed. Worker diagnostics are
-suppressed; prompts, drafts and style cards are not written to application logs.
+One Python standard-library worker per match runs the conversation scheduling loop. JSON lines carry
+game input and private drafts into it, and public transcript updates/provider requests out. Bun
+routes requests to OpenRouter and returns the text in the response shape expected by the bot. No
+direct Anthropic SDK or local inference dependency is needed. Worker diagnostics are suppressed;
+prompts, drafts and style cards are not written to application logs.
 
-The reference owns all AI decisions, including its 400 ms loop, live draft planning, opening attack,
+The bot owns all AI decisions, including its 400 ms loop, live draft planning, opening attack,
 2.5-second request hedge, style-card refreshes, reply retries and paced bubbles. There is no second
-conversation scheduler or additional prompt layer. See `src/server/bot/README.md` for the exact
-source commit and the limited adaptations at the application boundary.
+conversation scheduler or additional prompt layer. See `src/server/bot/README.md` for bot behavior
+and application boundaries.
 
 ## Match lifecycle
 
@@ -32,15 +32,15 @@ abandoned/failed exits. The bot's opening can reveal a held human reply alongsid
 enter chat first from a developed draft / 40 seconds of silence. Bun accepts the worker's chat start
 timestamp and 90-second deadline. Worker snapshots publish AI and held opening messages without
 duplicates. Live human and judge messages are accepted immediately by Bun. Both players may continue
-during opening; a second human submission releases the previous held one, matching upstream. The
-latest opening stays private until worker publication, including early-attack races.
+during opening; a second human submission releases the previous held one. The latest opening stays
+private until worker publication, including early-attack races.
 
 Chat expiry and early verdict stop the worker and abort pending HTTP calls. Late worker events
 cannot alter a closed match. Anonymous HttpOnly session cookies own seats, so reconnects/refreshes
 resume the same match and bot. Explicit leave abandons. Server restarts mark unfinished matches as
 technical failures and preserve conservative charges for in-flight requests.
 
-Browser drafts use the reference client's 120 ms debounce in opening and live states. Only the human
+Browser drafts use the client's 120 ms debounce in opening and live states. Only the human
 contestant can submit drafts. Text is transient in the worker; public DTOs and saved matches never
 include it. Names are collected on entry; timezone, weekday, local time and device hints are passed
 privately on entry/reconnect. Human names never enter public DTOs; the judge name is public. The
@@ -64,13 +64,13 @@ as technical failures, never wins.
 ## Deployment and UI
 
 A single Fly machine is the authority; multi-machine room ownership is not implemented. Production
-uses PostgreSQL and requires APP_ORIGIN. The container supplies Python and timezone data; the
-reference has no third-party Python dependencies. Fly deployment remains separately gated.
+uses PostgreSQL and requires APP_ORIGIN. The container supplies Python and timezone data; the bot
+has no third-party Python dependencies. Fly deployment remains separately gated.
 
 Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global effects. Components
 own utility classes. VS Code uses Tailwind language mode. `bun run format` runs Prettier and the
-syntax-aware blank-line pass; the pinned Python source is intentionally retained verbatim and
-verified by AST hashes. Only transcript history scrolls during active chat.
+syntax-aware blank-line pass; Python behavior is verified by AST hashes. Only transcript history
+scrolls during active chat.
 
 Score aggregates are cached in the game authority until a terminal match save; unchanged lobby ticks
 do not scan transcript history. Names/device context do not spawn workers. Context updates after

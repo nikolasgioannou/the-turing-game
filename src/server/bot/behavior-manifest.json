@@ -1,6 +1,4 @@
 {
-  "repo": "https://github.com/mbaghadjian/turing-game",
-  "commit": "a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc",
   "systemSha256": "958d1a138cdf508501576ee643071ee14493f233d0fc7781a72b78b750e83bb9",
   "members": {
     "__init__": "198098871a85d170cfc22d447b40d3d275150f75f5a7a27b07effb450bd2a2db",

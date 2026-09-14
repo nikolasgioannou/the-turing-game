@@ -411,7 +411,7 @@ test('home page shows creator links and a live score on desktop and mobile', asy
   }
 });
 
-test('latest upstream names, ongoing opening and independent live reply', async ({ browser }) => {
+test('names, ongoing opening and independent live reply', async ({ browser }) => {
   test.setTimeout(120000);
 
   const { h, j, humanContext, judgeContext } = await participants(browser);

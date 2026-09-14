@@ -1,4 +1,4 @@
-"""Pinned-source parity plus deterministic scheduling/transport regressions."""
+"""Behavior integrity plus deterministic scheduling/transport regressions."""
 import ast
 import asyncio
 import hashlib
@@ -11,26 +11,26 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/server/bot'))
-import reference
-from reference import Game
-reference.print = lambda *args, **kwargs: None
+import brain
+from brain import Game
+brain.print = lambda *args, **kwargs: None
 
 
-class ReferenceTests(unittest.IsolatedAsyncioTestCase):
-    def test_pinned_source_parity(self):
+class BrainTests(unittest.IsolatedAsyncioTestCase):
+    def test_behavior_integrity(self):
         folder = ROOT / 'src/server/bot'
-        manifest = json.loads((folder / 'upstream.json').read_text())
-        source = ast.parse((folder / 'reference.py').read_text())
+        manifest = json.loads((folder / 'behavior-manifest.json').read_text())
+        source = ast.parse((folder / 'brain.py').read_text())
         cls = next(n for n in source.body if isinstance(n, ast.ClassDef))
         members = {}
         for node in cls.body:
             key = node.name if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) else node.targets[0].id
             members[key] = hashlib.sha256(ast.dump(node, include_attributes=False).encode()).hexdigest()
         self.assertEqual(members, manifest['members'])
-        self.assertEqual(hashlib.sha256(reference.SYSTEM.encode()).hexdigest(), manifest['systemSha256'])
-        self.assertEqual(reference.SYSTEM, (folder / 'system.txt').read_text())
-        self.assertEqual(reference.MODEL, 'anthropic/claude-haiku-4.5')
-        self.assertEqual(reference.GAME_SECONDS, 90)
+        self.assertEqual(hashlib.sha256(brain.SYSTEM.encode()).hexdigest(), manifest['systemSha256'])
+        self.assertEqual(brain.SYSTEM, (folder / 'system.txt').read_text())
+        self.assertEqual(brain.MODEL, 'anthropic/claude-haiku-4.5')
+        self.assertEqual(brain.GAME_SECONDS, 90)
 
     def game(self):
         game = Game('test')
@@ -52,7 +52,7 @@ class ReferenceTests(unittest.IsolatedAsyncioTestCase):
         async def gen(*args, **kwargs): return ['trust']
         async def sleep(*args): pass
         g.gen = gen
-        with patch.object(reference.asyncio, 'sleep', sleep):
+        with patch.object(brain.asyncio, 'sleep', sleep):
             await g.first_exchange(False)
         self.assertEqual([m['text'] for m in g.messages], ['what is love', 'caring', 'trust'])
         self.assertEqual(g.phase, 'live')
@@ -64,7 +64,7 @@ class ReferenceTests(unittest.IsolatedAsyncioTestCase):
         async def gen(*args, **kwargs): return ['hi']
         async def sleep(*args): pass
         g.gen = gen
-        with patch.object(reference.asyncio, 'sleep', sleep):
+        with patch.object(brain.asyncio, 'sleep', sleep):
             await g.first_exchange(True)
         self.assertEqual(g.phase, 'live')
         self.assertEqual([m['text'] for m in g.messages], ['hello', 'hi'])
@@ -73,11 +73,11 @@ class ReferenceTests(unittest.IsolatedAsyncioTestCase):
         g = self.game()
         g.phase = 'live'
         g.messages = [{'from':'judge','text':'what is love','ts':100}]
-        with patch.object(reference.random, 'random', return_value=0.1), patch.object(reference.random, 'uniform', side_effect=lambda a,b:a):
+        with patch.object(brain.random, 'random', return_value=0.1), patch.object(brain.random, 'uniform', side_effect=lambda a,b:a):
             g.new_plan(g.messages[-1], 100)
         self.assertTrue(g.plan['blind'])
         self.assertEqual(g.plan['land_at'], 101.5)
-        with patch.object(reference.random, 'random', return_value=0.9), patch.object(reference.random, 'uniform', side_effect=lambda a,b:a):
+        with patch.object(brain.random, 'random', return_value=0.9), patch.object(brain.random, 'uniform', side_effect=lambda a,b:a):
             g.new_plan(g.messages[-1], 100)
         self.assertTrue(g.plan['beat'])
         self.assertGreaterEqual(g.plan['land_at'],108)
@@ -94,8 +94,8 @@ class ReferenceTests(unittest.IsolatedAsyncioTestCase):
                     raise
             return 'second won'
         client = SimpleNamespace(messages=SimpleNamespace(create=create))
-        with patch.object(reference, 'get_client', return_value=client):
-            result = await Game.hedged_create(model=reference.MODEL, max_tokens=400)
+        with patch.object(brain, 'get_client', return_value=client):
+            result = await Game.hedged_create(model=brain.MODEL, max_tokens=400)
             await asyncio.sleep(0)
         self.assertEqual(result, 'second won')
         self.assertEqual(len(calls), 2)
@@ -117,7 +117,7 @@ class ReferenceTests(unittest.IsolatedAsyncioTestCase):
                 calls.append(kwargs)
                 return SimpleNamespace(content=[SimpleNamespace(type='text',text='style card')])
         client=Client()
-        with patch.object(reference,'get_client',return_value=client):
+        with patch.object(brain,'get_client',return_value=client):
             await g.analyze_style()
         self.assertEqual(g.style_card,'style card')
         self.assertEqual(client.timeout,20)

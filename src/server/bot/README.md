@@ -1,60 +1,46 @@
-# Reference bot
+# Conversation engine
 
-Behavior source: [mbaghadjian/turing-game](https://github.com/mbaghadjian/turing-game), `server.py`
-at **a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc**.
+`brain.py` owns prompts, style analysis, response planning, normalization and delivery pacing.
+`system.txt` mirrors SYSTEM for recording the prompt in match metadata. `behavior-manifest.json`
+records AST hashes for class members and a hash of the system prompt, ignoring code formatting.
+Tests detect unintended behavior changes. Update these checks deliberately when changing behavior.
 
-The original Python brain is retained to preserve its prompts, random distributions, timing,
-regexes, similarity calculations, style analysis, normalization, retries and multi-bubble delivery.
-`reference.py` contains all 49 retained non-transport methods and class constants. New upstream
-spectator-only constructor fields are omitted. `system.txt` is an exact copy of SYSTEM for recording
-the prompt version in match metadata. The manifest hashes Python ASTs against the pinned source,
-ignoring formatting. Tests verify every retained member and the exact system prompt. Do not casually
-edit this file or regenerate the manifest to hide drift.
+## Runtime and transport
 
-## Integration changes
+- Each match has an isolated standard-library Python worker. Bun owns sessions, matchmaking, public
+  views, persistence, scoring, admission limits and provider credentials.
+- The model is `anthropic/claude-haiku-4.5` through OpenRouter, routed to Anthropic with provider
+  fallbacks disabled. Thinking is disabled; no temperature override is applied. Chat calls allow 400
+  output tokens and style analysis 500.
+- Chat requests have a six-second timeout, one transient retry and a second hedged call after 2.5
+  seconds. Style analysis has a 20-second timeout. Every actual call is accounted separately.
+- `worker.py` communicates through private JSON lines. `transport.py` supplies the response shape
+  the engine expects. Credentials and HTTPS requests remain in Bun; Python runs no local inference.
+- Retry handling honors retry-after-ms, retry-after and x-should-retry with jittered backoff.
+  Successful accounting does not delay response delivery. Reservations are required before dispatch.
 
-- The source uses Anthropic directly with `claude-haiku-4-5`. The adapter uses OpenRouter's
-  `anthropic/claude-haiku-4.5`, routed to Anthropic with provider fallbacks disabled. No temperature
-  override; thinking is disabled. Chat calls retain 400 output tokens and style analysis 500.
-- Original API client behavior: six-second request timeout, one transient retry, 20-second style
-  timeout, and a second hedged chat call after 2.5 seconds. Each actual call is accounted
-  separately.
-- The application mock branch is removed from `generate`; the mock guard is removed from
-  `analyze_style`. The unused socket annotation in `__init__` no longer needs FastAPI's WebSocket.
-  The other 46 methods are unchanged, including original fallback replies after empty generation.
-- FastAPI, matchmaking, original disk storage, snapshots and vote handling are not copied. Bun owns
-  sessions, identity secrecy, public views, persistence, admission limits and correct AI-guess
-  scoring. Its phase adapter accepts both paired reveal and the reference's early opening attack.
-- `worker.py` supplies `broadcast` over private JSON lines. `transport.py` presents the response
-  shape expected by the original brain. Credentials and HTTPS requests remain in Bun. Python uses
-  only its standard library; it runs no local inference and needs no model dependencies.
-- Drafts use the source client's 120 ms debounce, including opening drafts. Browser timezone,
-  weekday, time and device hints use the same fields. First names are collected at entry; only the
-  judge name is public. The human name is private context. Names and device hints are refreshed on
-  reconnect, not on each draft. No additional system prompt or calendar instruction is added.
-- Drafts and style cards remain transient in the worker and are sent to OpenRouter. They are not
-  written to application traces, database snapshots or public views. Original verbose logs are
-  suppressed because they include private text.
-- Existing message-size, human-action timeout and daily-token limits remain application boundaries.
-  Budget exhaustion/credential failure ends a match as a technical failure. Transient generation
-  failure retains the reference's behavior. Closing chat kills the worker and cancels pending HTTP
-  calls, preventing late delivery. Socket refresh does not restart the bot.
+## Conversation and privacy
 
-OpenRouter routing and network latency are necessarily different from direct Anthropic; identical
-stochastic outputs and latency cannot be guaranteed. The bot's decision code is preserved.
+The engine controls opening replies, its 400 ms decision loop, draft planning, style-card refreshes,
+response filtering, retries and paced messages. Both humans may continue messaging during opening.
+Held messages are published in order. The bot can start chat before the human sends; its first reply
+starts the 90-second chat. Visible typing indicators are off.
 
-Run `bun test` for source parity, deterministic brain checks, the actual Python worker with a
-controlled HTTP transport, and game/store/HTTP adapter tests. `bun run test:e2e` requires a real
-OpenRouter key and makes paid model calls.
+Drafts use a 120 ms debounce in opening and live chat and clear immediately on submission. Names are
+collected at entry. The judge name is public; the human name is private context. Browser timezone,
+weekday, time and device hints are refreshed on entry/reconnect, with lowercase mobile booleans.
 
-Latest revision adds anti-stunt prompt guidance, fake-malfunction response filtering and refined
-gibberish detection. Both humans may continue messaging during the opening. The worker publishes
-held messages in source order. The native composer sends drafts only after input events (120 ms) and
-clears immediately on submit. Mobile hints deliberately use lowercase booleans, correcting the
-upstream Python string-conversion mismatch. Upstream explicitly disables visible typing indicators,
-so ours remain off too.
+Drafts and style cards are transient and sent to OpenRouter. They are not retained in application
+logs, database snapshots or public views. Verbose worker logs are suppressed because they include
+private text. Socket refresh preserves the bot; closing chat kills the worker and cancels pending
+HTTP calls so late responses cannot be delivered.
 
-Transport honors retry-after-ms, retry-after and x-should-retry with one retry and jittered SDK
-backoff. Successful accounting is queued without holding up response delivery; reservations remain
-mandatory before dispatch. OpenRouter latency, fetch timeout semantics and the Bun/Python bridge are
-still integration differences from Anthropic's Python SDK; exact wall-clock parity is not claimed.
+Message-size, human-action timeout and daily-token limits apply at the application boundary. Budget
+exhaustion or credential failure ends a match as a technical failure. Transient generation failures
+use the engine's retry/fallback behavior.
+
+## Validation
+
+Run `bun test` for behavior integrity, deterministic scheduling, the Python worker with controlled
+HTTP transport, and game/store/adapter regressions. `bun run test:e2e` requires an OpenRouter key
+and makes paid model calls. Model output and network latency are stochastic.

@@ -107,7 +107,7 @@ async function opening() {
   return p;
 }
 
-test('opening answer remains private until the worker reveals it; clock comes from reference', async () => {
+test('opening answer remains private until the worker reveals it; clock comes from worker', async () => {
   const { h, j, m } = await question();
 
   await game.handle(h.p, { type: 'message', text: 'secret opening' });
@@ -131,7 +131,7 @@ test('opening answer remains private until the worker reveals it; clock comes fr
   expect(m.deadline).toBe(clock + 90000);
 });
 
-test('reference can start before the human sends; subsequent human reply is public', async () => {
+test('bot can start before the human sends; subsequent human reply is public', async () => {
   const { h, m } = await question();
 
   await emit(m, [

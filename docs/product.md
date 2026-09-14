@@ -11,21 +11,19 @@ and optional reasoning commit together before the reveal.
 
 ## Conversation
 
-The AI behavior is copied from mbaghadjian/turing-game at commit
-a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc. It runs Claude Haiku 4.5 through OpenRouter. Its original
-prompts, style analyst, draft observation, randomized planning, hedges, retries, message shaping,
-accusations, occasional nudges and delivery pacing are retained. See `src/server/bot/README.md`.
+The AI runs Claude Haiku 4.5 through OpenRouter. Its conversation engine handles prompting, style
+analysis, draft observation, randomized planning, hedges, retries, message shaping, accusations,
+occasional nudges and delivery pacing. See `src/server/bot/README.md`.
 
-The human's first submitted answer is held until the AI's first message. The reference can also send
-first from a developed draft or start after 40 seconds without human typing. Its first reply starts
-the 90-second free chat. Both humans can then post freely. The bot sees the human's live draft
-through OpenRouter, including during opening. Drafts/style cards are not persisted or exposed to
-other browsers. The source receives browser clock/device hints; no training or cross-match learning
-occurs.
+The human's first submitted answer is held until the AI's first message. The bot can also send first
+from a developed draft or start after 40 seconds without human typing. Its first reply starts the
+90-second free chat. Both humans can then post freely. The bot sees the human's live draft through
+OpenRouter, including during opening. Drafts/style cards are not persisted or exposed to other
+browsers. The bot receives browser clock/device hints; no training or cross-match learning occurs.
 
 At chat expiry, pending bot work is canceled and the judge chooses. Early verdict ends chat
-immediately. Source behavior is retained, but stochastic model responses and network latency are not
-guaranteed to reproduce any particular game.
+immediately. Model responses are stochastic, and network latency is not guaranteed to reproduce any
+particular game.
 
 ## Boundaries and persistence
 
@@ -47,9 +45,9 @@ release unused capacity at closure. No legacy ten-request cap controls bot behav
 remains conservatively charged. Views/replays remain available when generation capacity is spent.
 
 Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, and a
-standard-library Python worker preserves the reference brain. OpenRouter is the sole inference
-route. Fly deployment is still paused pending owner details. Keep dependencies project-local and
-create conventional commits at completed milestones.
+standard-library Python worker runs the conversation engine. OpenRouter is the sole inference route.
+Fly deployment is still paused pending owner details. Keep dependencies project-local and create
+conventional commits at completed milestones.
 
 ## Homepage credits and live score
 

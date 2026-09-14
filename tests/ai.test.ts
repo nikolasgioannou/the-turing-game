@@ -33,7 +33,7 @@ function harness() {
   return { hooks, reservations, settlements };
 }
 
-test('OpenRouter translation preserves content and reference token limits without sampling overrides', () => {
+test('OpenRouter translation preserves content and configured token limits without sampling overrides', () => {
   expect(openRouterBody(params)).toEqual({
     model: MODEL,
     messages: [{ role: 'system', content: 'EXACT system' }, ...params.messages],
@@ -117,8 +117,8 @@ test('missing API key fails clearly before spawning a worker', () => {
   }
 });
 
-test('reference parity and deterministic behavior checks', async () => {
-  const child = Bun.spawn(['python3', 'tests/reference_bot_test.py'], {
+test('behavior integrity and deterministic behavior checks', async () => {
+  const child = Bun.spawn(['python3', 'tests/brain_test.py'], {
     stdout: 'pipe',
     stderr: 'pipe',
     env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' },

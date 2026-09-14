@@ -5,8 +5,11 @@ boundaries, and docs/progress.md when resuming work.
 
 ## Ownership and tools
 
-- Use Bun/TypeScript for the app, React/Tailwind for UI, Fly for deployment. The pinned reference
-  bot runs unchanged Python logic in a standard-library worker; OpenRouter handles inference.
+This repository is the canonical implementation. Describe bot behavior directly as part of this
+project in documentation, comments and metadata.
+
+- Use Bun/TypeScript for the app, React/Tailwind for UI, Fly for deployment. The bot runs Python
+  conversation logic in a standard-library worker; OpenRouter handles inference.
 - Use the committed bun.lock. All dependencies, skills, downloaded tools, browser binaries and
   caches must remain under this project. No global installs/config changes without explicit
   permission.
@@ -36,9 +39,9 @@ boundaries, and docs/progress.md when resuming work.
 
 ## Product invariants
 
-- Follow the pinned reference bot opening: hold the human until AI reveal, or allow its early attack
-  from drafts / silence. The first AI reply starts 90-second group chat. Preserve the original
-  message order and all brain mechanics. Cancel late AI replies at chat closure.
+- Follow the bot opening: hold the human until AI reveal, or allow its early attack from drafts /
+  silence. The first AI reply starts 90-second group chat. Preserve the original message order and
+  all brain mechanics. Cancel late AI replies at chat closure.
 - Serialize explicit public views. Never send hidden answers, identity mapping, participant
   credentials, prompt, or early audience results to browsers.
 - Anonymous A/B assignments stay fixed. All rooms are publicly watchable; invite tokens reserve

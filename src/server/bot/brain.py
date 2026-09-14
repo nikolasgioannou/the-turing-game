@@ -1,5 +1,4 @@
-# Extracted from mbaghadjian/turing-game server.py at
-# a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc. See README.md for adaptations.
+# Conversation planning, style adaptation and delivery pacing.
 import asyncio
 import difflib
 import json

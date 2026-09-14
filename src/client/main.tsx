@@ -1100,7 +1100,7 @@ function Room({
 
 createRoot(document.getElementById('root')!).render(<App />);
 
-// Same browser context supplied by the reference client; never used as identity.
+// Browser context for conversation hints; never used as identity.
 function deviceHints() {
   const ua = navigator.userAgent || '';
   let tz = '';

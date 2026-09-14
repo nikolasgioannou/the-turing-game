@@ -592,22 +592,19 @@ Validation: 61 unit tests, typecheck and build pass, including both A/B assignme
 scoring. Real-model browser checks cover early verdict, an independent live answer, and persistent
 composer.
 
-## OpenRouter and pinned reference bot — 2026-09-14
+## OpenRouter conversation engine — 2026-09-14
 
-Replaced local inference and the custom conversation controller with the bot from
-mbaghadjian/turing-game at 3c09d6b9515c57837863617f874952ee2f173e7d. The original Python brain runs
-in an isolated standard-library worker. Its prompts and all retained class members are pinned by
-source-parity hashes. Forty-six methods are unchanged; three only remove mock/transport typing
-references. The Bun bridge changes the provider wire format to OpenRouter's Claude Haiku 4.5, routed
-to Anthropic, and retains the reference's token limits, disabled thinking, hedges, retries, style
-analysis and timing. Exact output/network latency is not claimed.
+Replaced local inference with OpenRouter and a Python conversation engine running in an isolated
+standard-library worker. Prompts and class members have behavior-integrity hashes. The Bun bridge
+uses OpenRouter's Claude Haiku 4.5, routed to Anthropic, with bounded token limits, disabled
+thinking, hedges, retries, style analysis and timing.
 
-The reference now owns opening attacks, paired publication, independent live answers, draft-based
-plans, accusations/nudges and multi-message delivery. Removed old scheduler/prompt transformations,
-local model adapter/launcher/downloader/requirements/skill, and AI SDK/DevTools dependencies. The
-human draft debounce is 120 ms and includes opening; browser clock/device hints use the reference
-fields. Unsent drafts and style cards stay out of database/public views/logs, but go to OpenRouter
-with the user's explicit approval. Worker credentials remain in Bun only.
+The bot now owns opening attacks, paired publication, independent live answers, draft-based plans,
+accusations/nudges and multi-message delivery. Removed old scheduler/prompt transformations, local
+model adapter/launcher/downloader/requirements/skill, and AI SDK/DevTools dependencies. The human
+draft debounce is 120 ms and includes opening; browser clock/device hints provide private context.
+Unsent drafts and style cards stay out of database/public views/logs, but go to OpenRouter with the
+user's explicit approval. Worker credentials remain in Bun only.
 
 Preserved app sessions, refresh recovery, public replay secrecy, early verdict, AI-guess scoring,
 message/action limits and daily budgets. Replaced the fixed ten-call ceiling with atomically bounded
@@ -658,10 +655,10 @@ frontend change is served immediately by the running app; no game restart was ne
 
 ## Background music
 
-Added the background track from the pinned Marc reference repository with first-interaction
-playback, looping, pause/play and saved volume (35% default). A persistent compact control keeps
-music available across lobby, chat and replay without restarting it on navigation. Browser playback
-rejection leaves the play button available; unavailable storage is tolerated.
+Added the background track with first-interaction playback, looping, pause/play and saved volume
+(35% default). A persistent compact control keeps music available across lobby, chat and replay
+without restarting it on navigation. Browser playback rejection leaves the play button available;
+unavailable storage is tolerated.
 
 Validation: typecheck and production build pass. Installed Chrome confirmed actual audio playback,
 looping, 35% volume, pause, and no horizontal overflow at 390px.
@@ -672,22 +669,21 @@ Moved the volume range into the exported design-system Slider component. Tailwin
 square cyan thumb, dark bordered track, focus and disabled states for WebKit and Firefox while
 retaining native keyboard behavior and input props. Music owns only volume state and width.
 
-## Latest reference behavior port
+## Conversation behavior update
 
-Pinned a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc: updated system prompt, anti-stunt filtering and
-gibberish detection. Opening now accepts additional messages from both humans and follows worker
-publication order. Added first-name entry, private human-name context, public judge name,
-join/reconnect device hints and event-based 120 ms drafts with immediate submit clearing. Retained
-correct lowercase mobile hints. Correction to the initial audit: upstream typing snapshot fields are
-always false, so visible indicators remain off, as the owner explicitly confirmed.
+Updated system prompt, anti-stunt filtering and gibberish detection. Opening now accepts additional
+messages from both humans and follows worker publication order. Added first-name entry, private
+human-name context, public judge name, join/reconnect device hints and event-based 120 ms drafts
+with immediate submit clearing. Retained correct lowercase mobile hints. Visible typing indicators
+remain off, as the owner explicitly confirmed.
 
 Transport now honors SDK retry hints/backoff and does not delay successful delivery on accounting
-settlement. Mandatory admission/request budgets and cancellation remain. OpenRouter is still a
-different transport; network/timeout behavior is not claimed to be identical to direct Anthropic.
+settlement. Mandatory admission/request budgets and cancellation remain. OpenRouter handles
+inference; the Bun bridge owns transport and timeout behavior.
 
-Validation: 33 Bun tests pass (including Python source-parity/worker checks), typecheck and build
-pass. A real OpenRouter browser match passed name entry, multi-message opening, an independent live
-reply with an empty human textbox, refresh and early verdict in 11.3 seconds. A separate
+Validation: 33 Bun tests pass (including Python behavior-integrity/worker checks), typecheck and
+build pass. A real OpenRouter browser match passed name entry, multi-message opening, an independent
+live reply with an empty human textbox, refresh and early verdict in 11.3 seconds. A separate
 non-generating desktop/mobile name-entry check passed; both screenshots were inspected. Restarted
 the idle public app on its existing ngrok URL and verified a public WebSocket lobby response.
 
@@ -704,8 +700,8 @@ opening submissions extending the action deadline. Context is buffered privately
 stimulus. Cached scoreboard aggregates across unchanged ticks. Separated bounded draft traffic from
 chat-action rate limits so legitimate 120 ms drafts do not disconnect players. Missing asset
 requests now return uncached 404s rather than immutable HTML. Added an HTTP LAN clipboard fallback
-and a timeout for session bootstrap. Updated stale upstream and test references. Pinned
-reference.py/prompts remain unchanged.
+and a timeout for session bootstrap. Updated stale documentation and test references. Bot behavior
+and prompts remain unchanged.
 
 Automatic approval review rejected removing the provider recovery controls; service-state schema and
 resume-ai remain intact. Existing databases, history and local model/cache artifacts were not

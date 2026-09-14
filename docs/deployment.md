@@ -27,7 +27,7 @@ implemented. App restarts end active matches as technical failures.
    `DATABASE_URL`. Use Fly's current `fly mpg --help` and official create/attach docs; never
    provision legacy unmanaged Fly Postgres by mistake.
 3. Set OPENROUTER_API_KEY as a Fly secret. The container includes Python 3 and timezone data for the
-   reference bot worker; model inference uses OpenRouter only.
+   bot worker; model inference uses OpenRouter only.
 4. Run local checks and `fly config validate`. Use a remote builder if Docker is not installed
    locally. No global Docker install is necessary.
 5. Deploy with one machine. Check logs and `/api/health`, confirm real PostgreSQL schema/data, and
@@ -57,8 +57,8 @@ bun scripts/ops.ts resume-ai
 not bypass token caps. No user-facing admin controls.
 
 Provider authentication/credit failures end the affected match as a technical failure. Transient
-completion failures retain the reference's retry/fallback behavior. Exhausted daily capacity blocks
-new admission and new requests, while replays remain available.
+completion failures retain the bot's retry/fallback behavior. Exhausted daily capacity blocks new
+admission and new requests, while replays remain available.
 
 ## Limitations to keep explicit
 
