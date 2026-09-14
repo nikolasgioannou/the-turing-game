@@ -577,3 +577,17 @@ Validation: 60 unit tests, typecheck and build pass. All ten real-model browser 
 the initial run and focused rerun after updating obsolete UI selectors and readiness assumptions.
 The new regression checks blocked Enter, editable input, retained text/focus and identical textarea
 node across opening/reveal. Desktop empty states and mobile active chat were visually inspected.
+
+## Find the AI narrative
+
+New matches ask judges and spectators to identify the AI. Lobby, role descriptions, empty states,
+status text, rules, verdict headings and result explanations reflect that goal. The human tries to
+avoid being mistaken for AI; prompt v25 tells the AI to pass as human and avoid being accused.
+Selecting the AI awards the human the win; selecting the human awards the AI the win. Winner cards
+are derived from the actual outcome rather than assuming the selected contestant won.
+
+New matches persist guessTarget=ai. Records without it retain legacy human-guess scoring, and replay
+copy explicitly identifies what the original judge selected. Existing outcomes are not rewritten.
+Validation: 61 unit tests, typecheck and build pass, including both A/B assignments and legacy
+scoring. Real-model browser checks cover early verdict, an independent live answer, and persistent
+composer.

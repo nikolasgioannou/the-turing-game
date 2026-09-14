@@ -27,7 +27,7 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   const s = await spectatorContext.newPage();
 
   await s.goto(j.url());
-  await expect(s.getByRole('heading', { name: 'Who do you think is human?' })).toBeVisible();
+  await expect(s.getByRole('heading', { name: 'Who do you think is the AI?' })).toBeVisible();
   await s.getByRole('button', { name: 'A', exact: true }).click();
 
   const humanLabel = (await h.getByText(/YOU ARE CONTESTANT/).textContent())!.trim().slice(-1);
@@ -55,7 +55,11 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
 
   await expect(h.getByLabel('Message the group')).toBeEnabled();
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
-  await j.getByRole('button', { name: `Contestant ${humanLabel}`, exact: true }).click();
+
+  await j
+    .getByRole('button', { name: `Contestant ${humanLabel === 'A' ? 'B' : 'A'}`, exact: true })
+    .click();
+
   await j.getByLabel('What gave them away?').fill('They kept it simple.');
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
 
@@ -125,7 +129,7 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
   await h.getByRole('button', { name: /Send/ }).click();
 
   await expect(
-    h.getByText('Chat with the group. Convince the judge.', { exact: true }),
+    h.getByText('Chat with the group. Avoid being mistaken for AI.', { exact: true }),
   ).toBeVisible({ timeout: 30000 });
 
   await h.evaluate(() => (window as any).gameSocket.close());
@@ -146,7 +150,7 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: 'Contestant A wins!' })).toBeVisible();
+  await expect(j.getByRole('heading', { name: 'Contestant B wins!' })).toBeVisible();
 
   await hc.close();
   await jc.close();
@@ -249,7 +253,7 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: 'Contestant A wins!' })).toBeVisible();
+  await expect(j.getByRole('heading', { name: 'Contestant B wins!' })).toBeVisible();
 
   await humanContext.close();
   await judgeContext.close();
@@ -298,7 +302,7 @@ test('AI answers a shared live question before the human types', async ({ browse
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: /Contestant A wins/ })).toBeVisible();
+  await expect(j.getByRole('heading', { name: /Contestant B wins/ })).toBeVisible();
   await humanContext.close();
   await judgeContext.close();
 });
@@ -336,7 +340,7 @@ test('composer preserves focus and drafts while sending is blocked', async ({ br
   await input.fill('next message draft');
 
   await expect(
-    h.getByText('Chat with the group. Convince the judge.', { exact: true }),
+    h.getByText('Chat with the group. Avoid being mistaken for AI.', { exact: true }),
   ).toBeVisible();
 
   await expect(input).toHaveValue('next message draft');

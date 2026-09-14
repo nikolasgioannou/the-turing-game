@@ -12,7 +12,7 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
         </li>
         <li>
           <strong>Meet A and B.</strong> One contestant is human and the other is AI. The judge must
-          work out which is which.
+          find the AI.
         </li>
         <li>
           <strong>Answer the opener.</strong> The judge asks a question. Both contestants answer
@@ -20,11 +20,11 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
         </li>
         <li>
           <strong>Chat for up to 90 seconds.</strong> Everyone can ask questions and respond. As the
-          human, convince the judge to pick you. As the judge, test both contestants.
+          human, avoid being mistaken for AI. As the judge, test both contestants.
         </li>
         <li>
           <strong>Make the call.</strong> The judge can guess during chat or when time runs out.
-          Pick the human and the human wins. Pick the AI and the AI wins. Both identities are
+          Find the AI and the human wins. Accuse the human and the AI wins. Both identities are
           revealed.
         </li>
       </ol>

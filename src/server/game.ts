@@ -31,6 +31,7 @@ type Round = {
 };
 
 export type Match = {
+  guessTarget?: 'ai';
   id: string;
   phase: Phase;
   createdAt: number;
@@ -178,7 +179,9 @@ export class Game {
               humanLabel: m.humanLabel,
               choice: m.choice!,
               reason: m.reason,
-              humanWon: m.choice === m.humanLabel,
+              guessTarget: m.guessTarget ?? 'human',
+              humanWon:
+                m.guessTarget === 'ai' ? m.choice !== m.humanLabel : m.choice === m.humanLabel,
               votes: {
                 A: Object.values(m.votes).filter((v) => v === 'A').length,
                 B: Object.values(m.votes).filter((v) => v === 'B').length,
@@ -252,6 +255,7 @@ export class Game {
     const m: Match = {
       id,
       phase: 'waiting',
+      guessTarget: 'ai',
       createdAt: this.now(),
       deadline: this.now() + LIMITS.actionMs,
       humanLabel: Math.random() < 0.5 ? 'A' : 'B',

@@ -544,7 +544,7 @@ test('live style accumulates opponent habits, ignores judge/AI and adapts to sus
 });
 
 test('competitive intent is shared by opening and live chat without copying opponent evidence', () => {
-  expect(SYSTEM_PROMPT).toContain('judge to choose YOU');
+  expect(SYSTEM_PROMPT).toContain('judge accuses the other contestant');
   expect(SYSTEM_PROMPT).not.toContain('You do not need to prove');
   expect(CHAT_PROMPT).toContain('even without a new judge question');
   expect(CHAT_PROMPT.toLowerCase()).toContain('if they defend their identity, make your own case');

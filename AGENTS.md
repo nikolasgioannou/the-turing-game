@@ -45,6 +45,7 @@ boundaries, and docs/progress.md when resuming work.
   seats only.
 - Explicit leave abandons a match. Socket loss does not: sessions reclaim their seats on
   reconnect/refresh while deadlines continue. Heartbeat only detects dead transports.
+- The judge selects the AI: a correct guess means human wins; otherwise AI wins.
 - Verdict and optional reasoning commit together before identity reveal. Audience guesses lock at
   verdict and remain hidden until then.
 - Persist transcripts, prompt/model/provider versions, usage and results. Abandoned/failed matches

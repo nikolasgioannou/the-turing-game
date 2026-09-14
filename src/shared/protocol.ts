@@ -102,6 +102,7 @@ export type RoomView = {
     choice: Label;
     reason: string;
     humanWon: boolean;
+    guessTarget: 'human' | 'ai';
     votes: Record<Label, number>;
   };
   message: string | null;

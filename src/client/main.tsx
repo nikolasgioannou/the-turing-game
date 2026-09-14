@@ -221,7 +221,7 @@ function App() {
               <h1 className="arcade-logo">
                 <span>THE</span>TURING GAME
               </h1>
-              <p className="arcade-tagline">One human. One AI. Ninety seconds.</p>
+              <p className="arcade-tagline">One human. One AI. Find the AI.</p>
               <div className="lobby-actions mt-0 flex flex-col items-center justify-center gap-2.5">
                 <Button
                   variant="arcade"
@@ -316,7 +316,7 @@ function App() {
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('human', inviteRole)}
                       >
-                        Convince the judge.
+                        Avoid being mistaken for AI.
                       </RoleButton>
                       <RoleButton
                         tone="b"
@@ -324,7 +324,7 @@ function App() {
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('judge', inviteRole)}
                       >
-                        Find the human.
+                        Find the AI.
                       </RoleButton>
                     </div>
                   </>
@@ -388,7 +388,7 @@ function ArcadeStage() {
   return (
     <div
       className="arcade-stage mx-auto mt-6.5 max-w-160 max-[640px]:mt-8.75"
-      aria-label="Two contestants face a judge. Identify the human."
+      aria-label="Two contestants face a judge. Identify the AI."
     >
       <svg
         className="block h-auto w-full"
@@ -681,6 +681,14 @@ function Room({
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [room.messages.length]);
 
+  const winner = room.result
+    ? room.result.humanWon
+      ? room.result.humanLabel
+      : room.result.humanLabel === 'A'
+        ? 'B'
+        : 'A'
+    : null;
+
   const canSend =
     connected &&
     !guessing &&
@@ -701,14 +709,14 @@ function Room({
           ? 'Waiting for both opening replies. You can draft your next message.'
           : room.phase === 'verdict'
             ? isJudge
-              ? 'Choose who is human to finish the match.'
+              ? 'Choose who is the AI to finish the match.'
               : 'Waiting for the judge to choose.'
             : guessing
-              ? 'Choose who is human, or go back to chat.'
+              ? 'Choose who is the AI, or go back to chat.'
               : room.phase === 'chat'
                 ? isJudge
                   ? 'Ask questions or make a guess anytime.'
-                  : 'Chat with the group. Convince the judge.'
+                  : 'Chat with the group. Avoid being mistaken for AI.'
                 : 'Waiting for your opponent.';
 
   return (
@@ -749,12 +757,12 @@ function Room({
                 : room.phase === 'waiting'
                   ? 'Invite your opponent.'
                   : room.phase === 'ready'
-                    ? 'Who is human?'
+                    ? 'Who is the AI?'
                     : room.phase === 'verdict'
                       ? 'Time is up.'
                       : room.phase === 'opening' || room.phase === 'opening_ai'
                         ? 'Opening replies'
-                        : 'Who is human?'}
+                        : 'Who is the AI?'}
             </h1>
           </div>
           {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
@@ -797,30 +805,31 @@ function Room({
       {room.result ? (
         <Panel className="result-panel mb-8 [&_.eyebrow]:text-[#77def2] [&_blockquote]:my-5.5 [&_blockquote]:border-l-2 [&_blockquote]:border-[#8292d9] [&_blockquote]:pl-4 [&_blockquote]:text-[17px] [&_blockquote]:leading-[1.6] [&_blockquote]:wrap-anywhere [&_blockquote]:whitespace-pre-wrap [&_cite]:mt-2.5 [&_cite]:block [&_cite]:text-[13px] [&_cite]:text-[#b2c39e] [&_cite]:not-italic [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:font-arcade [&_h2]:text-[clamp(18px,3vw,28px)] [&_h2]:leading-normal [&_h2]:font-medium [&_h2]:tracking-[-1px] [&_h2]:uppercase [&>p]:leading-[1.6]">
           <p className="eyebrow">FINAL RESULT</p>
-          <h2>Contestant {room.result.choice} wins!</h2>
+          <h2>Contestant {winner} wins!</h2>
           <div className="my-5 grid gap-3 sm:grid-cols-2">
-            {([room.result.choice, room.result.choice === 'A' ? 'B' : 'A'] as Label[]).map(
-              (label, index) => (
-                <div
-                  key={label}
-                  className={`border-l-4 px-4 py-3 ${index === 0 ? 'border-player-b bg-player-b/10' : 'border-muted/40 bg-white/5'}`}
+            {([winner, winner === 'A' ? 'B' : 'A'] as Label[]).map((label, index) => (
+              <div
+                key={label}
+                className={`border-l-4 px-4 py-3 ${index === 0 ? 'border-player-b bg-player-b/10' : 'border-muted/40 bg-white/5'}`}
+              >
+                <p
+                  className={`mb-2 text-sm font-bold uppercase ${index === 0 ? 'text-player-b' : 'text-muted'}`}
                 >
-                  <p
-                    className={`mb-2 text-sm font-bold uppercase ${index === 0 ? 'text-player-b' : 'text-muted'}`}
-                  >
-                    {index === 0 ? 'Winner' : 'Loser'}
-                  </p>
-                  <p className="text-lg text-ink">
-                    Contestant {label} · {label === room.result!.humanLabel ? 'Human' : 'AI'}
-                  </p>
-                </div>
-              ),
-            )}
+                  {index === 0 ? 'Winner' : 'Loser'}
+                </p>
+                <p className="text-lg text-ink">
+                  Contestant {label} · {label === room.result!.humanLabel ? 'Human' : 'AI'}
+                </p>
+              </div>
+            ))}
           </div>
           <p>
-            The judge chose Contestant {room.result.choice}.{' '}
+            The judge chose Contestant {room.result.choice} as{' '}
+            {room.result.guessTarget === 'ai' ? 'the AI' : 'human'}.{' '}
             {room.result.humanWon
-              ? 'Correct guess — the human convinced the judge.'
+              ? room.result.guessTarget === 'ai'
+                ? 'Correct guess — the AI was caught.'
+                : 'Correct guess — the human was identified.'
               : 'Wrong guess — the AI fooled the judge.'}
           </p>
           {room.result.reason ? (
@@ -854,7 +863,7 @@ function Room({
           {!room.messages.length ? (
             <div className="m-auto max-w-md px-4 py-8 text-center text-sm leading-relaxed text-muted">
               <h2 className="mb-4 text-lg font-bold text-ink">
-                {isJudge ? 'Find the human' : 'Convince the judge'}
+                {isJudge ? 'Find the AI' : 'Blend in. Stay human.'}
               </h2>
               <p className="mb-3">
                 {isJudge
@@ -914,7 +923,7 @@ function Room({
               }}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2>Who is human?</h2>
+                <h2>Who is the AI?</h2>
                 {room.phase === 'chat' ? (
                   <Button variant="ghost" size="text" onClick={() => setGuessing(false)}>
                     Back to chat
@@ -978,7 +987,7 @@ function Room({
           {room.role === 'spectator' ? (
             <div className="spectator-vote mt-2 flex items-center justify-between gap-5 border-t border-[#414d37] pt-2.5 max-[700px]:flex-col max-[700px]:items-start [&_h2]:mb-2 [&_h2]:text-[17px] [&_h2]:font-medium [&_p]:m-0 [&_p]:text-sm [&_p]:leading-[1.6] [&_p]:text-[#a3b098]">
               <div>
-                <h2>Who do you think is human?</h2>
+                <h2>Who do you think is the AI?</h2>
                 <p>Your guess stays hidden until the verdict.</p>
               </div>
               <div className="choice-row flex flex-wrap gap-2.5 group-[.verdict-chat]/room:mb-3.5">

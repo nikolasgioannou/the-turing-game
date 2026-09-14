@@ -188,7 +188,7 @@ describe('paired opening and group chat', () => {
 
     await game.handle(j.p, {
       type: 'verdict',
-      choice: m.humanLabel,
+      choice: m.humanLabel === 'A' ? 'B' : 'A',
       reason: 'The details felt real.',
     });
 
@@ -563,7 +563,13 @@ test('refresh restores the session seat and private opening without changing the
   const returnJudge = await peer(j.p.session);
 
   expect(game.view(m, returnJudge.p).phase).toBe('verdict');
-  await game.handle(returnJudge.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+
+  await game.handle(returnJudge.p, {
+    type: 'verdict',
+    choice: m.humanLabel === 'A' ? 'B' : 'A',
+    reason: '',
+  });
+
   expect(m.phase).toBe('complete');
 });
 
@@ -687,7 +693,12 @@ test('early judge verdict finishes atomically and rejects late AI output and vot
 
   const count = m.messages.length;
 
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'Ready to guess' });
+  await game.handle(j.p, {
+    type: 'verdict',
+    choice: m.humanLabel === 'A' ? 'B' : 'A',
+    reason: 'Ready to guess',
+  });
+
   expect(m.phase).toBe('complete');
   expect(m.deadline).toBeNull();
   expect(game.view(m).result?.humanWon).toBe(true);
@@ -750,4 +761,23 @@ test('AI answers a live judge question first without human typing and does not l
   await game.tick();
   expect(m.aiRequests).toBe(2);
   expect(m.aiDueAt).toBeNull();
+});
+
+test('AI guessing scores either label correctly while old replays retain their outcome', async () => {
+  const { m } = await pair();
+
+  m.phase = 'complete';
+
+  for (const humanLabel of ['A', 'B'] as const) {
+    m.humanLabel = humanLabel;
+    m.choice = humanLabel;
+    expect(game.view(m).result?.humanWon).toBe(false);
+    m.choice = humanLabel === 'A' ? 'B' : 'A';
+    expect(game.view(m).result?.humanWon).toBe(true);
+  }
+
+  delete m.guessTarget;
+  m.choice = m.humanLabel;
+  expect(game.view(m).result?.humanWon).toBe(true);
+  expect(game.view(m).result?.guessTarget).toBe('human');
 });
