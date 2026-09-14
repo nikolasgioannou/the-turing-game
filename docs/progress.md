@@ -386,3 +386,7 @@ Validation: all 201 unit/integration tests, typecheck and build pass. Four appro
 The current game objective is identifying the bot, superseding the earlier human-selection flow. Selecting the bot gives both judge and human player a win; selecting the human gives both a loss. Updated lobby, rules, guessing, results, outcome accounting and bot prompt (turing-v4). The judge composer is hidden while guessing, retaining its draft for Back to chat. The verdict form contains the contestant choice and optional reason. Existing stored outcomes remain unchanged.
 
 Validation: all 201 unit/integration tests, typecheck and build pass. Browser regressions now cover the hidden composer, returning to its preserved draft, and both personal results. Both approved local browser journeys passed using development OpenRouter: the composer is hidden during guessing, Back to chat preserves the draft, and judge/player results are correct for both outcomes. Reviewed the mobile result screenshot. No production games were created. Not deployed.
+
+## Production release: bot identification
+
+GitHub Actions run 34899228657 deployed commit ac8d1a0 successfully. Production now includes either-role friend invitations, direct bot opinions, the bot-identification objective and focused guessing controls. CI formatting, all 201 tests, typecheck, build and Fly health checks passed. The public HTTPS health endpoint returns 200, and the served client asset contains the updated lobby, verdict and result copy. No production games or score records were created during release verification.
