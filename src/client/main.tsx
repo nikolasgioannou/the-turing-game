@@ -1,3 +1,4 @@
+import { HowToPlay } from './how-to-play';
 import { AppShell, RoomTitle, RoomToolbar } from './ui/layout';
 import {
   Button,
@@ -42,7 +43,8 @@ function App() {
     [error, setError] = useState<string | null>(null),
     [joining, setJoining] = useState(false),
     [inviteRole, setInviteRole] = useState(false),
-    [startOpen, setStartOpen] = useState(false);
+    [startOpen, setStartOpen] = useState(false),
+    [instructionsOpen, setInstructionsOpen] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
   const cancelledInvite = useRef<string | null>(null);
@@ -220,7 +222,7 @@ function App() {
                 <span>THE</span>TURING GAME
               </h1>
               <p className="arcade-tagline">One human. One AI. Ninety seconds.</p>
-              <div className="lobby-actions mt-0 flex items-center justify-center gap-2.5">
+              <div className="lobby-actions mt-0 flex flex-col items-center justify-center gap-2.5">
                 <Button
                   variant="arcade"
                   size="arcade"
@@ -231,6 +233,9 @@ function App() {
                   onClick={() => setStartOpen(true)}
                 >
                   Start game
+                </Button>
+                <Button variant="ghost" size="text" onClick={() => setInstructionsOpen(true)}>
+                  How to play
                 </Button>
               </div>
               {lobby && !lobby.availability.available ? (
@@ -243,6 +248,7 @@ function App() {
               ) : null}
               <ArcadeStage />
             </section>
+            {instructionsOpen ? <HowToPlay onClose={() => setInstructionsOpen(false)} /> : null}
             {startOpen ? (
               <Dialog
                 label="Start a game"
