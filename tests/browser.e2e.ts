@@ -58,9 +58,7 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await j.getByLabel('What gave them away?').fill('They kept it simple.');
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
 
-  await expect(
-    s.getByRole('heading', { name: `Contestant ${humanLabel} was human.` }),
-  ).toBeVisible();
+  await expect(s.getByRole('heading', { name: `Contestant ${humanLabel} wins!` })).toBeVisible();
 
   await expect(s.getByText('They kept it simple.', { exact: false })).toBeVisible();
   await expect(s.getByText('Audience guesses')).toHaveCount(0);
@@ -75,7 +73,7 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await replay.goto(url);
 
   await expect(
-    replay.getByRole('heading', { name: `Contestant ${humanLabel} was human.` }),
+    replay.getByRole('heading', { name: `Contestant ${humanLabel} wins!` }),
   ).toBeVisible();
 
   await replay.close();
@@ -271,8 +269,8 @@ test('judge can return to chat or submit an early guess', async ({ browser }) =>
   await j.getByRole('button', { name: 'Make a guess' }).click();
   await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
-  await expect(j.getByRole('heading', { name: /was human/ })).toBeVisible();
-  await expect(h.getByRole('heading', { name: /was human/ })).toBeVisible();
+  await expect(j.getByRole('heading', { name: /Contestant [AB] wins!/ })).toBeVisible();
+  await expect(h.getByRole('heading', { name: /Contestant [AB] wins!/ })).toBeVisible();
   await expect(h.getByLabel('Message the group')).toHaveCount(0);
   await humanContext.close();
   await judgeContext.close();

@@ -729,7 +729,17 @@ function Room({
           <h1>
             {done
               ? room.phase === 'complete'
-                ? 'The reveal.'
+                ? isHuman
+                  ? room.result?.humanWon
+                    ? 'You won!'
+                    : 'You lost.'
+                  : isJudge
+                    ? room.result?.humanWon
+                      ? 'You guessed correctly!'
+                      : 'You guessed wrong.'
+                    : room.result?.humanWon
+                      ? 'Human wins!'
+                      : 'AI wins!'
                 : 'Match ended.'
               : room.phase === 'waiting'
                 ? 'Invite your opponent.'
@@ -769,13 +779,32 @@ function Room({
       ) : null}
       {room.result ? (
         <Panel className="result-panel mb-8 [&_.eyebrow]:text-[#77def2] [&_blockquote]:my-5.5 [&_blockquote]:border-l-2 [&_blockquote]:border-[#8292d9] [&_blockquote]:pl-4 [&_blockquote]:text-[17px] [&_blockquote]:leading-[1.6] [&_blockquote]:wrap-anywhere [&_blockquote]:whitespace-pre-wrap [&_cite]:mt-2.5 [&_cite]:block [&_cite]:text-[13px] [&_cite]:text-[#b2c39e] [&_cite]:not-italic [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:font-arcade [&_h2]:text-[clamp(18px,3vw,28px)] [&_h2]:leading-normal [&_h2]:font-medium [&_h2]:tracking-[-1px] [&_h2]:uppercase [&>p]:leading-[1.6]">
-          <p className="eyebrow">
-            {room.result.humanWon ? 'HUMAN IDENTIFIED' : 'THE AI FOOLED THE JUDGE'}
-          </p>
-          <h2>Contestant {room.result.humanLabel} was human.</h2>
+          <p className="eyebrow">FINAL RESULT</p>
+          <h2>Contestant {room.result.choice} wins!</h2>
+          <div className="my-5 grid gap-3 sm:grid-cols-2">
+            {([room.result.choice, room.result.choice === 'A' ? 'B' : 'A'] as Label[]).map(
+              (label, index) => (
+                <div
+                  key={label}
+                  className={`border-l-4 px-4 py-3 ${index === 0 ? 'border-player-b bg-player-b/10' : 'border-muted/40 bg-white/5'}`}
+                >
+                  <p
+                    className={`mb-2 text-sm font-bold uppercase ${index === 0 ? 'text-player-b' : 'text-muted'}`}
+                  >
+                    {index === 0 ? 'Winner' : 'Loser'}
+                  </p>
+                  <p className="text-lg text-ink">
+                    Contestant {label} · {label === room.result!.humanLabel ? 'Human' : 'AI'}
+                  </p>
+                </div>
+              ),
+            )}
+          </div>
           <p>
-            The judge chose {room.result.choice}.
-            {room.result.humanWon ? ' Human wins.' : ' AI wins.'}
+            The judge chose Contestant {room.result.choice}.{' '}
+            {room.result.humanWon
+              ? 'Correct guess — the human convinced the judge.'
+              : 'Wrong guess — the AI fooled the judge.'}
           </p>
           {room.result.reason ? (
             <blockquote>
