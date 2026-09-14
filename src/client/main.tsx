@@ -294,8 +294,7 @@ function App() {
                   </>
                 ) : (
                   <>
-                    <p className="eyebrow">PLAYER SELECT</p>
-                    <h2>Choose your side</h2>
+                    <h2>Choose your role</h2>
                     <div
                       className="dialog-modes flex rounded-none border border-[#39484e] bg-[#080d10] p-1"
                       aria-label="Game type"
@@ -310,19 +309,14 @@ function App() {
                         Invite a friend
                       </SegmentButton>
                     </div>
-                    <p className="muted">
-                      {inviteRole
-                        ? 'Choose your role, then share the invitation.'
-                        : 'Choose your role. We will find your opponent.'}
-                    </p>
-                    <div className="dialog-roles grid gap-2.5">
+                    <div className="dialog-roles mt-4 grid gap-2.5">
                       <RoleButton
                         tone="a"
                         title="Play as human"
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('human', inviteRole)}
                       >
-                        Convince the judge you are human.
+                        Convince the judge.
                       </RoleButton>
                       <RoleButton
                         tone="b"
@@ -330,7 +324,7 @@ function App() {
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('judge', inviteRole)}
                       >
-                        Chat with both. Identify the human.
+                        Find the human.
                       </RoleButton>
                     </div>
                   </>

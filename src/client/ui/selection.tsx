@@ -25,12 +25,10 @@ export function RoleButton({
   return (
     <button
       type="button"
-      className={`border bg-[#17191a] p-4.5 text-left hover:border-current hover:bg-[#242a2c] ${tone === 'a' ? 'border-[#8c492e] text-[#ff985c] shadow-[3px_3px_0_#3b271b]' : 'border-[#327d91] text-[#66d9fc] shadow-[3px_3px_0_#183e47]'}`}
+      className={`border bg-[#17191a] p-3.5 text-left hover:border-current hover:bg-[#242a2c] ${tone === 'a' ? 'border-[#8c492e] text-[#ff985c]' : 'border-[#327d91] text-[#66d9fc]'}`}
       {...props}
     >
-      <strong className="block font-arcade text-xs leading-[1.6] font-medium max-[640px]:text-[11px]">
-        {title}
-      </strong>
+      <strong className="block text-sm leading-normal font-bold">{title}</strong>
       <span className="mt-1.25 block text-[13px] leading-normal text-[#b3bbb9]">{children}</span>
     </button>
   );
