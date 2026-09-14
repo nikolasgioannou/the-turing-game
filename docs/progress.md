@@ -352,3 +352,7 @@ Created the-turing-game app and a Basic Managed Postgres cluster in the-turing-g
 The Bun-only remote container build succeeded (74 MB). Initial deployment started exactly one 512 MB app machine; HTTPS and Fly health checks pass, and the production operational command connects to PostgreSQL. Local validation passes all 189 unit/integration checks, types and build.
 
 Added a workflow_dispatch-only production workflow, restricted to main, with pinned actions, serialized deployments, validation and remote build. Production browser smoke and the first GitHub workflow run are being verified next.
+
+Production verification completed: a real OpenRouter game passed opening replies, refresh recovery, early verdict and identity reveal, with a third browser receiving the live outcome update. The first smoke attempt needed to wait for the name dialog to close before filling the remounted composer; the corrected journey passed without application changes. One completed smoke-test game remains in the production aggregate.
+
+GitHub run 34884381483 successfully ran all 189 tests, formatting, typecheck, build, Fly deployment and public health check. The deployment restarted the same single app machine. The completed outcome and usage counters persisted; outstanding reservations were released to zero and the provider circuit remains clear. Production is live at https://the-turing-game.fly.dev. Pushes remain non-deploying; use the manual Actions workflow for future releases.
