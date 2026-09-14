@@ -95,41 +95,35 @@ dependency is lazy-loaded and local files are excluded from both git and the Doc
 
 ## Style and conversation continuity
 
-The hidden opening style sample precedes the judge message so the judge is the final prompt to
-answer. The system prompt adds derived length, casing and punctuation guidance from the latest human
-contestant message, never from the judge or prior AI verbosity. Only structural style guidance
-enters the system prompt; raw contestant content remains escaped user-message content. DevTools
-records the complete derived prompt. The base prompt and version are stored with the match; style
-can be reconstructed from the input transcript.
+## Conversation controller
 
-Two consecutive AI posts without a human/judge message pause proactive generation until a person
-speaks. Consecutive exact AI duplicates are suppressed; repeating an answer after a new human/judge
-message is allowed.
+Opening model history is system, judge, hidden human sample, then AI output. Later calls use public
+history with native assistant roles and explicit reply target/evidence. `conversation.ts` determines
+eligibility from the latest judge turn, human evidence and whether the AI already answered. Shared
+questions wait for a stable draft or submitted answer. Explicit AI addresses can proceed
+independently. Only clear peer-directed input can prompt a reply after the AI has answered; there
+are no idle calls. This is conservative routing rather than a semantic classifier, so ambiguous peer
+remarks may be skipped.
 
-## Conversation-aware scheduling
+Generation snapshots public message IDs and private draft revision. Changes discard unpublished work
+while settling measured usage. Draft changes also invalidate queued draft-based responses. Published
+lines never trigger new calls. A contribution may contain multiple delayed lines, interrupted by new
+public input. Duplicate contributions and [WAIT] stop further work until new evidence. The
+controller uses recent median human reply delays and measured typing rates to calibrate publication
+timing. Draft timing lives in match attention; draft text remains transient. No training or
+cross-match learning.
 
-Match attention tracks seen human message IDs, the start of a message burst, whether a silence
-opportunity was consumed, and the last generated contribution. Public opening order never determines
-which human input was considered. Each generation snapshots human message IDs; if more arrive before
-completion, its measured usage is settled but the stale draft is not published. The pending burst
-then triggers a fresh call within the existing reservation. No extra classifier call is used.
-
-Human input resets a 1.2–1.8s debounce bounded by 4.5s from burst start, with a 2s cooldown after
-the last AI post. A contribution can schedule one 8–12s silence opportunity. [WAIT] or a normalized
-repeat stops idle polling. Multiline responses drain separately without triggering generation; a new
-human message cancels unsent lines. All lines stop at expiry or explicit leave, but continue across
-transport loss. Prompt v12 has shared rules, phase-specific opening/live instructions, and a live
-invocation cue. Production origin restrictions remain exact; local development also permits this
-machine's loopback and IPv4 interfaces on the configured port.
+Bounded model history prefers retaining the opening but protects the current judge question, latest
+assistant identity context and latest input before removing older context. Local development origin
+checks permit this machine's loopback and IPv4 interfaces on the configured port.
 
 ## Tailwind styling and source formatting
 
 Tailwind v4 uses the existing @tailwindcss/vite integration. src/client/styles.css is the only CSS
 entrypoint: @theme owns game colors/fonts, @source scans client files only, base rules own element
 defaults, and the components layer owns shared controls and arcade effects. ChatMessageItem is
-shared by active chat and replay with static Tailwind classes. The feedback workspace uses
-responsive utilities and ARIA state variants. Do not append alternate-theme overrides or dynamically
-construct utility names.
+shared by active chat and replay with static Tailwind classes. Do not append alternate-theme
+overrides or dynamically construct utility names.
 
 The project-local tailwind-design-system skill informed this refactor. Reference:
 https://tailwindcss.com/docs/theme and https://tailwindcss.com/docs/styling-with-utility-classes.
@@ -143,16 +137,16 @@ databases, dependencies and vendored skills remain excluded.
 
 The project-owned component library now lives in `src/client/ui` (see its README for variants and
 usage). Buttons, links, selection controls, fields, panels, modal behavior and game layout wrappers
-own their static Tailwind classes. Both game and feedback routes consume these components. Native
-form/ARIA props are forwarded; submit buttons are explicit and the modal restores trigger focus. The
-stylesheet is limited to theme/font/global rules and custom arcade effects. Workspace VS Code
-settings associate CSS with the Tailwind language mode, with IntelliSense recommended locally.
+own their static Tailwind classes. Game routes consume these components. Native form/ARIA props are
+forwarded; submit buttons are explicit and the modal restores trigger focus. The stylesheet is
+limited to theme/font/global rules and custom arcade effects. Workspace VS Code settings associate
+CSS with the Tailwind language mode, with IntelliSense recommended locally.
 
 Live contestant drafts use a bounded `draft` WebSocket command, sampled by the client every 300 ms
 only while the human contestant's live-chat composer is enabled. The game authorizes the session and
 holds the latest draft outside Match in a transient map. No broadcast or persistence occurs. The
-snapshot is included only in normal AI invocations; typing does not schedule/cancel model calls.
-Drafts expire after 15 seconds without updates and clear on send, deletion, disconnect, chat closure
-or match finish. Model context escapes/masks draft text and explicitly marks it as unfinished and
-unseen. DevTools capture is disabled for invocations containing drafts, keeping unsent content out
-of traces. Existing opening behavior and the frozen lab baseline are unchanged.
+snapshot can schedule a call after a stable pause; revisions invalidate unpublished draft-based
+work. Drafts expire after 15 seconds without updates and clear on send, deletion, disconnect, chat
+closure or match finish. Model context escapes/masks draft text and explicitly marks it as
+unfinished and unseen. DevTools capture is disabled for invocations containing drafts, keeping
+unsent content out of traces. Existing opening behavior is unchanged.

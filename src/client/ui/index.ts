@@ -1,4 +1,4 @@
-export { Button, ButtonLink, Chip, SegmentButton, buttonStyles } from './button';
+export { Button, ButtonLink, SegmentButton, buttonStyles } from './button';
 export { Dialog } from './dialog';
 export { Input, Textarea } from './field';
 export { Panel } from './panel';

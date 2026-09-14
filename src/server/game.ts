@@ -1,3 +1,4 @@
+import { conversationOpportunity, humanCadence, type TypingDraft } from './conversation';
 import {
   characters,
   commandSchema,
@@ -47,8 +48,7 @@ export type Match = {
   aiRequests: number;
   attention?: {
     seenHumanIds: string[];
-    burstStarted: number | null;
-    silenceUsed: boolean;
+    typingRates?: number[];
     lastContribution: string;
   };
   rounds?: Round[]; // Historical five-round replays only.
@@ -67,7 +67,8 @@ export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
   controllers = new Map<string, AbortController>();
-  private drafts = new Map<string, { text: string; peerId: string; expires: number }>();
+  private drafts = new Map<string, TypingDraft>();
+  private draftRevision = 0;
   private pendingReplies = new Map<
     string,
     {
@@ -77,6 +78,7 @@ export class Game {
       opening: boolean;
       text: string;
       charsPerSecond: number;
+      draftRevision?: number;
     }
   >();
   private serial: Promise<unknown> = Promise.resolve();
@@ -416,9 +418,30 @@ export class Game {
 
       if (m.phase !== 'chat') return;
 
-      if (c.text.trim())
-        this.drafts.set(m.id, { text: c.text, peerId: p.id, expires: this.now() + 15_000 });
-      else this.drafts.delete(m.id);
+      const previous = this.drafts.get(m.id);
+
+      if (previous?.text === c.text || (!previous && !c.text.trim())) return;
+
+      if (c.text.trim()) {
+        const judgeId = [...m.messages].reverse().find((message) => message.sender === 'judge')?.id;
+
+        this.drafts.set(m.id, {
+          text: c.text,
+          peerId: p.id,
+          expires: this.now() + 15_000,
+          startedAt: previous && previous.judgeId === judgeId ? previous.startedAt : this.now(),
+          changedAt: this.now(),
+          revision: ++this.draftRevision,
+          judgeId,
+        });
+      } else this.drafts.delete(m.id);
+      // Invalidate unpublished draft-based work when the human revises it.
+
+      const pending = this.pendingReplies.get(m.id);
+
+      if (pending?.draftRevision !== undefined) this.pendingReplies.delete(m.id);
+
+      this.scheduleConversation(m);
 
       return;
     }
@@ -461,27 +484,26 @@ export class Game {
         return;
       }
 
-      if (role === 'human') this.drafts.delete(m.id);
+      if (role === 'human') {
+        const draft = this.drafts.get(m.id);
+        const elapsed = draft ? this.now() - draft.startedAt : 0;
+
+        if (elapsed >= 500) {
+          const rates = (this.attention(m).typingRates ??= []);
+
+          rates.push(Math.max(2, Math.min(15, characters(c.text) / (elapsed / 1000))));
+
+          if (rates.length > 6) rates.shift();
+        }
+
+        this.drafts.delete(m.id);
+      }
 
       m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
       // A person interrupts unsent lines. Reconsider against the complete new burst.
       this.pendingReplies.delete(m.id);
 
-      const attention = this.attention(m);
-
-      attention.silenceUsed = false;
-      attention.burstStarted ??= this.now();
-
-      const lastAI =
-        [...m.messages]
-          .reverse()
-          .find((message) => message.sender !== 'judge' && message.sender !== m.humanLabel)
-          ?.sentAt ?? 0;
-
-      m.aiDueAt = Math.max(
-        lastAI + 2000,
-        Math.min(this.now() + 1200 + Math.random() * 600, attention.burstStarted + 4500),
-      );
+      this.scheduleConversation(m);
 
       await this.persist(m);
     } else if (c.type === 'verdict') {
@@ -508,8 +530,6 @@ export class Game {
   private attention(m: Match) {
     return (m.attention ??= {
       seenHumanIds: [],
-      burstStarted: null,
-      silenceUsed: false,
       lastContribution: '',
     });
   }
@@ -520,8 +540,15 @@ export class Game {
     );
   }
 
-  private scheduleSilence(m: Match) {
-    m.aiDueAt = this.attention(m).silenceUsed ? null : this.now() + 8000 + Math.random() * 4000;
+  private scheduleConversation(m: Match) {
+    const opportunity = conversationOpportunity(
+      m.messages,
+      m.humanLabel,
+      this.drafts.get(m.id),
+      this.now(),
+    );
+
+    m.aiDueAt = opportunity ? Math.max(this.now(), opportunity.readyAt) : null;
   }
 
   private async deliverReply(m: Match) {
@@ -537,6 +564,18 @@ export class Game {
 
       return;
     }
+
+    if (
+      pending.draftRevision !== undefined &&
+      this.drafts.get(m.id)?.revision !== pending.draftRevision
+    ) {
+      this.pendingReplies.delete(m.id);
+      this.scheduleConversation(m);
+
+      return;
+    }
+
+    pending.draftRevision = undefined;
 
     const text = pending.lines.shift()!;
     const sentAt = this.now();
@@ -572,7 +611,7 @@ export class Game {
       m.aiDueAt = null;
     } else {
       this.pendingReplies.delete(m.id);
-      this.scheduleSilence(m);
+      m.aiDueAt = null;
     }
 
     await this.persist(m);
@@ -594,20 +633,19 @@ export class Game {
     const unseen = this.humanMessages(m).filter(
       (message) => !attention.seenHumanIds.includes(message.id),
     );
-    const silence = !opening && unseen.length === 0;
+    const opportunity = opening
+      ? null
+      : conversationOpportunity(m.messages, m.humanLabel, this.drafts.get(m.id), this.now());
 
-    if (silence && attention.silenceUsed) {
-      m.aiDueAt = null;
+    if (!opening && (!opportunity || opportunity.readyAt > this.now())) {
+      this.scheduleConversation(m);
 
       return;
     }
 
-    if (silence) attention.silenceUsed = true;
-
-    attention.burstStarted = null;
-
-    const draft = this.drafts.get(m.id);
-    const opponentDraft = !opening && draft && draft.expires > this.now() ? draft.text : undefined;
+    const opponentDraft = opportunity?.draft?.text;
+    const draftRevision = opportunity?.draft?.revision;
+    const cadence = humanCadence(m.messages, m.humanLabel, attention.typingRates);
 
     const input: AIInput = {
       ...(opponentDraft ? { opponentDraft } : {}),
@@ -616,11 +654,13 @@ export class Game {
       ...(!opening
         ? {
             invocation: {
-              reason: silence
-                ? ('silence' as const)
-                : unseen.at(-1)?.sender === 'judge'
+              reason:
+                opportunity?.target === 'judge'
                   ? ('judge_message' as const)
                   : ('opponent_message' as const),
+              target: opportunity!.target,
+              evidence: opportunity!.evidence,
+              observedResponseMs: cadence.responseMs,
               newHumanMessages: unseen.length,
             },
           }
@@ -654,8 +694,11 @@ export class Game {
 
     const timer = setTimeout(() => controller.abort(), 30_000);
     const invokedAt = this.now();
-    const thinkingMs = 800 + Math.random() * 1600;
-    const charsPerSecond = 5 + Math.random() * 4;
+    const charsPerSecond = (cadence.charsPerSecond ?? 7) * (0.85 + Math.random() * 0.3);
+    const thinkingMs =
+      cadence.responseMs === undefined
+        ? 800 + Math.random() * 1600
+        : Math.max(300, Math.min(4000, cadence.responseMs * (0.2 + Math.random() * 0.1)));
     // Generation runs outside the serialized command queue, allowing disconnects and other games.
 
     void this.ai
@@ -714,6 +757,13 @@ export class Game {
             return;
           }
 
+          if (draftRevision !== undefined && this.drafts.get(m.id)?.revision !== draftRevision) {
+            this.scheduleConversation(m);
+            await this.persist(m);
+
+            return;
+          }
+
           attention.seenHumanIds = humanSnapshot;
 
           const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ').toLocaleLowerCase();
@@ -721,13 +771,13 @@ export class Game {
 
           if (result.text === '[WAIT]' || duplicate || !firstLine) {
             // Declining to speak must not start another idle polling loop.
-            attention.silenceUsed = true;
             m.aiDueAt = null;
           } else {
             this.pendingReplies.set(m.id, {
               lines,
               sender: input.label,
               opening: false,
+              draftRevision,
               text: result.text,
               charsPerSecond,
               due: invokedAt + thinkingMs + (characters(firstLine) / charsPerSecond) * 1000,

@@ -1,7 +1,6 @@
 import { AppShell, RoomTitle, RoomToolbar } from './ui/layout';
 import {
   Button,
-  ButtonLink,
   ChoiceButton,
   RoleButton,
   SegmentButton,
@@ -10,7 +9,6 @@ import {
   Textarea,
   Panel,
 } from './ui';
-import { FeedbackLab } from './lab';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -244,9 +242,6 @@ function App() {
                 </p>
               ) : null}
               <ArcadeStage />
-              <ButtonLink href="/lab" variant="ghost" size="text">
-                Help improve the AI →
-              </ButtonLink>
             </section>
             {startOpen ? (
               <Dialog
@@ -594,7 +589,6 @@ function Composer({
         e.preventDefault();
 
         if (!disabled && value.trim() && count <= limit) {
-          draftCallback.current?.('');
           draftValue.current = '';
           onSubmit(value);
           setValue('');
@@ -952,6 +946,4 @@ function Room({
   );
 }
 
-createRoot(document.getElementById('root')!).render(
-  location.pathname === '/lab' ? <FeedbackLab /> : <App />,
-);
+createRoot(document.getElementById('root')!).render(<App />);

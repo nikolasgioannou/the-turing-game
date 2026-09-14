@@ -50,16 +50,6 @@ export function ButtonLink({
   return <a className={buttonStyles({ variant, size, className })} {...props} />;
 }
 
-export function Chip({ className = '', type = 'button', ...props }: ComponentProps<'button'>) {
-  return (
-    <button
-      type={type}
-      className={`border border-[#46575e] bg-[#111c21] px-3 py-2 text-xs text-[#becdd1] aria-pressed:border-player-b aria-pressed:bg-[#132c35] aria-pressed:text-player-b ${className}`}
-      {...props}
-    />
-  );
-}
-
 export function SegmentButton({
   className = '',
   type = 'button',

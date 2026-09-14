@@ -1,4 +1,3 @@
-import { Lab } from './lab';
 import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
 import { networkInterfaces } from 'node:os';
@@ -45,16 +44,6 @@ await store.init();
 await store.recover();
 
 const game = new Game(store, createAI());
-const lab = new Lab(
-  store,
-  () =>
-    ![...game.rooms.values()].some(
-      (m) => !['complete', 'abandoned', 'failed', 'waiting'].includes(m.phase),
-    ),
-);
-
-if (!production) await lab.init();
-
 const headers = {
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
@@ -88,43 +77,6 @@ const server = Bun.serve<SocketData>({
       return json({ ok: true }, 200, {
         'Set-Cookie': `turing_session=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${production ? '; Secure' : ''}`,
       });
-    }
-
-    if (url.pathname.startsWith('/api/lab/')) {
-      if (production) return json({ error: 'Not found' }, 404);
-
-      const owner = session(req);
-
-      if (!owner) return json({ error: 'Start a browser session first' }, 401);
-
-      if (req.method === 'POST' && !allowedOrigins.has(req.headers.get('origin') ?? ''))
-        return json({ error: 'Origin not allowed' }, 403);
-
-      try {
-        if (req.method === 'GET' && url.pathname === '/api/lab/state')
-          return json(await lab.state(owner));
-
-        if (req.method === 'GET' && url.pathname === '/api/lab/export')
-          return json(await lab.export(owner), 200, {
-            'Content-Disposition': 'attachment; filename="turing-feedback.json"',
-          });
-
-        if (req.method === 'POST' && url.pathname === '/api/lab/next') {
-          const body = await req.json();
-
-          if (!['practice', 'check'].includes(body.set))
-            return json({ error: 'Choose a valid set' }, 400);
-
-          return json(await lab.next(owner, body.set));
-        }
-
-        if (req.method === 'POST' && url.pathname === '/api/lab/rate')
-          return json(await lab.rate(owner, await req.json()));
-      } catch (e) {
-        return json({ error: e instanceof Error ? e.message : 'Unable to save feedback' }, 400);
-      }
-
-      return json({ error: 'Not found' }, 404);
     }
 
     if (url.pathname === '/ws') {

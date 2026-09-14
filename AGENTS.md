@@ -30,8 +30,8 @@ boundaries, and docs/progress.md when resuming work.
   Reserve @apply for reusable component styles.
 - Update the original style rule rather than appending an override. Remove obsolete selectors with
   their components. Use bun run format to sort Tailwind classes automatically.
-- Check lobby, dialogs, chat, verdict, replay and feedback on desktop and mobile at styling
-  milestones. Only chat history scrolls during an active match.
+- Check lobby, dialogs, chat, verdict and replay on desktop and mobile at styling milestones. Only
+  chat history scrolls during an active match.
 
 ## Product invariants
 

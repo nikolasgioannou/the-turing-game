@@ -1,3 +1,4 @@
+import { INPUT_PER_REQUEST } from '../src/server/store';
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import {
   AIError,
@@ -334,24 +335,34 @@ test('only the opening invocation receives hidden-sample rules', () => {
   );
 });
 
-test('invocation cue explains reactive and silence opportunities without fake history', () => {
+test('invocation cue explains target and evidence without fake history', () => {
   const history = [{ sender: 'judge' as const, text: 'hey' }];
   const reactive = buildMessages({
     label: 'A',
     messages: history,
-    invocation: { reason: 'judge_message', newHumanMessages: 1 },
+    invocation: {
+      reason: 'judge_message',
+      newHumanMessages: 1,
+      target: 'judge',
+      evidence: 'draft',
+    },
   });
 
-  expect(reactive[0].content).toContain('Speaking opportunity: judge_message');
+  expect(reactive[0].content).toContain('reply target is judge');
   expect(reactive[0].content).toContain('latest 1 judge/opponent messages');
 
   const idle = buildMessages({
     label: 'A',
     messages: history,
-    invocation: { reason: 'silence', newHumanMessages: 0 },
+    invocation: {
+      reason: 'opponent_message',
+      newHumanMessages: 1,
+      target: 'opponent',
+      evidence: 'direct',
+    },
   });
 
-  expect(idle[0].content).toContain('Nobody has added anything new');
+  expect(idle[0].content).toContain('Only respond if the player is addressing you');
   expect(idle).toHaveLength(2);
 });
 
@@ -403,7 +414,7 @@ test('explicit addressee routing distinguishes the opponent from own identity', 
     privateOpeningReference: 'loved it',
   });
 
-  expect(opening[0].content).toContain('no shared context identifying it');
+  expect(opening[0].content).toContain('unidentified event or thing');
 });
 
 test('nontrivial square roots get uncertainty guidance without blocking familiar roots', () => {
@@ -414,7 +425,7 @@ test('nontrivial square roots get uncertainty guidance without blocking familiar
       privateOpeningReference: 'idk',
     })[0].content;
 
-  expect(prompt('whats the sqrt of 10')).toContain('Give NO number');
+  expect(prompt('whats the sqrt of 10')).toContain('express brief uncertainty');
   expect(prompt('what is the square root of 9')).not.toContain('Give NO number');
   expect(prompt('what is 2 + 2')).not.toContain('Give NO number');
 });
@@ -536,15 +547,15 @@ test('competitive intent is shared by opening and live chat without copying oppo
   expect(SYSTEM_PROMPT).toContain('judge to choose YOU');
   expect(SYSTEM_PROMPT).not.toContain('You do not need to prove');
   expect(CHAT_PROMPT).toContain('even without a new judge question');
-  expect(CHAT_PROMPT).toContain('if they defend their identity, make your own case');
+  expect(CHAT_PROMPT.toLowerCase()).toContain('if they defend their identity, make your own case');
   expect(SYSTEM_PROMPT).toContain("do not borrow the opponent's evidence");
 });
 
 test('calendar context is refreshed for each opening and live invocation across UTC New Year', () => {
   const before = new Date('2026-12-31T23:59:59Z');
   const after = new Date('2027-01-01T00:00:00Z');
-  const opening = buildMessages(input, undefined, before);
-  const live = buildMessages({ ...input, privateOpeningReference: undefined }, undefined, after);
+  const opening = buildMessages(input, before);
+  const live = buildMessages({ ...input, privateOpeningReference: undefined }, after);
 
   expect(opening[0]!.content).toContain('Current date (UTC): Thursday, December 31, 2026.');
   expect(live[0]!.content).toContain('Current date (UTC): Friday, January 1, 2027.');
@@ -580,5 +591,35 @@ test('draft context is isolated, escaped and treated as unfinished instead of a 
 
   expect(buildMessages({ label: 'B', messages: [] })[0]!.content).not.toContain(
     'unfinished, unsent draft',
+  );
+});
+
+test('bounded draft context retains the question it responds to', () => {
+  const messages = buildMessages({
+    label: 'B',
+    messages: [
+      { sender: 'judge', text: 'opening' },
+      { sender: 'A', text: 'a'.repeat(500) },
+      { sender: 'B', text: 'my own answer' },
+      ...Array.from({ length: 25 }, () => ({ sender: 'A' as const, text: 'b'.repeat(500) })),
+      { sender: 'judge', text: 'CURRENT QUESTION' },
+    ],
+    opponentDraft: 'CURRENT DRAFT',
+    invocation: {
+      reason: 'judge_message',
+      newHumanMessages: 1,
+      target: 'judge',
+      evidence: 'draft',
+    },
+  });
+
+  expect(JSON.stringify(messages)).toContain('<judge>CURRENT QUESTION</judge>');
+
+  expect(JSON.stringify(messages)).toContain(
+    '<hidden_opponent_draft>CURRENT DRAFT</hidden_opponent_draft>',
+  );
+
+  expect(new TextEncoder().encode(JSON.stringify(messages)).length + 1000).toBeLessThanOrEqual(
+    INPUT_PER_REQUEST,
   );
 });

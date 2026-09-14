@@ -8,9 +8,8 @@ contain presentation; routes own game state and server calls.
 | -------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------- |
 | `Button`                               | Actions; defaults to `type="button"`                      | `primary`, `secondary`, `ghost`, `arcade`; explicit size |
 | `ButtonLink`                           | Navigation/download with button appearance                | Same variants and sizes                                  |
-| `Chip`                                 | Feedback tags                                             | Selection via `aria-pressed`                             |
 | `SegmentButton`                        | Game mode toggle                                          | Selection via `aria-pressed`                             |
-| `ChoiceButton`                         | Verdict, spectator and feedback choices                   | `tone="a"` or `"b"`, `compact`; `aria-pressed`           |
+| `ChoiceButton`                         | Verdict and spectator choices                             | `tone="a"` or `"b"`, `compact`; `aria-pressed`           |
 | `RoleButton`                           | Role picker                                               | `tone`, `title`, description children                    |
 | `Input`, `Textarea`                    | Shared border, surface and focus treatment                | Native field attributes; layout via `className`          |
 | `Panel`                                | Content surface                                           | `tone="accent"` or `"neutral"`                           |

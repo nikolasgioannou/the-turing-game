@@ -491,3 +491,28 @@ Validation: 54 focused game/AI tests (281 assertions), typecheck and build pass.
 confirms draft frames, clear updates, absence from judge chat, and mobile composer usability. A real
 local-model check with a competitive draft produced an independent short reply without tags. The
 idle Wi-Fi server was refreshed for the change.
+
+## Feedback workspace removal and evidence-based conversation control
+
+Removed the home feedback link, lab UI/API, comparison generator, baseline/case fixtures, shared
+contracts, tests and feedback-only controls/docs. Dropped lab tables from both local databases and
+removed comparison-only request records and traces, the supplied feedback export and known scratch
+comparison artifacts. Real match transcripts and accounting totals were retained. No history
+rewrite.
+
+Live scheduling now lives in `conversation.ts`. Shared judge questions wait for a stable human draft
+or submitted answer; clear direct questions can proceed. Parallel replies do not trigger generic
+acknowledgments and silence never triggers a new generation. Revised/deleted drafts invalidate both
+in-flight results and queued unpublished replies. Reply timing adapts to recent human reply delays
+and measured typing rates. No training or cross-match learning is involved. Prompt v23 prioritizes
+response behavior before wording; old question-specific cue branches were removed. Bounded context
+protects the current judge question when retaining a private draft.
+
+Validation: full typecheck, unit tests and production build pass; all seven real-model browser
+journeys passed, including the 90-second match, refresh, invitations and mobile composer. Controlled
+regressions cover waiting, draft revision during generation and before publication, no idle replies,
+recipient routing, cadence and context bounds. Actual model probes remain mixed: a refusal draft
+produced "nope" and an ambiguous-game draft produced "depends on the game", but other runs still
+acknowledged an unseen refusal or copied a short uncertainty phrase. Scheduling is deterministic;
+semantic imitation by this model is not solved or claimed reliable. Conservative routing can miss
+ambiguous peer-directed remarks. Further model-quality work should use actual gameplay feedback.

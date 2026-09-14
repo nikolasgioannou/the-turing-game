@@ -251,35 +251,3 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
   await humanContext.close();
   await judgeContext.close();
 });
-
-test('feedback lab generates real blind replies and persists ratings', async ({ page }) => {
-  await page.goto('/lab');
-  await page.getByRole('button', { name: 'Start comparing', exact: true }).click();
-
-  await expect(page.getByRole('button', { name: 'A sounds more human' })).toBeVisible({
-    timeout: 65000,
-  });
-
-  const first = await page.locator('.lab-candidate').allTextContents();
-
-  expect(first).toHaveLength(2);
-  await page.reload();
-  await expect(page.locator('.lab-candidate')).toHaveCount(2);
-  expect(await page.locator('.lab-candidate').allTextContents()).toEqual(first);
-  await page.setViewportSize({ width: 390, height: 844 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('button', { name: 'Both bad', exact: true }).click();
-  await page.getByRole('button', { name: 'Too polished', exact: true }).click();
-  await page.getByLabel('What would you say instead?').fill('my preferred reply');
-  await page.screenshot({ path: 'work/lab-mobile.png', fullPage: true });
-  await page.getByRole('button', { name: 'Save feedback', exact: true }).click();
-  await expect(page.getByText('1 / 16 rated', { exact: true })).toBeVisible();
-  await page.reload();
-  await expect(page.getByText('1 / 16 rated', { exact: true })).toBeVisible();
-
-  const exported = await (await page.request.get('/api/lab/export')).json();
-
-  expect(exported.comparisons[0].rating.choice).toBe('both_bad');
-  expect(exported.comparisons[0].rating.rewrite).toBe('my preferred reply');
-  expect(exported.comparisons[0].payload.candidates).toHaveLength(2);
-});

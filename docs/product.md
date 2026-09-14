@@ -47,14 +47,17 @@ messages or AI generation.
 Messages have a 500-grapheme limit and a UTF-8 byte ceiling of 2000. Judge reasoning has a
 1000-grapheme limit. Each human participant can send up to 30 messages per match, including their
 opening. The AI has at most ten requests including its opening, reserved before admission. These are
-abuse/capacity bounds, not turns. AI waits for a 1.2–1.8 second pause in human messages, capped at
-4.5 seconds per burst and at least 2 seconds after its last message. It never runs two requests for
-a match concurrently. Each call receives its trigger and the number of new human messages. New input
-during generation discards the stale draft, and new input interrupts pending split lines. After a
-contribution it may consider one follow-up after 8–12 seconds of silence; waiting, repeating, or
-using that opportunity stops silence polling until someone speaks. Newline-separated parts form one
-contribution, delivered with length-based delays. It may return [WAIT] to remain silent during free
-chat; this consumes a request but posts nothing.
+abuse/capacity bounds, not turns. Shared judge questions wait for a stable human draft (800 ms) or a
+sent answer (650 ms), letting the AI infer response behavior before replying independently. Direct
+questions to the AI need not wait. After answering, parallel human replies do not trigger
+acknowledgments; clear peer-directed questions can. Silence alone never invokes the model. The
+controller passes the reply target and evidence type to the model. Revised/deleted drafts and
+intervening messages invalidate unpublished work. Only one request runs per match. Generation runs
+immediately when eligible; publication waits for thinking plus length-based typing time, calibrated
+to recent human response delays and observed draft typing speed. Newline-separated parts arrive
+separately and new human messages cancel unsent parts. [WAIT] posts nothing and stops
+reconsideration until fresh evidence arrives. These rules improve turn-taking, not a guarantee of
+human-like text.
 
 Explicit leave abandons immediately. A lost socket does not end the match: the client retries
 automatically and the authenticated browser session reclaims its seat after reconnect or refresh.
@@ -66,10 +69,10 @@ not a loss; preserve records. Spectator disconnection never ends a match.
 The game uses local models only. The current model is Huihui Qwen3.6 35B-A3B MLX four-bit on this
 Mac, via the loopback OpenAI-compatible MLX-VLM service. See docs/local-ai.md.
 
-Prompt conversation-aware-v12 distinguishes the private opening from the public chat, allows
-ordinary profanity and exact-word matching, and prohibits quotation wrappers and narration. Its
-objective is to stay in contestant character. Model instruction-following and conversational quality
-require play-testing; no claim of guaranteed human-likeness.
+Prompt competitive-chat-v23 distinguishes the private opening from the public chat, allows ordinary
+profanity and exact-word matching, and prohibits quotation wrappers and narration. Its objective is
+to stay in contestant character. Model instruction-following and conversational quality require
+play-testing; no claim of guaranteed human-likeness.
 
 Persist all submitted human opening replies, public messages, timestamps, judge verdict/reasoning,
 model/prompt versions, provider metadata and usage. Hidden opening content and identity mapping are
@@ -93,11 +96,3 @@ Visual direction: retro arcade, orange/cyan contestant colors, pixel typography,
 and player-select dialog. Every UI element must serve a purpose. Minimal group chat, composer,
 timer, verdict and audience controls. No filler, decorative metrics or artificial games.
 Project-local installations only, conventional commits, maintained docs and AGENTS.md.
-
-## Feedback workspace (local development)
-
-`/lab` compares anonymous opening responses from the current prompt and a candidate prompt on 20
-practice and 12 reserved check scenarios. Browser-session reviewers can select A, B, both bad or
-both good and optionally add feedback tags, a rewrite and notes. Store ratings and exact comparison
-provenance locally. Never train models or automatically change game prompts from this feedback. The
-initial milestone evaluates opening content; live conversation behavior is evaluated separately.

@@ -151,6 +151,7 @@ describe('paired opening and group chat', () => {
     await game.handle(h.p, { type: 'message', text: 'what about you B?' });
     await game.handle(j.p, { type: 'message', text: 'tell me more' });
     expect(game.view(m, j.p).messages.at(-2)?.text).toBe('what about you B?');
+    await game.handle(h.p, { type: 'draft', text: 'still thinking' });
     clock = m.aiDueAt! + 1;
     await game.tick();
     expect(lastInput.privateOpeningReference).toBeUndefined();
@@ -198,9 +199,10 @@ describe('paired opening and group chat', () => {
   });
 
   test('timer tick locks chat and discards a late AI response without a provider outage', async () => {
-    const { m } = await opening();
+    const { h, m } = await opening();
 
     await complete();
+    await game.handle(h.p, { type: 'message', text: 'why did you say that?' });
     clock = m.aiDueAt! + 1;
     await game.tick();
 
@@ -240,41 +242,31 @@ describe('paired opening and group chat', () => {
     expect(m.phase).toBe('ready');
   });
 
-  test('AI initiates after quiet periods but never exceeds reserved requests', async () => {
-    const { m } = await opening();
-
-    await complete();
-    clock = m.aiDueAt! + 1;
-    await game.tick();
-    expect(m.aiRequests).toBe(2);
-    await complete('[WAIT]');
-    expect(m.messages).toHaveLength(3);
-    m.aiRequests = LIMITS.aiRequests;
-    clock = m.aiDueAt! + 1;
-    await game.tick();
-    expect(game.controllers.has(m.id)).toBe(false);
-  });
-
-  test('AI stops after an unanswered follow-up and resumes when a person speaks', async () => {
+  test('quiet and parallel answers do not trigger calls; clear peer questions do', async () => {
     const { h, m } = await opening();
 
-    await complete('im sam');
-    clock = m.aiDueAt! + 1;
-    await game.tick();
-    expect(lastInput.invocation?.reason).toBe('silence');
-    await complete('anyone here');
+    await complete('pizza');
 
     const requests = m.aiRequests;
 
-    clock += 15_000;
+    clock += 15000;
     await game.tick();
     expect(m.aiDueAt).toBeNull();
     expect(m.aiRequests).toBe(requests);
-    await game.handle(h.p, { type: 'message', text: 'yeah im here' });
+    await game.handle(h.p, { type: 'message', text: 'wont tell you that' });
+    expect(m.aiDueAt).toBeNull();
+    await game.handle(h.p, { type: 'message', text: 'why did you pick that?' });
     clock = m.aiDueAt! + 1;
     await game.tick();
     expect(m.aiRequests).toBe(requests + 1);
-    await complete('ok cool');
+    expect(lastInput.invocation?.target).toBe('opponent');
+    await complete('[WAIT]');
+    expect(m.aiDueAt).toBeNull();
+    m.aiRequests = LIMITS.aiRequests;
+    await game.handle(h.p, { type: 'message', text: 'can you explain?' });
+    clock = m.aiDueAt! + 1;
+    await game.tick();
+    expect(game.controllers.has(m.id)).toBe(false);
   });
 
   test('old replay mapping does not expose unfinished private answers', async () => {
@@ -427,7 +419,7 @@ test('disconnect preserves pending reply lines', async () => {
   expect(m.messages.some((x) => x.text === 'more')).toBe(true);
 });
 
-test('message bursts debounce with a maximum wait and explain new input', async () => {
+test('message bursts use the latest human evidence and explain new input', async () => {
   const { h, j, m } = await opening();
 
   await complete('hey');
@@ -436,18 +428,16 @@ test('message bursts debounce with a maximum wait and explain new input', async 
 
   await game.handle(h.p, { type: 'message', text: 'one' });
 
-  const firstDue = m.aiDueAt!;
-
   clock += 1000;
   await game.handle(j.p, { type: 'message', text: 'two' });
-  expect(m.aiDueAt!).toBeGreaterThan(firstDue);
+  expect(m.aiDueAt).toBeNull();
 
   for (let i = 0; i < 3; i++) {
     clock += 1000;
     await game.handle(h.p, { type: 'message', text: `more ${i}` });
   }
 
-  expect(m.aiDueAt!).toBeLessThanOrEqual(start + 4500);
+  expect(m.aiDueAt!).toBe(start + 4000 + 650);
   clock = m.aiDueAt! + 1;
   await game.tick();
   expect(lastInput.invocation?.newHumanMessages).toBe(5);
@@ -456,11 +446,12 @@ test('message bursts debounce with a maximum wait and explain new input', async 
 });
 
 test('repeated opening output is suppressed regardless of public reveal order', async () => {
-  const { m } = await opening();
+  const { h, m } = await opening();
 
   await complete('me obviously');
   // Force the public order that previously bypassed the duplicate check.
   m.messages.splice(1, 2, ...m.messages.slice(1).sort((a) => (a.sender === m.humanLabel ? 1 : -1)));
+  await game.handle(h.p, { type: 'message', text: 'why are you human?' });
   clock = m.aiDueAt! + 1;
   await game.tick();
   await complete('me obviously');
@@ -478,7 +469,7 @@ test('new input interrupts queued lines without charging extra calls for those l
   const { h, m } = await opening();
 
   await complete('hey\nold follow up');
-  await game.handle(h.p, { type: 'message', text: 'actually new question' });
+  await game.handle(h.p, { type: 'message', text: 'why did you say that?' });
   clock = m.aiDueAt! + 1;
   await game.tick();
   expect(m.aiRequests).toBe(2);
@@ -488,10 +479,11 @@ test('new input interrupts queued lines without charging extra calls for those l
   expect(m.messages.at(-1)?.text).toBe('fresh reply');
 });
 
-test('a multiline silence follow up is one contribution and cannot poll again', async () => {
-  const { m } = await opening();
+test('a multiline peer reply is one contribution and cannot poll again', async () => {
+  const { h, m } = await opening();
 
   await complete('hey');
+  await game.handle(h.p, { type: 'message', text: 'what do you think?' });
   clock = m.aiDueAt! + 1;
   await game.tick();
   await complete('anyway\nwhat do you think\nabout that');
@@ -585,7 +577,6 @@ describe('private contestant drafts', () => {
 
     await game.handle(spectator.p, { type: 'watch', id: m.id });
 
-    const events = JSON.stringify([h.events, j.events, spectator.events]);
     const requests = m.aiRequests;
 
     await expect(game.handle(j.p, { type: 'draft', text: 'judge draft' })).rejects.toThrow();
@@ -594,16 +585,21 @@ describe('private contestant drafts', () => {
       game.handle(spectator.p, { type: 'draft', text: 'spectator draft' }),
     ).rejects.toThrow();
 
+    await game.handle(j.p, { type: 'message', text: 'what do you think' });
+
+    const publicEvents = JSON.stringify([h.events, j.events, spectator.events]);
+
     await game.handle(h.p, { type: 'draft', text: 'ur joking right' });
     expect(m.aiRequests).toBe(requests);
-    expect(JSON.stringify([h.events, j.events, spectator.events])).toBe(events);
+    expect(JSON.stringify([h.events, j.events, spectator.events])).toBe(publicEvents);
     expect(JSON.stringify(await store.load(m.id))).not.toContain('ur joking right');
-    await game.handle(j.p, { type: 'message', text: 'what do you think' });
+    clock += 801;
     await game.generate(m);
     expect(lastInput.opponentDraft).toBe('ur joking right');
     expect(lastInput.messages.some((message) => message.text === 'ur joking right')).toBe(false);
     await complete('no way');
-    await game.handle(h.p, { type: 'message', text: 'actually never mind' });
+    await game.handle(h.p, { type: 'message', text: 'why did you say that?' });
+    clock += 901;
     await game.generate(m);
     expect(lastInput.opponentDraft).toBeUndefined();
     await complete();
@@ -632,4 +628,40 @@ describe('private contestant drafts', () => {
     expect(game['drafts'].has(m.id)).toBe(false);
     expect(commandSchema.safeParse({ type: 'draft', text: 'x'.repeat(501) }).success).toBe(false);
   });
+});
+
+test('shared questions wait for stable draft evidence and discard revised generations', async () => {
+  const { h, j, m } = await opening();
+
+  await complete('pizza');
+  await game.handle(j.p, { type: 'message', text: 'Whats your full address?' });
+
+  const requests = m.aiRequests;
+
+  clock += 5000;
+  await game.generate(m);
+  expect(m.aiRequests).toBe(requests);
+  expect(m.aiDueAt).toBeNull();
+  await game.handle(h.p, { type: 'draft', text: 'wont tell you that' });
+  clock += 799;
+  await game.generate(m);
+  expect(m.aiRequests).toBe(requests);
+  clock += 2;
+  await game.generate(m);
+  expect(lastInput.opponentDraft).toBe('wont tell you that');
+  expect(lastInput.invocation?.target).toBe('judge');
+  await game.handle(h.p, { type: 'draft', text: 'why do you need it' });
+  await complete('stale refusal', false);
+  expect(game['pendingReplies'].has(m.id)).toBe(false);
+  clock += 801;
+  await game.generate(m);
+  expect(lastInput.opponentDraft).toBe('why do you need it');
+  await complete('another stale reply', false);
+  expect(game['pendingReplies'].has(m.id)).toBe(true);
+  await game.handle(h.p, { type: 'draft', text: '' });
+  expect(game['pendingReplies'].has(m.id)).toBe(false);
+  clock += 5000;
+  await game.tick();
+  expect(m.messages.some((message) => message.text.includes('stale'))).toBe(false);
+  expect(m.aiDueAt).toBeNull();
 });
