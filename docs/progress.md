@@ -655,3 +655,13 @@ request, keeping the linked creator credits below the panel.
 Typecheck, build and the existing desktop/mobile homepage browser check pass. Visually inspected the
 populated 60% / 3-of-5 scoreboard and the mobile homepage after removing the footer sentence. This
 frontend change is served immediately by the running app; no game restart was needed.
+
+## Background music
+
+Added the background track from the pinned Marc reference repository with first-interaction
+playback, looping, pause/play and saved volume (35% default). A persistent compact control keeps
+music available across lobby, chat and replay without restarting it on navigation. Browser playback
+rejection leaves the play button available; unavailable storage is tolerated.
+
+Validation: typecheck and production build pass. Installed Chrome confirmed actual audio playback,
+looping, 35% volume, pause, and no horizontal overflow at 390px.

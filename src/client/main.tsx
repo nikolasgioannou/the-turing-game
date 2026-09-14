@@ -1,3 +1,4 @@
+import { Music } from './music';
 import { CreatorCredits, LiveScore } from './home-details';
 import { HowToPlay } from './how-to-play';
 import { AppShell, RoomTitle, RoomToolbar } from './ui/layout';
@@ -194,6 +195,7 @@ function App() {
 
   return (
     <AppShell>
+      <Music />
       {error ? (
         <div
           role="alert"
