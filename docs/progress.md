@@ -414,3 +414,7 @@ An emoji-only reply from the human is now mirrored: the style rules call for a l
 `scripts/fixtures.ts` regenerates the pinned conversation-behavior fixtures from the current brain so intentional prompt changes can be reviewed as a diff; this change altered only the emoji rule lines and the resulting prompt hashes.
 
 Validation: all 209 unit/integration tests, typecheck and build pass, including three new brain tests for the emoji fallback, emoji detection with skin tones and joiners, and the nudge gate. No model calls or production games. Not deployed.
+
+## Browser suite after the guardrails
+
+Ran the full browser suite twice against development OpenRouter. The first run exposed that a six-matches-per-network hourly limit locks out a group on one router and the suite itself; the limit is now 30 by default, configurable through `MATCHES_PER_IP_PER_HOUR`, with loopback exempt. The second run passed 23 of 24 journeys; the remaining failure was the multiplayer results journey still selecting the human and expecting a win, left over from the switch to bot identification. The journey now selects the bot and passes. All 24 journeys have passed in the current tree. Not deployed.

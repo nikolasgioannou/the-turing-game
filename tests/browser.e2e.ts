@@ -57,7 +57,10 @@ test('full multiplayer match and private participant results', async ({ browser 
   await expect(h.getByLabel('Message the group')).toBeEnabled();
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
 
-  await j.getByRole('button', { name: `Contestant ${humanLabel}`, exact: true }).click();
+  // The judge identifies the bot; picking it is the win for judge and human alike.
+  const botLabel = humanLabel === 'A' ? 'B' : 'A';
+
+  await j.getByRole('button', { name: `Contestant ${botLabel}`, exact: true }).click();
 
   await j.getByLabel('What gave them away?').fill('They kept it simple.');
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
