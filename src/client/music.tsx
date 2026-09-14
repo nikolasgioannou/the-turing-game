@@ -1,3 +1,4 @@
+import { Slider } from './ui';
 import { useEffect, useRef, useState } from 'react';
 
 export function Music() {
@@ -74,15 +75,14 @@ export function Music() {
       >
         {playing ? '♫ Pause' : '♪ Music'}
       </button>
-      <input
-        type="range"
+      <Slider
         aria-label="Music volume"
         min="0"
         max="1"
         step="0.02"
         value={volume}
         onChange={(event) => setVolume(Number(event.target.value))}
-        className="h-9 w-20 accent-player-b"
+        className="w-20"
       />
     </div>
   );

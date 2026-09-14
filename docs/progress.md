@@ -665,3 +665,9 @@ rejection leaves the play button available; unavailable storage is tolerated.
 
 Validation: typecheck and production build pass. Installed Chrome confirmed actual audio playback,
 looping, 35% volume, pause, and no horizontal overflow at 390px.
+
+## Shared slider
+
+Moved the volume range into the exported design-system Slider component. Tailwind styles provide a
+square cyan thumb, dark bordered track, focus and disabled states for WebKit and Firefox while
+retaining native keyboard behavior and input props. Music owns only volume state and width.

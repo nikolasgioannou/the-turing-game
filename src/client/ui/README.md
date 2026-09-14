@@ -53,3 +53,7 @@ and the custom arcade title/cabinet effects live in `../styles.css`.
 Run `bun run format` and `bun run format:check`. The workspace VS Code configuration associates CSS
 with the Tailwind language mode; accept the recommended Tailwind CSS IntelliSense extension if it is
 not installed. No global editor settings are changed.
+
+`Slider` is a native range input with a square cyan thumb, inset track, keyboard focus and disabled
+states. Supply a label or `aria-label`, native `min`/`max`/`step`, and layout width via `className`.
+It accepts controlled or uncontrolled values and forwards refs. Music uses it for volume.
