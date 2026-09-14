@@ -822,14 +822,16 @@ function Room({
           className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"
         >
-          {(isJudge && room.phase === 'ready') ||
+          {((isJudge || isHuman) && room.phase === 'ready') ||
           (isHuman && room.phase === 'opening') ||
           ((isHuman || (isJudge && !guessing)) && room.phase === 'chat') ? (
             <Composer
               key={room.phase === 'opening' ? 'opening' : 'chat'}
               label={
                 room.phase === 'ready'
-                  ? 'Ask the opening question'
+                  ? isJudge
+                    ? 'Ask the opening question'
+                    : 'Waiting for the judge to ask a question'
                   : room.phase === 'opening'
                     ? 'Write your opening reply'
                     : 'Message the group'
@@ -841,7 +843,9 @@ function Room({
               }}
               button={
                 room.phase === 'ready'
-                  ? 'Ask both contestants'
+                  ? isJudge
+                    ? 'Ask both contestants'
+                    : 'Send'
                   : room.phase === 'opening'
                     ? 'Submit opening reply'
                     : 'Send'
@@ -851,7 +855,7 @@ function Room({
                   ? (text) => send({ type: 'draft', text })
                   : undefined
               }
-              disabled={!connected}
+              disabled={!connected || (isHuman && room.phase === 'ready')}
             />
           ) : isJudge && (room.phase === 'verdict' || (room.phase === 'chat' && guessing)) ? (
             <form

@@ -13,6 +13,8 @@ async function participants(browser: Browser) {
   await j.getByRole('button', { name: 'Start game', exact: true }).click();
   await j.getByRole('button', { name: /Play as judge/ }).click();
   await expect(j.getByLabel('Ask the opening question')).toBeVisible();
+  await expect(h.getByLabel('Waiting for the judge to ask a question')).toBeDisabled();
+  await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
 
   return { h, j, humanContext, judgeContext };
 }
@@ -108,6 +110,8 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
 
   await j.goto(invite);
   await expect(j.getByLabel('Ask the opening question')).toBeVisible();
+  await expect(h.getByLabel('Waiting for the judge to ask a question')).toBeDisabled();
+  await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
 
   const matchUrl = j.url();
   const label = await h.getByText(/YOU ARE CONTESTANT/).textContent();
