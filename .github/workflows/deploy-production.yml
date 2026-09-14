@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 20
     environment:
       name: production
-      url: https://the-turing-game.fly.dev
+      url: https://theturinggame.ai
     steps:
       - name: Check out main
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
@@ -46,4 +46,4 @@ jobs:
           flyctl config validate
           flyctl deploy --remote-only --ha=false --strategy immediate
       - name: Check production health
-        run: curl --fail --silent --show-error --retry 8 --retry-delay 5 --retry-all-errors https://the-turing-game.fly.dev/api/health
+        run: curl --fail --silent --show-error --retry 8 --retry-delay 5 --retry-all-errors https://theturinggame.ai/api/health

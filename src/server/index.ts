@@ -118,6 +118,9 @@ const server = Bun.serve<SocketData>({
 
     if (req.method !== 'GET' && req.method !== 'HEAD') return new Response(null, { status: 405 });
 
+    if (production && url.host !== new URL(origin).host)
+      return Response.redirect(new URL(url.pathname + url.search, origin), 308);
+
     let path: string;
 
     try {

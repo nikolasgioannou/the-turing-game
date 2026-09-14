@@ -15,7 +15,7 @@ kill_timeout = 20
   PORT = "3000"
   DAILY_INPUT_TOKEN_CAP = "1000000"
   DAILY_OUTPUT_TOKEN_CAP = "100000"
-  APP_ORIGIN = "https://the-turing-game.fly.dev"
+  APP_ORIGIN = "https://theturinggame.ai"
 
 [http_service]
   internal_port = 3000

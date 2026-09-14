@@ -2,7 +2,7 @@
 
 ## Production infrastructure
 
-The app is `the-turing-game` in the `the-turing-game` organization, with public origin https://the-turing-game.fly.dev and primary region `iad` (Virginia). Provisioning was approved by the owner. Deployment validation is recorded in docs/progress.md.
+The app is `the-turing-game` in the `the-turing-game` organization, with public origin https://theturinggame.ai and primary region `iad` (Virginia). Provisioning was approved by the owner. Deployment validation is recorded in docs/progress.md.
 
 One always-on Bun app machine connects to Fly Managed Postgres cluster `turing-production` (`dzx6qo65n8g0jpv5`) in the same region. The approved Basic plan costs $38/month plus $2.80/month for 10 GB provisioned storage, excluding application hosting and OpenRouter usage. Pricing was verified during provisioning on 2026-09-14. There is no app volume or Python runtime; OpenRouter handles all model inference.
 
@@ -29,7 +29,7 @@ fly config validate
 fly deploy --remote-only --ha=false --strategy immediate
 fly status
 fly checks list
-curl --fail https://the-turing-game.fly.dev/api/health
+curl --fail https://theturinggame.ai/api/health
 ```
 
 No local Docker installation is required. Inspect Fly logs when a health check or startup fails. After infrastructure changes, run a real two-participant game and a separate homepage session, verify an outcome, then restart when no players are active and verify the outcome and usage accounting remain intact.
@@ -56,3 +56,7 @@ Provider authentication/credit failures end the affected match as a technical fa
 - App instance is single-authority and not highly available; PostgreSQL high availability does not change that.
 - Local PGlite tests do not verify Fly networking, credentials, remote connection pooling or the production container. Validate these on deployment.
 - Secrets, `.env` files, browser profiles, caches and local data are excluded from Git and the Docker context.
+
+## Custom domain
+
+Spaceship DNS points `theturinggame.ai` at Fly using A `66.241.125.138` and AAAA `2a09:8280:1::18e:4abf:0`. Fly manages the HTTPS certificate. `APP_ORIGIN` must match this public origin for WebSocket authentication and invitation links. Production page requests on the old Fly hostname redirect to the canonical domain; API health checks remain available without a redirect. The www hostname is not configured.
