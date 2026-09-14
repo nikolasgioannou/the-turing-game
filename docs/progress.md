@@ -559,3 +559,21 @@ Validation: 60 unit tests, typecheck and build pass; regression verifies first r
 human input, no repeat calls after answering, and fallback after draft revisions. A real-model
 browser journey also passed: the AI answered the live meaning-of-life question while the human
 composer stayed empty, followed by a successful early verdict.
+
+## Persistent composer and clear match status
+
+Active matches now use a compact role/timer line instead of the framed question banner and
+leave/match-ID toolbar. Empty chat provides short role-specific instructions. Status text above the
+composer tells each player what to do or what they are waiting for. The placeholder stays Message
+the group and the button stays Send.
+
+The composer stays mounted throughout active opening/chat/verdict states. Sending is gated
+separately from editing: the textarea remains enabled, typed drafts and focus survive phase changes,
+and both Enter submission and the Send button are blocked when sending is unavailable. The verdict
+form is additional UI rather than a replacement for the composer. Draft sharing remains
+live-chat-only.
+
+Validation: 60 unit tests, typecheck and build pass. All ten real-model browser journeys pass across
+the initial run and focused rerun after updating obsolete UI selectors and readiness assumptions.
+The new regression checks blocked Enter, editable input, retained text/focus and identical textarea
+node across opening/reveal. Desktop empty states and mobile active chat were visually inspected.
