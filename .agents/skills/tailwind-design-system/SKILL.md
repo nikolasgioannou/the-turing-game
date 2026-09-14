@@ -20,13 +20,13 @@ Build production-ready design systems with Tailwind CSS v4, including CSS-first 
 
 ## Key v4 Changes
 
-| v3 Pattern                            | v4 Pattern                                                            |
-| ------------------------------------- | --------------------------------------------------------------------- |
-| `tailwind.config.ts`                  | `@theme` in CSS                                                       |
-| `@tailwind base/components/utilities` | `@import "tailwindcss"`                                               |
-| `darkMode: "class"`                   | `@custom-variant dark (&:where(.dark, .dark *))`                      |
-| `theme.extend.colors`                 | `@theme { --color-*: value }`                                         |
-| `require("tailwindcss-animate")`      | CSS `@keyframes` in `@theme` + `@starting-style` for entry animations |
+| v3 Pattern | v4 Pattern |
+| --- | --- |
+| `tailwind.config.ts` | `@theme` in CSS |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| `darkMode: "class"` | `@custom-variant dark (&:where(.dark, .dark *))` |
+| `theme.extend.colors` | `@theme { --color-*: value }` |
+| `require("tailwindcss-animate")` | CSS `@keyframes` in `@theme` + `@starting-style` for entry animations |
 
 ## Quick Start
 
@@ -183,4 +183,3 @@ Base styles → Variants → Sizes → States → Overrides
 ## Detailed patterns and worked examples
 
 Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
-
