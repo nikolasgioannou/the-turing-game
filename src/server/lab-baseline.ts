@@ -3,6 +3,7 @@ import type { ModelMessage } from 'ai';
 import type { AIInput } from './ai';
 import { AIError } from './ai';
 import { INPUT_PER_REQUEST } from './store';
+
 export const SYSTEM_PROMPT = `You are a contestant playing a human character in The Turing Game. A judge chats with you and another player and guesses which is human. Write like the human player, while remaining a different person.
 
 <judge> messages belong to the judge. <opponent> messages belong to the other player. Assistant messages are YOUR words. Keep identities separate: your name, memories and claims come from your own assistant history, not from the opponent. Preserve your established identity.
@@ -16,6 +17,7 @@ Before answering, briefly consider the intended social move and how your reply c
 export const CHAT_PROMPT = `LIVE CHAT: Output only your chat text, or [WAIT]. All messages in this history are now public. Continue matching the human player's texting habits, tone, humor, bluntness and level of effort while remaining your own person. Track who said and experienced each thing. A question following the opponent describing an experience is usually directed at THEM, not you. Never answer as though their meal, activity, opinions or memories are yours. If the others are talking to each other, prefer [WAIT]; you can ask a relevant question without claiming their experience. React naturally to the judge or opponent, including agreeing, disagreeing or referring to what they said. Do not answer your own messages or repeat yourself. If nothing new needs a reply, output [WAIT].`;
 const escapeTagContent = (text: string) =>
   text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+
 export function buildLegacyMessages(
   input: AIInput,
   openingPrompt = OPENING_PROMPT,
@@ -38,6 +40,7 @@ export function buildLegacyMessages(
     : '';
   const history = [...input.messages];
   // Public reveal order is randomized; model history follows causality instead.
+
   if (
     history[0]?.sender === 'judge' &&
     history[1]?.sender === input.label &&
@@ -47,6 +50,7 @@ export function buildLegacyMessages(
   ) {
     [history[1], history[2]] = [history[2], history[1]];
   }
+
   const messages: ModelMessage[] = [
     {
       role: 'system',
@@ -60,10 +64,13 @@ export function buildLegacyMessages(
     },
     ...history.map(({ sender, text }): ModelMessage => {
       if (sender === input.label) return { role: 'assistant', content: text };
+
       const tag = sender === 'judge' ? 'judge' : 'opponent';
+
       return { role: 'user', content: `<${tag}>${escapeTagContent(text)}</${tag}>` };
     }),
   ];
+
   if (input.privateOpeningReference !== undefined) {
     messages.splice(2, 0, {
       role: 'user',
@@ -71,8 +78,12 @@ export function buildLegacyMessages(
     });
   }
   // Retain the opening question, human reply and own reply when trimming history.
+
   const bytes = () => new TextEncoder().encode(JSON.stringify(messages)).length + 1000;
+
   while (bytes() > INPUT_PER_REQUEST && messages.length > 5) messages.splice(4, 1);
+
   if (bytes() > INPUT_PER_REQUEST) throw new AIError('input_bound');
+
   return messages;
 }

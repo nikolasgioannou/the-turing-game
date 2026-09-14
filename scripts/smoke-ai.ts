@@ -1,12 +1,17 @@
 import { AIError, createAI, PROMPT_VERSION } from '../src/server/ai';
 import { database } from '../src/server/database';
 import { Store } from '../src/server/store';
+
 const ai = createAI();
 const db = await database();
 const store = new Store(db);
+
 await store.init();
+
 const id = crypto.randomUUID();
+
 if (!(await store.reserve(id))) throw new Error('Local test allowance exhausted.');
+
 try {
   for (const [question, humanAnswer] of [
     ['how old are you', 'old enough to bang ur mom'],
@@ -20,6 +25,7 @@ try {
       model: ai.model,
       promptVersion: PROMPT_VERSION,
     });
+
     try {
       const result = await ai.complete(
         {
@@ -30,10 +36,12 @@ try {
         },
         AbortSignal.timeout(30_000),
       );
+
       await store.settleRequest(request, result.usage, {
         provider: result.provider,
         model: result.model,
       });
+
       console.log(
         JSON.stringify({
           question,
@@ -45,12 +53,14 @@ try {
       );
     } catch (error) {
       await store.settleRequest(request, null, { status: 'failed' });
+
       console.error(
         JSON.stringify({
           error: error instanceof AIError ? error.code : 'unknown',
           message: error instanceof Error ? error.message : 'AI smoke failed',
         }),
       );
+
       process.exitCode = 1;
       break;
     }

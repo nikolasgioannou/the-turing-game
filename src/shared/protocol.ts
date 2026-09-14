@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 export const LIMITS = {
   chatMs: 90_000,
   aiRequests: 10,
@@ -46,9 +47,13 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('leave') }),
   z.object({ type: z.literal('ping') }),
 ]);
+
 export type Command = z.infer<typeof commandSchema>;
+
 export type Role = 'human' | 'judge';
+
 export type Label = 'A' | 'B';
+
 export type Phase =
   | 'waiting'
   | 'ready'
@@ -59,12 +64,14 @@ export type Phase =
   | 'complete'
   | 'abandoned'
   | 'failed';
+
 export type ChatMessage = {
   id: string;
   sender: 'judge' | Label;
   text: string;
   sentAt: number;
 };
+
 export type RoomView = {
   id: string;
   phase: Phase;
@@ -88,6 +95,7 @@ export type RoomView = {
   };
   message: string | null;
 };
+
 export type Lobby = {
   rooms: {
     id: string;
@@ -99,9 +107,11 @@ export type Lobby = {
   availability: { available: boolean; message: string | null; resetsAt: number };
   queued: Role | null;
 };
+
 export type Event =
   | { type: 'lobby'; data: Lobby }
   | { type: 'room'; data: RoomView }
   | { type: 'error'; message: string }
   | { type: 'pong' };
+
 export const ended = (phase: Phase) => ['complete', 'abandoned', 'failed'].includes(phase);

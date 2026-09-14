@@ -12,13 +12,17 @@ const env = {
   MPLCONFIGDIR: resolve(root, '.cache/matplotlib'),
 };
 const game = process.argv[2] === 'game';
+
 if (!(await Bun.file(resolve(model, 'model.safetensors.index.json')).exists()))
   throw new Error('Download the local model first; see docs/local-ai.md.');
+
 const index = await Bun.file(resolve(model, 'model.safetensors.index.json')).json();
+
 for (const shard of new Set<string>(Object.values(index.weight_map))) {
   if (!(await Bun.file(resolve(model, shard)).exists()))
     throw new Error(`Model download incomplete: missing ${shard}`);
 }
+
 const cmd = game
   ? [process.execPath, 'src/server/index.ts']
   : [
@@ -53,5 +57,7 @@ const child = Bun.spawn(cmd, {
   stderr: 'inherit',
   stdin: 'inherit',
 });
+
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => child.kill(signal));
+
 process.exitCode = await child.exited;

@@ -12,13 +12,18 @@ import {
   type RoomView,
 } from '../shared/protocol';
 import './styles.css';
-import './arcade.css';
+import { ChatMessageItem } from './chat-message';
+
 const pathCommand = (): Command | null => {
   const path = location.pathname.split('/');
+
   if (path[1] === 'match' && path[2]) return { type: 'watch', id: path[2] };
+
   const invite = new URLSearchParams(location.hash.slice(1)).get('invite');
+
   return invite ? { type: 'join', token: invite } : null;
 };
+
 function App() {
   const [lobby, setLobby] = useState<Lobby | null>(null),
     [room, setRoom] = useState<RoomView | null>(null),
@@ -32,58 +37,79 @@ function App() {
   const cancelledInvite = useRef<string | null>(null);
   const send = (command: Command) => {
     setError(null);
+
     if (ws.current?.readyState !== WebSocket.OPEN) {
       setError('Connection lost. Reconnecting to your match…');
+
       return;
     }
+
     ws.current.send(JSON.stringify(command));
   };
+
   useEffect(() => {
     let stopped = false;
     let socket: WebSocket | undefined;
     let heartbeat: ReturnType<typeof setInterval>;
     let retry: ReturnType<typeof setTimeout>;
     let attempts = 0;
+
     function reconnect() {
       if (stopped) return;
+
       clearTimeout(retry);
       retry = setTimeout(() => void start(), Math.min(1000 * 2 ** attempts++, 10000));
     }
+
     async function start() {
       try {
         const response = await fetch('/api/session');
+
         if (!response.ok) throw new Error('Session unavailable');
+
         if (stopped) return;
+
         socket = new WebSocket(
           `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`,
         );
+
         ws.current = socket;
+
         socket.onopen = () => {
           if (stopped) return;
+
           attempts = 0;
           setConnected(true);
           setError(null);
+
           heartbeat = setInterval(() => {
             if (socket?.readyState === WebSocket.OPEN)
               socket.send(JSON.stringify({ type: 'ping' }));
           }, 15_000);
+
           const restore = initial.current ?? pathCommand();
+
           if (restore) {
             socket!.send(JSON.stringify(restore));
             initial.current = null;
           }
         };
+
         socket.onmessage = (e) => {
           if (stopped) return;
+
           const event: Event = JSON.parse(e.data);
+
           if (event.type === 'lobby') {
             setLobby(event.data);
             setJoining(false);
           } else if (event.type === 'room') {
             if (event.data.id === cancelledInvite.current) return;
+
             setRoom(event.data);
             setStartOpen(event.data.phase === 'waiting' && event.data.role !== 'spectator');
             setJoining(false);
+
             if (location.pathname !== `/match/${event.data.id}`)
               history.replaceState(null, '', `/match/${event.data.id}`);
           } else if (event.type === 'error') {
@@ -92,24 +118,31 @@ function App() {
             setJoining(false);
           }
         };
+
         socket.onclose = () => {
           clearInterval(heartbeat);
+
           if (stopped) return;
+
           setConnected(false);
           setError('Connection lost. Reconnecting to your match…');
           reconnect();
         };
+
         socket.onerror = () => {
           socket?.close();
         };
       } catch {
         if (stopped) return;
+
         setConnected(false);
         setError('Unable to reach the game. Retrying…');
         reconnect();
       }
     }
+
     void start();
+
     return () => {
       stopped = true;
       clearInterval(heartbeat);
@@ -117,11 +150,14 @@ function App() {
       socket?.close();
     };
   }, []);
+
   const home = () => {
     if (room && !ended(room.phase) && room.role !== 'spectator') {
       if (!confirm('Leave this match? It will end for both players.')) return;
+
       send({ type: 'leave' });
     } else send({ type: 'home' });
+
     setRoom(null);
     history.replaceState(null, '', '/');
   };
@@ -133,6 +169,7 @@ function App() {
   const waitingInvite = room?.phase === 'waiting' && room.role !== 'spectator';
   const cancelInvite = (close = false) => {
     if (room) cancelledInvite.current = room.id;
+
     send({ type: 'leave' });
     setRoom(null);
     setStartOpen(!close);
@@ -140,6 +177,7 @@ function App() {
     setJoining(false);
     history.replaceState(null, '', '/');
   };
+
   return (
     <div className="app-shell">
       {error ? (
@@ -195,9 +233,12 @@ function App() {
                 close={() => {
                   if (waitingInvite) {
                     cancelInvite(true);
+
                     return;
                   }
+
                   if (joining || lobby?.queued) send({ type: 'cancel' });
+
                   setJoining(false);
                   setStartOpen(false);
                   setInviteRole(false);
@@ -277,9 +318,11 @@ function App() {
     </div>
   );
 }
+
 function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void }) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/#invite=${room.inviteToken}`;
+
   return (
     <div className="invite-waiting">
       <p className="eyebrow">INVITE A FRIEND</p>
@@ -317,6 +360,7 @@ function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void })
     </div>
   );
 }
+
 function ArcadeStage() {
   return (
     <div className="arcade-stage" aria-label="Two contestants face a judge. Identify the human.">
@@ -430,17 +474,23 @@ function ArcadeStage() {
     </div>
   );
 }
+
 function StartDialog({ close, children }: { close: () => void; children: React.ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
+
   useEffect(() => {
     const dialog = ref.current!;
     const trigger = document.activeElement as HTMLElement | null;
+
     dialog.showModal();
+
     return () => {
       dialog.close();
+
       if (trigger?.isConnected) trigger.focus();
     };
   }, []);
+
   return (
     <dialog
       ref={ref}
@@ -460,14 +510,20 @@ function StartDialog({ close, children }: { close: () => void; children: React.R
     </dialog>
   );
 }
+
 function Countdown({ deadline }: { deadline: number | null }) {
   const [now, setNow] = useState(Date.now());
+
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 500);
+
     return () => clearInterval(timer);
   }, []);
+
   if (!deadline) return null;
+
   const seconds = Math.max(0, Math.ceil((deadline - now) / 1000));
+
   return (
     <span
       className={'timer ' + (seconds < 20 ? 'urgent' : '')}
@@ -477,6 +533,7 @@ function Countdown({ deadline }: { deadline: number | null }) {
     </span>
   );
 }
+
 function Composer({
   label,
   limit,
@@ -492,16 +549,20 @@ function Composer({
 }) {
   const [value, setValue] = useState('');
   const input = useRef<HTMLTextAreaElement>(null);
+
   useEffect(() => {
     input.current?.focus({ preventScroll: true });
     input.current?.scrollIntoView({ block: 'nearest' });
   }, []);
+
   const count = characters(value);
+
   return (
     <form
       className="composer"
       onSubmit={(e) => {
         e.preventDefault();
+
         if (!disabled && value.trim() && count <= limit) {
           onSubmit(value);
           setValue('');
@@ -540,6 +601,7 @@ function Composer({
     </form>
   );
 }
+
 function Room({
   room,
   send,
@@ -554,9 +616,11 @@ function Room({
   const [choice, setChoice] = useState<Label | null>(null),
     [reason, setReason] = useState(''),
     [copied, setCopied] = useState(false);
+
   useEffect(() => {
     if (ended(room.phase)) window.scrollTo({ top: 0 });
   }, [room.phase]);
+
   const done = ended(room.phase),
     isJudge = room.role === 'judge',
     isHuman = room.role === 'human';
@@ -567,6 +631,7 @@ function Room({
           ? `${location.origin}/#invite=${room.inviteToken}`
           : `${location.origin}/match/${room.id}`,
       );
+
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -575,10 +640,12 @@ function Room({
   };
   const chatRef = useRef<HTMLDivElement>(null);
   const followChat = useRef(true);
+
   useEffect(() => {
     if (followChat.current && chatRef.current)
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [room.messages.length]);
+
   const status =
     room.phase === 'ready'
       ? 'The judge sends the opening question.'
@@ -593,6 +660,7 @@ function Room({
               : room.phase === 'complete'
                 ? 'The verdict is in'
                 : 'Match ended';
+
   return (
     <div
       className={
@@ -686,37 +754,26 @@ function Room({
       ) : null}
       {room.messages.length || (!done && room.phase !== 'waiting') ? (
         <div
-          className="chat-transcript"
+          className={`chat-transcript flex flex-col gap-3 overscroll-none px-1 py-4 ${done ? 'mb-5 overflow-visible' : 'm-0 min-h-0 flex-1 overflow-y-auto'}`}
           ref={chatRef}
           role="log"
           aria-label="Group chat"
           aria-live="polite"
           onScroll={() => {
             const el = chatRef.current!;
+
             followChat.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
           }}
         >
           {room.messages.map((message) => (
-            <article
-              className={
-                'chat-message ' +
-                (message.sender === 'judge' ? 'from-judge ' : '') +
-                ((isHuman && message.sender === room.ownLabel) ||
-                (isJudge && message.sender === 'judge')
-                  ? 'own-message'
-                  : '')
-              }
-              data-sender={message.sender}
+            <ChatMessageItem
               key={message.id}
-            >
-              <div className="chat-sender">
-                <span className="label-square">
-                  {message.sender === 'judge' ? 'J' : message.sender}
-                </span>
-                <span>{message.sender === 'judge' ? 'Judge' : `Contestant ${message.sender}`}</span>
-              </div>
-              <p>{message.text}</p>
-            </article>
+              message={message}
+              own={
+                (isHuman && message.sender === room.ownLabel) ||
+                (isJudge && message.sender === 'judge')
+              }
+            />
           ))}
         </div>
       ) : null}
@@ -753,6 +810,7 @@ function Room({
               className="verdict-form"
               onSubmit={(e) => {
                 e.preventDefault();
+
                 if (choice) send({ type: 'verdict', choice, reason });
               }}
             >
@@ -838,6 +896,7 @@ function Room({
     </div>
   );
 }
+
 createRoot(document.getElementById('root')!).render(
   location.pathname === '/lab' ? <FeedbackLab /> : <App />,
 );

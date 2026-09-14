@@ -121,3 +121,22 @@ human message cancels unsent lines. All lines stop at expiry or explicit leave, 
 transport loss. Prompt v12 has shared rules, phase-specific opening/live instructions, and a live
 invocation cue. Production origin restrictions remain exact; local development also permits this
 machine's loopback and IPv4 interfaces on the configured port.
+
+## Tailwind styling and source formatting
+
+Tailwind v4 uses the existing @tailwindcss/vite integration. src/client/styles.css is the only CSS
+entrypoint: @theme owns game colors/fonts, @source scans client files only, base rules own element
+defaults, and the components layer owns shared controls and arcade effects. ChatMessageItem is
+shared by active chat and replay with static Tailwind classes. The feedback workspace uses
+responsive utilities and ARIA state variants. Do not append alternate-theme overrides or dynamically
+construct utility names.
+
+The project-local tailwind-design-system skill informed this refactor. Reference:
+https://tailwindcss.com/docs/theme and https://tailwindcss.com/docs/styling-with-utility-classes.
+prettier-plugin-tailwindcss sorts classes using this stylesheet.
+
+bun run format runs Prettier plus syntax-aware blank-line spacing between logical sections, hooks,
+functions and control-flow statements. bun run format:check checks both. The spacing pass uses
+Prettier's bundled TypeScript parser, leaving strings, JSX text and object/array data intact.
+Tracked project files and new non-ignored files are included; generated assets, model weights,
+databases, dependencies and vendored skills remain excluded.

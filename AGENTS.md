@@ -11,13 +11,27 @@ boundaries, and docs/progress.md when resuming work.
   permission.
 - Use the existing mise-selected Bun. Never download a runtime automatically.
 - Automatically create conventional commits at completed milestones. Run bun run format before
-  committing; keep source, config and docs readable with line breaks and consistent indentation.
-  Keep secrets, databases, artifacts and caches out of git.
+  committing; keep source, config and docs readable with consistent indentation and blank lines
+  between logical sections, hooks, functions and control-flow blocks. Prettier alone does not insert
+  these blank lines; use the project format command. Keep secrets, databases, artifacts and caches
+  out of git.
 - Use the project-local find-skills workflow to discover relevant skills; read sources before
   applying them. User instructions override skills. Do not introduce approval gates or unrelated
   infrastructure.
 - Own routine implementation decisions. Ask only for missing credentials, material product
   decisions, or global changes.
+
+## Styling
+
+- Tailwind v4 is configured through the Vite plugin and src/client/styles.css. Keep theme tokens
+  there; do not add a v3 Tailwind config or a second stylesheet of overrides.
+- Use static Tailwind utility classes for component layout and responsive states. Extract repeated
+  markup into React components; keep shared controls and arcade effects in the components layer.
+  Reserve @apply for reusable component styles.
+- Update the original style rule rather than appending an override. Remove obsolete selectors with
+  their components. Use bun run format to sort Tailwind classes automatically.
+- Check lobby, dialogs, chat, verdict, replay and feedback on desktop and mobile at styling
+  milestones. Only chat history scrolls during an active match.
 
 ## Product invariants
 

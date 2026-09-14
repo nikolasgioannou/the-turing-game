@@ -7,7 +7,9 @@ export const feedbackTags = [
   'Confused speakers',
   'Awkward wording',
 ] as const;
+
 export type LabChoice = 'a' | 'b' | 'both_bad' | 'both_good';
+
 export type LabPair = {
   batch?: string;
   id: string;
@@ -18,6 +20,7 @@ export type LabPair = {
   a: string;
   b: string;
 };
+
 export type LabState = {
   batch: string;
   practiceTotal: number;

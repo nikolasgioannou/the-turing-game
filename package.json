@@ -14,8 +14,8 @@
     "typecheck": "tsc --noEmit",
     "check": "bun run typecheck && bun test && bun run build",
     "test:e2e": "bun scripts/e2e.ts",
-    "format": "prettier --write . --ignore-unknown",
-    "format:check": "prettier --check . --ignore-unknown",
+    "format": "bun scripts/format.ts",
+    "format:check": "bun scripts/format.ts --check",
     "devtools": "bun node_modules/@ai-sdk/devtools/bin/cli.js",
     "ai:local": "bun scripts/local-ai.ts",
     "start:local": "bun scripts/local-ai.ts game"
@@ -38,6 +38,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
     "prettier": "3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "skills": "1.5.26",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",

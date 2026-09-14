@@ -419,3 +419,25 @@ with wrapped prose and a shared EditorConfig for indentation/newlines. Expanded 
 cover supported project files while excluding generated assets, dependencies, model weights,
 databases and traces. Automatic conventional commits resume at completed milestones. Full
 verification: 52 unit tests / 282 assertions, typecheck, production build and formatting check pass.
+
+## Tailwind cleanup and readable source sections
+
+Used the project-local Tailwind Design System v4 skill. Removed the accumulated arcade override
+stylesheet and obsolete selectors, consolidated remaining component rules, added shared theme tokens
+and explicit client source scanning. Extracted the shared chat message component and migrated
+chat/feedback presentation to Tailwind utilities. Added the official Tailwind Prettier plugin as a
+project dev dependency. Custom CSS is 1,225 readable lines versus 2,350 previously; compiled CSS is
+31.61 KB versus 41.78 KB (gzip 7.76 KB versus 9.99 KB).
+
+Clarified the user's formatting request: blank lines between logical sections, not just indentation.
+Applied statement-boundary spacing throughout source, scripts and tests, plus CSS rule separation;
+made it part of format and format:check rather than relying on Prettier alone. Formatting is
+idempotent. Typecheck, 52 unit tests and production build passed. Desktop/mobile snapshots cover
+lobby, role dialog, chat, verdict, replay and feedback. Core page/controls dimensions match the
+baseline; feedback layout differs by a few pixels with no horizontal overflow.
+
+Browser verification: seven of eight full-suite journeys passed initially. The lab was blocked by an
+active match from the mobile chat test, whose cleanup only closed sockets (now intentionally
+preserved for reconnects). Updated that test to explicitly leave, then reran mobile chat and the
+real-model feedback/rating journey together: both passed. All eight journeys are covered by these
+runs; the entire suite was not repeated after the cleanup change.
