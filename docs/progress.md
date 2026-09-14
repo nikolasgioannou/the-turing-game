@@ -624,3 +624,11 @@ were run because OPENROUTER_API_KEY remains empty. The owner must add it and res
 Stopped the project's MLX service on 8080 after checking the game had no active matches. Restarted
 the app at http://192.168.1.192:3000 with the OpenRouter path and existing data/wifi database.
 Historical progress entries above describe superseded implementations. Fly remains undeployed.
+
+## Live OpenRouter verification
+
+The owner supplied OPENROUTER_API_KEY. Confirmed presence without displaying it, checked there were
+no active matches, and restarted the Wi-Fi app with the new environment. The real OpenRouter browser
+journey passed: opening, a live follow-up answered while the human textbox remained empty, and an
+early verdict with the result visible. The isolated test used an in-memory database; existing Wi-Fi
+game history was unchanged. App remains at http://192.168.1.192:3000.
