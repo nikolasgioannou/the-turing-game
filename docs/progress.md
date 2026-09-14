@@ -368,3 +368,9 @@ GitHub deployment 34885428661 passed all 189 tests and deployed successfully. A 
 Added Either role to public matchmaking with the description “No preference. Fill whichever role is needed.” Flexible players remain eligible for either seat while queued, respect a matched opponent’s explicit preference and split randomly into opposite roles when both are flexible. Invitations still require an explicit role. Match roles remain strictly human/judge after assignment.
 
 Validation: all 199 unit/integration tests, typecheck and build pass. Tests cover all nine preference combinations, cancellation, duplicate-session protection and invitation validation. Two browser journeys verify matching against each fixed role, mobile control visibility and the resulting judge/player send permissions without creating production games. Reviewed the mobile role dialog screenshot.
+
+## Either-role friend invitations
+
+Extended Either role to Invite a friend. The host receives a random concrete role when creating the invitation, and the invite token reserves the complementary role for their friend. The choice remains stable for the lifetime of the invitation. Public matchmaking retains its existing preference-aware behavior.
+
+Validation: all 201 unit/integration tests, typecheck and build pass. Three focused browser journeys cover public matchmaking against both preferences and creating/joining an either-role friend invitation. Deterministic tests exercise both possible host assignments. No production games were created.

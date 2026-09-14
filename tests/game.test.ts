@@ -1,5 +1,5 @@
 import { commandSchema } from '../src/shared/commands';
-import { afterAll, beforeAll, beforeEach, expect, test, describe } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, expect, test, describe, spyOn } from 'bun:test';
 import { database } from '../src/server/database';
 import {
   Store,
@@ -714,5 +714,33 @@ test('either-role queue can be canceled and cannot match another socket from the
   expect(game.rooms.size).toBe(0);
   await game.handle(a.p, { type: 'queue', role: 'either' });
   expect(game.role(game.rooms.get(a.p.roomId!)!, a.p)).toBe('human');
-  expect(commandSchema.safeParse({ type: 'create', role: 'either' }).success).toBe(false);
+  expect(commandSchema.safeParse({ type: 'create', role: 'either' }).success).toBe(true);
 });
+
+for (const [randomValue, expectedRole] of [
+  [0.25, 'human'],
+  [0.75, 'judge'],
+] as const) {
+  test(`either-role invitation assigns host ${expectedRole} and reserves the opposite seat`, async () => {
+    const host = await peer();
+    const friend = await peer();
+    const random = spyOn(Math, 'random').mockReturnValue(randomValue);
+
+    try {
+      await game.handle(host.p, { type: 'create', role: 'either' });
+
+      const match = game.rooms.get(host.p.roomId!)!;
+
+      expect(game.role(match, host.p)).toBe(expectedRole);
+      expect(game.view(match, host.p).openRole).toBe(expectedRole === 'human' ? 'judge' : 'human');
+      expect(host.p.queue).toBeUndefined();
+      expect(match.phase).toBe('waiting');
+      await game.handle(friend.p, { type: 'join', token: match.inviteToken });
+      expect(game.role(match, friend.p)).toBe(expectedRole === 'human' ? 'judge' : 'human');
+      expect(match.phase).toBe('ready');
+      expect(game.role(match, host.p)).toBe(expectedRole);
+    } finally {
+      random.mockRestore();
+    }
+  });
+}

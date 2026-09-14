@@ -179,8 +179,7 @@ function App() {
     setJoining(true);
     setInviteRole(false);
 
-    if (role === 'either') send({ type: 'queue', role });
-    else send({ type: invite ? 'create' : 'queue', role });
+    send({ type: invite ? 'create' : 'queue', role });
   };
   const waitingInvite = room?.phase === 'waiting';
   const cancelInvite = (close = false) => {
@@ -333,16 +332,16 @@ function App() {
                       >
                         Find the human.
                       </RoleButton>
-                      {!inviteRole ? (
-                        <RoleButton
-                          tone="neutral"
-                          title="Either role"
-                          disabled={!connected || joining || !lobby?.availability.available}
-                          onClick={() => play('either')}
-                        >
-                          No preference. Fill whichever role is needed.
-                        </RoleButton>
-                      ) : null}
+                      <RoleButton
+                        tone="neutral"
+                        title="Either role"
+                        disabled={!connected || joining || !lobby?.availability.available}
+                        onClick={() => play('either', inviteRole)}
+                      >
+                        {inviteRole
+                          ? 'We’ll randomly assign you and your friend a role.'
+                          : 'No preference. Fill whichever role is needed.'}
+                      </RoleButton>
                     </div>
                   </>
                 )}

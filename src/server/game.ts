@@ -297,7 +297,13 @@ export class Game {
         const next = await this.newMatch();
 
         next.inviteToken = crypto.randomUUID() + crypto.randomUUID();
-        this.assign(next, p, c.role);
+
+        this.assign(
+          next,
+          p,
+          c.role === 'either' ? (Math.random() < 0.5 ? 'human' : 'judge') : c.role,
+        );
+
         await this.persist(next);
 
         return;

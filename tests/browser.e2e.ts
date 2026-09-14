@@ -685,9 +685,9 @@ for (const fixedRole of ['human', 'judge'] as const) {
 
       await flexible.getByRole('button', { name: 'Invite a friend', exact: true }).click();
 
-      await expect(flexible.getByRole('button', { name: 'Either role', exact: false })).toHaveCount(
-        0,
-      );
+      await expect(
+        flexible.getByRole('button', { name: 'Either role', exact: false }),
+      ).toBeVisible();
 
       await flexible.getByRole('button', { name: 'Find a match', exact: true }).click();
       await flexible.getByRole('button', { name: 'Either role', exact: false }).click();
@@ -713,3 +713,42 @@ for (const fixedRole of ['human', 'judge'] as const) {
     }
   });
 }
+
+test('either role creates a friend invitation with complementary seats', async ({ browser }) => {
+  const hostContext = await browser.newContext();
+  const friendContext = await browser.newContext();
+
+  try {
+    const host = await hostContext.newPage();
+    const friend = await friendContext.newPage();
+
+    await host.goto('/');
+    await host.getByRole('button', { name: 'Start game', exact: true }).click();
+    await host.getByRole('button', { name: 'Invite a friend', exact: true }).click();
+    await host.getByRole('button', { name: 'Either role', exact: false }).click();
+
+    const link = await host.getByLabel('Invitation link').inputValue();
+
+    await friend.goto(link);
+
+    for (const page of [host, friend]) {
+      await page.getByLabel('First name', { exact: true }).fill('Test');
+      await page.getByRole('button', { name: 'Enter', exact: true }).click();
+      await expect(page.getByRole('dialog', { name: 'Your first name' })).toHaveCount(0);
+    }
+
+    const hostIsHuman = await host.getByLabel('Your contestant').count();
+    const human = hostIsHuman ? host : friend;
+    const judge = hostIsHuman ? friend : host;
+
+    await expect(human.getByLabel('Your contestant')).toBeVisible();
+    await expect(judge.getByLabel('Your contestant')).toHaveCount(0);
+    await judge.getByLabel('Message the group').fill('hello');
+    await expect(judge.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
+    await human.getByLabel('Message the group').fill('hello');
+    await expect(human.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
+  } finally {
+    await hostContext.close();
+    await friendContext.close();
+  }
+});
