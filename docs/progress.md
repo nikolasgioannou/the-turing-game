@@ -374,3 +374,9 @@ Validation: all 199 unit/integration tests, typecheck and build pass. Tests cove
 Extended Either role to Invite a friend. The host receives a random concrete role when creating the invitation, and the invite token reserves the complementary role for their friend. The choice remains stable for the lifetime of the invitation. Public matchmaking retains its existing preference-aware behavior.
 
 Validation: all 201 unit/integration tests, typecheck and build pass. Three focused browser journeys cover public matchmaking against both preferences and creating/joining an either-role friend invitation. Deterministic tests exercise both possible host assignments. No production games were created.
+
+## Direct bot answers
+
+Corrected the system prompt to match the judge selecting the real human. Added direct, consistent positions for subjective comparisons and short non-graphic responses to provocation; mirroring style no longer requires copying refusals or beliefs. Bumped prompt version to turing-v3 and updated the system-prompt integrity fixture. Model, scheduling and filtering are unchanged.
+
+Validation: all 201 unit/integration tests, typecheck and build pass. Four approved synthetic evaluations through the development OpenRouter key answered a preference, a political comparison, a crude question and a repeated preference without blanket dismissals; the repeated preference stayed consistent. This small stochastic sample does not guarantee every future response. No production games were created. These changes and either-role friend invitations have not been deployed.

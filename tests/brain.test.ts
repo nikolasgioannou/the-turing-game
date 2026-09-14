@@ -227,7 +227,7 @@ for (const [index, fixture] of filtering.entries())
 
 test('system and analyst prompts preserve their text', () => {
   expect(createHash('sha256').update(SYSTEM).digest('hex')).toBe(
-    '958d1a138cdf508501576ee643071ee14493f233d0fc7781a72b78b750e83bb9',
+    '704864ff35ae36c8f4a1ed5d303962e4d6ffbf07585c848fd470feecedc86e88',
   );
 
   expect(createHash('sha256').update(STYLE_ANALYSIS).digest('hex')).toBe(
