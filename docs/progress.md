@@ -398,3 +398,5 @@ The score card renders immediately with a loading placeholder instead of appeari
 ## Arcade score animation
 
 Replaced the score fade with a 20-step counter and cyan pixel sweep. While loading, the cursor loops across the meter; incoming data starts a 900ms stepped count toward the actual percentage and fills orange blocks. A zero score still receives the sweep. Reduced-motion users see the settled values immediately, and assistive technology reads the actual score without counter chatter. Typecheck, build and the desktop/mobile loading-layout regression pass. No model calls or production games. Not deployed.
+
+Production release: GitHub Actions run 34901220758 deployed 3c0c2ee successfully, including stable score loading and the arcade animation. CI validation and Fly health checks passed; the public health endpoint and updated client asset were verified. No production games were created.
