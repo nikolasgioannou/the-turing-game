@@ -17,7 +17,6 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('cancel') }),
   z.object({ type: z.literal('create'), role: z.enum(['human', 'judge']) }),
   z.object({ type: z.literal('join'), token: z.string().min(20).max(100) }),
-  z.object({ type: z.literal('watch'), id: z.string().uuid() }),
   z.object({ type: z.literal('home') }),
   z.object({ type: z.literal('message'), text: text(LIMITS.answer) }),
   z.object({
@@ -39,7 +38,6 @@ export const commandSchema = z.discriminatedUnion('type', [
       .refine((s) => characters(s) <= LIMITS.reason)
       .default(''),
   }),
-  z.object({ type: z.literal('vote'), choice: z.enum(['A', 'B']) }),
   z.object({ type: z.literal('leave') }),
   z.object({
     type: z.literal('context'),

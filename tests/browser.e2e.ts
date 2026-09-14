@@ -27,17 +27,10 @@ async function participants(browser: Browser) {
   return { h, j, humanContext, judgeContext };
 }
 
-test('full multiplayer match, spectator vote and public replay', async ({ browser }) => {
+test('full multiplayer match and private participant results', async ({ browser }) => {
   test.setTimeout(120_000);
 
   const { h, j, humanContext, judgeContext } = await participants(browser);
-  const spectatorContext = await browser.newContext();
-  const s = await spectatorContext.newPage();
-
-  await s.goto(j.url());
-  await expect(s.getByRole('heading', { name: 'Who do you think is the AI?' })).toBeVisible();
-  await s.getByRole('button', { name: 'A', exact: true }).click();
-
   const humanLabel = (await h.getByText(/YOU ARE CONTESTANT/).textContent())!.trim().slice(-1);
 
   await j.getByLabel('Message the group').fill('What is your favorite food?');
@@ -50,9 +43,9 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await j.getByRole('button', { name: 'Send', exact: false }).click();
   await h.getByLabel('Message the group').fill('mushrooms');
   await h.getByLabel('Message the group').press('Enter');
-  await expect(s.getByText('mushrooms', { exact: true })).toBeVisible();
+  await expect(j.getByText('mushrooms', { exact: true })).toBeVisible();
   await expect(h.getByLabel('Message the group')).toHaveValue('');
-  await s.screenshot({ path: 'work/chat-desktop.png', fullPage: true });
+  await j.screenshot({ path: 'work/chat-desktop.png', fullPage: true });
   await h.setViewportSize({ width: 390, height: 844 });
   await h.screenshot({ path: 'work/chat-mobile.png', fullPage: true });
   expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -71,25 +64,12 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await j.getByLabel('What gave them away?').fill('They kept it simple.');
   await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
 
-  await expect(s.getByRole('heading', { name: `Contestant ${humanLabel} wins!` })).toBeVisible();
+  await expect(j.getByRole('heading', { name: `Contestant ${humanLabel} wins!` })).toBeVisible();
 
-  await expect(s.getByText('They kept it simple.', { exact: false })).toBeVisible();
-  await expect(s.getByText('Audience guesses')).toHaveCount(0);
-  await s.screenshot({ path: 'work/match-desktop.png', fullPage: true });
+  await expect(j.getByText('They kept it simple.', { exact: false })).toBeVisible();
+  await expect(j.getByText('Audience guesses')).toHaveCount(0);
+  await j.screenshot({ path: 'work/match-desktop.png', fullPage: true });
 
-  const url = s.url();
-
-  await spectatorContext.close();
-
-  const replay = await browser.newPage();
-
-  await replay.goto(url);
-
-  await expect(
-    replay.getByRole('heading', { name: `Contestant ${humanLabel} wins!` }),
-  ).toBeVisible();
-
-  await replay.close();
   await humanContext.close();
   await judgeContext.close();
 });
@@ -597,4 +577,13 @@ test('malformed messages still obey socket rate limits', async ({ page }) => {
   );
 
   expect(code).toBe(1008);
+});
+
+test('old public match URLs and APIs do not expose games', async ({ page, request }) => {
+  const id = '11111111-1111-4111-8111-111111111111';
+
+  expect((await request.get(`/api/matches/${id}`)).status()).toBe(404);
+  expect((await request.get(`/match/${id}`)).status()).toBe(404);
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Start game', exact: true })).toBeVisible();
 });

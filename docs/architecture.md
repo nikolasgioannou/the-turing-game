@@ -7,7 +7,7 @@ React, Vite and Tailwind client; Bun HTTP/WebSocket authority; PostgreSQL in pro
 - `shared/protocol.ts`: browser-safe limits, types and explicit public views.
 - `shared/commands.ts`: server-only Zod command validation.
 - `server/database.ts`: PostgreSQL/PGlite adapters.
-- `server/store.ts`: snapshots, request ledger, daily capacity and reservations.
+- `server/store.ts`: minimal match outcomes, request ledger, daily capacity and reservations.
 - `server/game.ts`: sessions, matchmaking, deadlines, scoring and public serialization.
 - `server/ai.ts`: private worker lifecycle and OpenRouter transport/accounting.
 - `server/bot`: TypeScript conversation engine, private transport and behavior fixtures.
@@ -21,9 +21,9 @@ The bot owns all AI decisions, including its 400 ms loop, live draft planning, o
 
 Bun phases remain waiting → ready → opening → opening_ai → chat → verdict → complete, with abandoned/failed exits. The bot's opening can reveal a held human reply alongside its answer, or enter chat first from a developed draft / 40 seconds of silence. Bun accepts the worker's chat start timestamp and 90-second deadline. Worker snapshots publish AI and held opening messages without duplicates. Live human and judge messages are accepted immediately by Bun. Both players may continue during opening; a second human submission releases the previous held one. The latest opening stays private until worker publication, including early-attack races.
 
-Chat expiry and early verdict stop the worker and abort pending HTTP calls. Late worker events cannot alter a closed match. Anonymous HttpOnly session cookies own seats, so reconnects/refreshes resume the same match and bot. Explicit leave abandons. Server restarts mark unfinished matches as technical failures and preserve conservative charges for in-flight requests.
+Chat expiry and early verdict stop the worker and abort pending HTTP calls. Late worker events cannot alter a closed match. Anonymous HttpOnly session cookies own seats, so reconnects/refreshes resume the same match and bot. Explicit leave abandons. Server restarts end unfinished in-memory matches without counting a result and preserve conservative charges for in-flight requests.
 
-Browser drafts use the client's 120 ms debounce in opening and live states. Only the human contestant can submit drafts. Text is transient in the worker; public DTOs and saved matches never include it. Names are collected on entry; timezone, weekday, local time and device hints are passed privately on entry/reconnect. Human names never enter public DTOs; the judge name is public. The worker's original clock context handles date questions. Unsent drafts are shared with OpenRouter.
+Browser drafts use the client's 120 ms debounce in opening and live states. Only the human contestant can submit drafts. Text is transient in the worker; participant DTOs and the database never include it. Names are collected on entry; timezone, weekday, local time and device hints are passed privately on entry/reconnect. Human names never enter public DTOs; the judge name is public. The worker's original clock context handles date questions. Unsent drafts are shared with OpenRouter.
 
 ## Accounting and secrets
 
@@ -37,4 +37,4 @@ A single Fly machine is the authority; multi-machine room ownership is not imple
 
 Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global effects. Components own utility classes. VS Code uses Tailwind language mode. `bun run format` runs Prettier and the syntax-aware blank-line pass; bot behavior is verified by deterministic fixtures and prompt hashes. Only transcript history scrolls during active chat.
 
-Score aggregates are cached in the game authority until a terminal match save; unchanged lobby ticks do not scan transcript history. Names/device context do not spawn workers. Context updates after chat ends are rejected, and the latest opening remains held until its own publication.
+Score aggregates are cached in the game authority until a terminal match outcome is saved. The match_outcomes table stores only the match ID and whether AI won. Transcripts stay in memory, with no match listing or saved-game endpoint. Names/device context do not spawn workers. Context updates after chat ends are rejected, and the latest opening remains held until its own publication.

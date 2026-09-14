@@ -18,17 +18,17 @@ This repository is the canonical implementation. Describe bot behavior directly 
 - Tailwind v4 is configured through the Vite plugin and src/client/styles.css. Keep theme tokens there; do not add a v3 Tailwind config or a second stylesheet of overrides.
 - Use static Tailwind utility classes for component layout and responsive states. Extract repeated markup into React components; keep shared controls and arcade effects in the components layer. Reserve @apply for reusable component styles.
 - Update the original style rule rather than appending an override. Remove obsolete selectors with their components. Use bun run format to sort Tailwind classes automatically.
-- Check lobby, dialogs, chat, verdict and replay on desktop and mobile at styling milestones. Only chat history scrolls during an active match.
+- Check lobby, dialogs, chat and verdict on desktop and mobile at styling milestones. Only chat history scrolls during an active match.
 
 ## Product invariants
 
 - Follow the bot opening: hold the human until AI reveal, or allow its early attack from drafts / silence. The first AI reply starts 90-second group chat. Preserve the original message order and all brain mechanics. Cancel late AI replies at chat closure.
-- Serialize explicit public views. Never send hidden answers, identity mapping, participant credentials, prompt, or early audience results to browsers.
-- Anonymous A/B assignments stay fixed. All rooms are publicly watchable; invite tokens reserve seats only.
+- Serialize explicit participant views. Never send hidden answers, unrevealed identity mapping, participant credentials, or prompts to browsers.
+- Anonymous A/B assignments stay fixed. Only authenticated participants may access a room; invite tokens reserve seats only.
 - Explicit leave abandons a match. Socket loss does not: sessions reclaim their seats on reconnect/refresh while deadlines continue. Heartbeat only detects dead transports.
 - The judge selects the AI: a correct guess means human wins; otherwise AI wins.
-- Verdict and optional reasoning commit together before identity reveal. Audience guesses lock at verdict and remain hidden until then.
-- Persist transcripts, prompt/model/provider versions, usage and results. Abandoned/failed matches are not wins.
+- Verdict and optional reasoning commit together before identity reveal.
+- Persist only match IDs and win/loss outcomes for the homepage score, plus provider usage accounting. Transcripts and judge reasoning stay in memory; do not restore public spectating or saved-game access. Abandoned/failed matches are not wins.
 - Usage limits are provider-independent, durable, atomic and include in-flight reservations.
 - Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production.
 

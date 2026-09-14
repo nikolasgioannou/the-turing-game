@@ -42,7 +42,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await store.db.query('TRUNCATE matches,ai_requests,reservations,daily_usage');
+  await store.db.query('TRUNCATE match_outcomes,ai_requests,reservations,daily_usage');
   await store.db.query('UPDATE service_state SET reason=null,until_at=0');
   store.caps = { input: 1_000_000, output: 100_000 };
   clock = Date.now();
@@ -148,13 +148,16 @@ test('drafts in opening and live chat go only to worker, including deletion', as
   const { h, j, m } = await question();
   const spectator = await peer();
 
-  await game.handle(spectator.p, { type: 'watch', id: m.id });
   await expect(game.handle(j.p, { type: 'draft', text: 'secret' })).rejects.toThrow();
   await expect(game.handle(spectator.p, { type: 'draft', text: 'secret' })).rejects.toThrow();
   await game.handle(h.p, { type: 'draft', text: 'private draft' });
   expect(sessions.get(m.id)!.commands.at(-1)).toEqual({ type: 'draft', text: 'private draft' });
   await game.persist(m);
-  expect(JSON.stringify(await store.load(m.id))).not.toContain('private draft');
+
+  expect(JSON.stringify(await store.db.query('SELECT * FROM match_outcomes'))).not.toContain(
+    'private draft',
+  );
+
   expect(JSON.stringify(j.events)).not.toContain('private draft');
   await game.handle(h.p, { type: 'draft', text: '' });
   expect(sessions.get(m.id)!.commands.at(-1)).toEqual({ type: 'draft', text: '' });
@@ -192,7 +195,6 @@ test('deadline stops worker and rejects late replies, sending and spectator gues
   const { h, j, m } = await opening();
   const spectator = await peer();
 
-  await game.handle(spectator.p, { type: 'watch', id: m.id });
   clock = m.deadline!;
   await game.tick();
   expect(m.phase).toBe('verdict');
@@ -261,9 +263,9 @@ test('invite tokens reserve seats; watchers cannot impersonate participants', as
 
   const m = game.rooms.get(h.p.roomId!)!;
 
-  await game.handle(j.p, { type: 'watch', id: m.id });
-  expect(game.role(m, j.p)).toBe('spectator');
-  expect(game.view(m, j.p).inviteToken).toBeUndefined();
+  await expect(game.handle(j.p, { type: 'watch', id: m.id })).rejects.toThrow();
+  expect(game.role(m, j.p)).toBeNull();
+  expect(() => game.view(m, j.p)).toThrow('Only participants');
   await expect(game.handle(j.p, { type: 'message', text: 'hello' })).rejects.toThrow();
   await game.handle(j.p, { type: 'join', token: m.inviteToken });
   expect(game.role(m, j.p)).toBe('judge');
@@ -279,7 +281,7 @@ test('explicit leave and action timeout stop the worker without awarding a win',
   await game.handle(h.p, { type: 'leave' });
   expect(m.phase).toBe('abandoned');
   expect(sessions.get(m.id)!.stopped).toBe(true);
-  expect(game.view(m).result).toBeNull();
+  expect(game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result).toBeNull();
 
   const other = await question();
 
@@ -294,16 +296,17 @@ test('provider credentials failure closes match rather than awarding a win', asy
   sessions.get(m.id)!.hooks.failed(new Error('credentials'));
   await game.run(async () => {});
   expect(m.phase).toBe('failed');
-  expect(game.view(m).result).toBeNull();
+  expect(game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result).toBeNull();
 });
 
-test('historical replay scoring remains unchanged', async () => {
+test('judge identifies the AI using current scoring', async () => {
   const { j, m } = await opening();
 
-  delete m.guessTarget;
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
-  expect(game.view(m).result?.humanWon).toBe(true);
-  expect(game.view(m).result?.guessTarget).toBe('human');
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel === 'A' ? 'B' : 'A', reason: '' });
+
+  expect(
+    game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result?.humanWon,
+  ).toBe(true);
 });
 
 test('Unicode limits and draft bounds apply at the public boundary', () => {
@@ -383,7 +386,7 @@ test('restart recovery retains conservative in-flight charges', async () => {
 
   await store.beginRequest(m.id, {}, { input: 18000, output: 400 });
   await store.recover();
-  expect((await store.load<Match>(m.id))?.phase).toBe('failed');
+  expect(await store.db.query('SELECT * FROM match_outcomes')).toHaveLength(0);
 
   const [day] = await store.db.query<any>('SELECT * FROM daily_usage');
 
@@ -415,34 +418,17 @@ test('opening submission racing an early attack is retained until the worker pub
   expect(m.messages.filter((x) => x.text === 'in flight')).toHaveLength(1);
 });
 
-test('homepage score counts completed outcomes once and preserves historical scoring', async () => {
+test('homepage score stores only immutable outcomes', async () => {
   expect(await store.score()).toEqual({ completed: 0, aiWins: 0 });
+  await store.saveOutcome('one', true);
+  await store.saveOutcome('two', false);
+  await store.saveOutcome('one', false);
+  expect(await store.score()).toEqual({ completed: 2, aiWins: 1 });
 
-  let id = 0;
-
-  for (const humanLabel of ['A', 'B']) {
-    for (const choice of ['A', 'B']) {
-      for (const guessTarget of ['ai', undefined]) {
-        await store.save(`score-${id++}`, { phase: 'complete', humanLabel, choice, guessTarget });
-      }
-    }
-  }
-
-  for (const phase of ['chat', 'verdict', 'failed', 'abandoned']) {
-    await store.save(phase, { phase, humanLabel: 'A', choice: 'A', guessTarget: 'ai' });
-  }
-
-  await store.save('invalid', { phase: 'complete', humanLabel: 'A', choice: null });
-  expect(await store.score()).toEqual({ completed: 8, aiWins: 4 });
-
-  await store.save('score-0', {
-    phase: 'complete',
-    humanLabel: 'A',
-    choice: 'A',
-    guessTarget: 'ai',
-  });
-
-  expect(await store.score()).toEqual({ completed: 8, aiWins: 4 });
+  expect(await store.db.query('SELECT * FROM match_outcomes ORDER BY id')).toEqual([
+    { id: 'one', ai_won: true },
+    { id: 'two', ai_won: false },
+  ]);
 });
 
 test('verdict broadcasts the updated aggregate to people on the homepage', async () => {
@@ -520,13 +506,16 @@ test('name and device context stays role-scoped, and pre-question drafts are ign
   ]);
 
   expect(JSON.stringify(game.view(m, j.p))).not.toContain('PrivateName');
-  expect(JSON.stringify(game.view(m))).not.toContain('PrivateName');
-  expect(JSON.stringify(await store.load(m.id))).not.toContain('iPhone');
+
+  expect(JSON.stringify(await store.db.query('SELECT * FROM match_outcomes'))).not.toContain(
+    'iPhone',
+  );
+
   expect(game.view(m, h.p).judgeName).toBe('Marc');
 
   const watcher = await peer();
 
-  await game.handle(watcher.p, { type: 'watch', id: m.id });
+  await expect(game.handle(watcher.p, { type: 'watch', id: m.id })).rejects.toThrow();
   await expect(game.handle(watcher.p, { type: 'context', name: 'spoof' })).rejects.toThrow();
 });
 
@@ -621,4 +610,45 @@ test('unchanged lobby ticks reuse the aggregate until a result is saved', async 
   } finally {
     store.score = original;
   }
+});
+
+test('unseated sessions cannot discover or access matches', async () => {
+  const { m } = await question();
+  const outsider = await peer();
+
+  expect(outsider.events.some((event) => event.type === 'room')).toBe(false);
+  expect(outsider.events.find((event) => event.type === 'lobby')?.data).not.toHaveProperty('rooms');
+  expect(commandSchema.safeParse({ type: 'watch', id: m.id }).success).toBe(false);
+  expect(commandSchema.safeParse({ type: 'vote', choice: 'A' }).success).toBe(false);
+
+  outsider.p.roomId = m.id;
+  expect(() => game.view(m, outsider.p)).toThrow('Only participants');
+  game.broadcast(m);
+  expect(outsider.events.some((event) => event.type === 'room')).toBe(false);
+  await expect(game.handle(outsider.p, { type: 'message', text: 'intruder' })).rejects.toThrow();
+});
+
+test('completed matches store only an outcome and are not rejoined after returning home', async () => {
+  const { h, j, m } = await opening();
+
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'private explanation' });
+
+  expect(await store.db.query('SELECT * FROM match_outcomes')).toEqual([
+    { id: m.id, ai_won: true },
+  ]);
+
+  expect(
+    (
+      await store.db.query<{ name: string | null }>("SELECT to_regclass('public.matches') AS name")
+    )[0].name,
+  ).toBeNull();
+
+  await game.handle(h.p, { type: 'home' });
+  await game.handle(j.p, { type: 'home' });
+  await game.tick();
+  expect(game.rooms.has(m.id)).toBe(false);
+
+  const refreshed = await peer(h.p.session);
+
+  expect(refreshed.events.some((event) => event.type === 'room')).toBe(false);
 });

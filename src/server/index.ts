@@ -3,7 +3,7 @@ import { resolve, sep } from 'node:path';
 import { database } from './database';
 import { Store } from './store';
 import { createAI } from './ai';
-import { ActionError, Game, type Match, type Peer } from './game';
+import { ActionError, Game, type Peer } from './game';
 
 const production = process.env.NODE_ENV === 'production';
 
@@ -114,16 +114,6 @@ const server = Bun.serve<SocketData>({
       return json({ error: 'WebSocket upgrade failed' }, 400);
     }
 
-    if (url.pathname.startsWith('/api/matches/') && req.method === 'GET') {
-      const id = url.pathname.split('/').at(-1)!;
-
-      if (!/^[a-f0-9-]{36}$/.test(id)) return json({ error: 'Match not found' }, 404);
-
-      const m = game.rooms.get(id) ?? (await store.load<Match>(id));
-
-      return m ? json(game.view(m)) : json({ error: 'Match not found' }, 404);
-    }
-
     if (url.pathname.startsWith('/api/')) return json({ error: 'Not found' }, 404);
 
     if (req.method !== 'GET' && req.method !== 'HEAD') return new Response(null, { status: 405 });
@@ -141,8 +131,7 @@ const server = Bun.serve<SocketData>({
     let file = Bun.file(path);
 
     if (!(await file.exists())) {
-      if (url.pathname !== '/' && !/^\/match\/[a-f0-9-]{36}$/.test(url.pathname))
-        return json({ error: 'Not found' }, 404);
+      if (url.pathname !== '/') return json({ error: 'Not found' }, 404);
 
       file = Bun.file(resolve(root, 'index.html'));
     }

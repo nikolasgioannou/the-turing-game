@@ -17,7 +17,7 @@ One always-on Bun app machine + Fly Managed Postgres in the same region. No app 
 3. Set OPENROUTER_API_KEY as a Fly secret. The container runs Bun for the application and TypeScript bot worker; model inference uses OpenRouter only.
 4. Run local checks and `fly config validate`. Use a remote builder if Docker is not installed locally. No global Docker install is necessary.
 5. Deploy with one machine. Check logs and `/api/health`, confirm real PostgreSQL schema/data, and run a real three-session smoke test.
-6. Restart once when no real players are active, verify replay persistence and usage accounting, and document the live URL.
+6. Restart once when no real players are active, verify outcome persistence and usage accounting, and document the live URL.
 
 ## Usage model
 
@@ -34,11 +34,10 @@ bun scripts/ops.ts resume-ai
 
 `usage` shows seven days of counters and availability state. It does not expose transcripts/keys. `resume-ai` clears the provider circuit after credits/credentials/provider outage are fixed. It does not bypass token caps. No user-facing admin controls.
 
-Provider authentication/credit failures end the affected match as a technical failure. Transient completion failures retain the bot's retry/fallback behavior. Exhausted daily capacity blocks new admission and new requests, while replays remain available.
+Provider authentication/credit failures end the affected match as a technical failure. Transient completion failures retain the bot's retry/fallback behavior. Exhausted daily capacity blocks new admission and new requests, without counting a match result.
 
 ## Limitations to keep explicit
 
 - App instance is single-authority and not highly available; PostgreSQL high availability does not change that.
-- Anonymous spectator votes are per browser session, not resistant to someone creating many identities.
 - PGlite tests execute PostgreSQL semantics but do not verify Fly networking, credentials, remote connection pooling or the production container.
 - Secrets, `.env`, test browser binaries, profiles, caches and local data are excluded from git and Docker context.

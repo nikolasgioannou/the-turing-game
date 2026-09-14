@@ -49,7 +49,7 @@ export type RoomView = {
   startedAt: number | null;
   createdAt: number;
   deadline: number | null;
-  role: Role | 'spectator';
+  role: Role;
   ownLabel: Label | null;
   ownOpening: string | null;
   judgeName?: string;
@@ -57,28 +57,17 @@ export type RoomView = {
   contextReady?: boolean;
   inviteToken?: string;
   openRole: Role | null;
-  spectatorCount: number;
-  vote: Label | null;
   result: null | {
     humanLabel: Label;
     choice: Label;
     reason: string;
     humanWon: boolean;
-    guessTarget: 'human' | 'ai';
-    votes: Record<Label, number>;
   };
   message: string | null;
 };
 
 export type Lobby = {
   score: { completed: number; aiWins: number };
-  rooms: {
-    id: string;
-    phase: 'ready' | 'opening' | 'opening_ai' | 'chat' | 'verdict';
-    deadline: number | null;
-    spectators: number;
-    createdAt: number;
-  }[];
   availability: { available: boolean; message: string | null; resetsAt: number };
   queued: Role | null;
 };

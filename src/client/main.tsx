@@ -31,10 +31,6 @@ import './styles.css';
 import { ChatMessageItem } from './chat-message';
 
 const pathCommand = (): Command | null => {
-  const path = location.pathname.split('/');
-
-  if (path[1] === 'match' && path[2]) return { type: 'watch', id: path[2] };
-
   const invite = new URLSearchParams(location.hash.slice(1)).get('invite');
 
   return invite ? { type: 'join', token: invite } : null;
@@ -124,11 +120,10 @@ function App() {
             if (event.data.id === dismissedRoom.current) return;
 
             setRoom(event.data);
-            setStartOpen(event.data.phase === 'waiting' && event.data.role !== 'spectator');
+            setStartOpen(event.data.phase === 'waiting');
             setJoining(false);
 
-            if (location.pathname !== `/match/${event.data.id}`)
-              history.replaceState(null, '', `/match/${event.data.id}`);
+            history.replaceState(null, '', '/');
           } else if (event.type === 'error') {
             setError(event.message);
             setStartOpen(false);
@@ -169,7 +164,7 @@ function App() {
   }, []);
 
   const home = () => {
-    if (room && !ended(room.phase) && room.role !== 'spectator') {
+    if (room && !ended(room.phase)) {
       if (!confirm('Leave this match? It will end for both players.')) return;
 
       dismissedRoom.current = room.id;
@@ -184,7 +179,7 @@ function App() {
     setInviteRole(false);
     send({ type: invite ? 'create' : 'queue', role });
   };
-  const waitingInvite = room?.phase === 'waiting' && room.role !== 'spectator';
+  const waitingInvite = room?.phase === 'waiting';
   const cancelInvite = (close = false) => {
     if (room) dismissedRoom.current = room.id;
 
@@ -679,13 +674,9 @@ function Room({
     send({ type: 'context', name: room.ownName, ...(isHuman ? { hints: deviceHints() } : {}) });
   }, [connected, room.ownName, contextPhase, isJudge, isHuman]);
 
-  const copy = async (invite = false) => {
+  const copy = async () => {
     try {
-      await copyText(
-        invite
-          ? `${location.origin}/#invite=${room.inviteToken}`
-          : `${location.origin}/match/${room.id}`,
-      );
+      await copyText(`${location.origin}/#invite=${room.inviteToken}`);
 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -802,48 +793,25 @@ function Room({
         <RoomTitle>
           <div>
             <p className="eyebrow">
-              {room.role === 'spectator'
-                ? 'SPECTATING'
-                : isJudge
-                  ? 'YOU ARE THE JUDGE'
-                  : `YOU ARE CONTESTANT ${room.ownLabel}`}
+              {isJudge ? 'YOU ARE THE JUDGE' : `YOU ARE CONTESTANT ${room.ownLabel}`}
             </p>
             <h1>
-              {done
-                ? room.phase === 'complete'
-                  ? isHuman
-                    ? room.result?.humanWon
-                      ? 'You won!'
-                      : 'You lost.'
-                    : isJudge
-                      ? room.result?.humanWon
-                        ? 'You guessed correctly!'
-                        : 'You guessed wrong.'
-                      : room.result?.humanWon
-                        ? 'Human wins!'
-                        : 'AI wins!'
-                  : 'Match ended.'
-                : room.phase === 'waiting'
-                  ? 'Invite your opponent.'
-                  : room.phase === 'ready'
-                    ? 'Who is the AI?'
-                    : room.phase === 'verdict'
-                      ? 'Time is up.'
-                      : room.phase === 'opening' || room.phase === 'opening_ai'
-                        ? 'Opening replies'
-                        : 'Who is the AI?'}
+              {room.phase !== 'complete'
+                ? 'Match ended.'
+                : isJudge
+                  ? room.result?.humanWon
+                    ? 'You guessed correctly!'
+                    : 'You guessed wrong.'
+                  : room.result?.humanWon
+                    ? 'You won!'
+                    : 'You lost.'}
             </h1>
           </div>
-          {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
         </RoomTitle>
       ) : (
         <div className="flex shrink-0 items-center justify-between gap-4 py-3">
           <p className="text-sm text-muted">
-            {isJudge
-              ? 'YOU ARE THE JUDGE'
-              : isHuman
-                ? `YOU ARE CONTESTANT ${room.ownLabel}`
-                : 'SPECTATING'}
+            {isJudge ? 'YOU ARE THE JUDGE' : `YOU ARE CONTESTANT ${room.ownLabel}`}
           </p>
           {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
         </div>
@@ -861,7 +829,7 @@ function Room({
                 readOnly
                 value={`${location.origin}/#invite=${room.inviteToken}`}
               />
-              <Button variant="primary" onClick={() => copy(true)}>
+              <Button variant="primary" onClick={() => copy()}>
                 {copied ? 'Copied' : 'Copy invitation'}
               </Button>
             </>
@@ -893,12 +861,9 @@ function Room({
             ))}
           </div>
           <p>
-            The judge chose Contestant {room.result.choice} as{' '}
-            {room.result.guessTarget === 'ai' ? 'the AI' : 'human'}.{' '}
+            The judge chose Contestant {room.result.choice} as the AI.{' '}
             {room.result.humanWon
-              ? room.result.guessTarget === 'ai'
-                ? 'Correct guess — the AI was caught.'
-                : 'Correct guess — the human was identified.'
+              ? 'Correct guess — the AI was caught.'
               : 'Wrong guess — the AI fooled the judge.'}
           </p>
           {room.result.reason ? (
@@ -964,11 +929,7 @@ function Room({
         >
           <p className="mb-2 text-xs leading-normal text-muted" role="status">
             {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
-            {room.role === 'spectator'
-              ? room.phase === 'verdict'
-                ? 'Waiting for the judge to choose.'
-                : 'Watch the conversation and guess who is the AI.'
-              : status}
+            {status}
           </p>
           {isJudge || isHuman ? (
             <Composer
@@ -1058,28 +1019,6 @@ function Room({
               Make a guess
             </Button>
           ) : null}
-          {room.role === 'spectator' ? (
-            <div className="spectator-vote mt-2 flex items-center justify-between gap-5 border-t border-[#414d37] pt-2.5 max-[700px]:flex-col max-[700px]:items-start [&_h2]:mb-2 [&_h2]:text-[17px] [&_h2]:font-medium [&_p]:m-0 [&_p]:text-sm [&_p]:leading-[1.6] [&_p]:text-[#a3b098]">
-              <div>
-                <h2>Who do you think is the AI?</h2>
-                <p>Your guess stays hidden until the verdict.</p>
-              </div>
-              <div className="choice-row flex flex-wrap gap-2.5 group-[.verdict-chat]/room:mb-3.5">
-                {(['A', 'B'] as Label[]).map((label) => (
-                  <ChoiceButton
-                    key={label}
-                    tone={label === 'A' ? 'a' : 'b'}
-                    aria-pressed={room.vote === label}
-                    disabled={!connected || room.phase === 'verdict'}
-                    onClick={() => send({ type: 'vote', choice: label })}
-                  >
-                    {label}
-                    {room.vote === label ? ' ✓' : ''}
-                  </ChoiceButton>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </section>
       ) : null}
       {done ? (
@@ -1087,11 +1026,10 @@ function Room({
           <Button variant="primary" onClick={home}>
             Back to lobby ↗
           </Button>
-          <span className="muted">This match is saved. Share its link to replay.</span>
         </div>
       ) : (
         <p className="public-note my-5.5 text-center text-[11px] leading-[1.6] text-[#76898f] group-[.active-chat]/room:mt-0 group-[.active-chat]/room:mb-2.5 group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:text-[11px] max-[640px]:text-[10px]">
-          {room.role !== 'spectator' ? 'Refreshing keeps your seat.' : ''}
+          Refreshing keeps your seat.
         </p>
       )}
     </div>

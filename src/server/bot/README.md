@@ -16,7 +16,7 @@ The engine controls opening replies, its 400 ms decision loop, draft planning, s
 
 Drafts use a 120 ms debounce in opening and live chat and clear immediately on submission. Names are collected at entry. The judge name is public; the human name is private context. Browser timezone, weekday, time and device hints are refreshed on entry/reconnect, with lowercase mobile booleans.
 
-Drafts and style cards are transient and sent to OpenRouter. They are not retained in application logs, database snapshots or public views. Verbose worker logs are suppressed because they include private text. Socket refresh preserves the bot; closing chat kills the worker and cancels pending HTTP calls so late responses cannot be delivered.
+Drafts and style cards are transient and sent to OpenRouter. They are not retained in application logs, database records or public views. Verbose worker logs are suppressed because they include private text. Socket refresh preserves the bot; closing chat kills the worker and cancels pending HTTP calls so late responses cannot be delivered.
 
 Message-size, human-action timeout and daily-token limits apply at the application boundary. Budget exhaustion or credential failure ends a match as a technical failure. Transient generation failures use the engine's retry/fallback behavior.
 

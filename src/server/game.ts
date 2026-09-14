@@ -10,14 +10,7 @@ import {
   type Role,
   type RoomView,
 } from '../shared/protocol';
-import {
-  AIError,
-  PROMPT_VERSION,
-  SYSTEM_PROMPT,
-  type AI,
-  type BotSession,
-  type BotState,
-} from './ai';
+import { AIError, PROMPT_VERSION, type AI, type BotSession, type BotState } from './ai';
 import { Store } from './store';
 
 export interface Peer {
@@ -28,17 +21,8 @@ export interface Peer {
   queue?: Role;
 }
 
-type Round = {
-  question: string;
-  askedAt: number;
-  human: string | null;
-  ai: string | null;
-  revealedAt: number | null;
-};
-
 export type Match = {
   names?: { judge?: string; player?: string };
-  guessTarget?: 'ai';
   id: string;
   phase: Phase;
   createdAt: number;
@@ -54,14 +38,9 @@ export type Match = {
   openingHuman: string | null;
   humanMessageCount?: number;
   aiRequests: number;
-  rounds?: Round[]; // Historical five-round replays only.
-  votes: Record<string, Label>;
   choice: Label | null;
   reason: string;
   message: string | null;
-  model: string;
-  promptVersion: string;
-  systemPrompt: string;
 };
 
 export class ActionError extends Error {}
@@ -95,7 +74,7 @@ export class Game {
     // Seats belong to the authenticated browser session, not a transient socket.
 
     const match = [...this.rooms.values()].find(
-      (m) => !ended(m.phase) && this.role(m, peer) !== 'spectator',
+      (m) => !ended(m.phase) && this.role(m, peer) !== null,
     );
 
     if (match) {
@@ -106,46 +85,14 @@ export class Game {
     await this.lobby(peer);
   }
 
-  role(m: Match, p: Peer): Role | 'spectator' {
-    return m.humanSession === p.session
-      ? 'human'
-      : m.judgeSession === p.session
-        ? 'judge'
-        : 'spectator';
+  role(m: Match, p: Peer): Role | null {
+    return m.humanSession === p.session ? 'human' : m.judgeSession === p.session ? 'judge' : null;
   }
 
-  count(m: Match) {
-    return new Set(
-      [...this.peers.values()]
-        .filter((p) => p.roomId === m.id && this.role(m, p) === 'spectator')
-        .map((p) => p.session),
-    ).size;
-  }
+  view(m: Match, p: Peer): RoomView {
+    const role = this.role(m, p);
 
-  view(m: Match, p?: Peer): RoomView {
-    const role = p ? this.role(m, p) : 'spectator';
-    // Preserve old replays without exposing answers that were never revealed.
-    const messages =
-      m.messages ??
-      (m.rounds ?? []).flatMap((r, i) => [
-        { id: `legacy-${i}-judge`, sender: 'judge' as const, text: r.question, sentAt: r.askedAt },
-        ...(r.revealedAt === null
-          ? []
-          : [
-              {
-                id: `legacy-${i}-A`,
-                sender: 'A' as const,
-                text: m.humanLabel === 'A' ? r.human! : r.ai!,
-                sentAt: r.revealedAt,
-              },
-              {
-                id: `legacy-${i}-B`,
-                sender: 'B' as const,
-                text: m.humanLabel === 'B' ? r.human! : r.ai!,
-                sentAt: r.revealedAt,
-              },
-            ]),
-      ]);
+    if (!role) throw new ActionError('Only participants can access this match.');
 
     return {
       id: m.id,
@@ -159,25 +106,17 @@ export class Game {
       judgeName: m.names?.judge ?? '',
       ownName:
         role === 'human' ? (m.names?.player ?? '') : role === 'judge' ? (m.names?.judge ?? '') : '',
-      messages: messages.map(({ id, sender, text, sentAt }) => ({ id, sender, text, sentAt })),
+      messages: m.messages.map(({ id, sender, text, sentAt }) => ({ id, sender, text, sentAt })),
       startedAt: m.startedAt ?? null,
-      ...(role !== 'spectator' && m.phase === 'waiting' ? { inviteToken: m.inviteToken } : {}),
+      ...(role !== null && m.phase === 'waiting' ? { inviteToken: m.inviteToken } : {}),
       openRole: m.phase === 'waiting' ? (m.humanPeer ? 'judge' : 'human') : null,
-      spectatorCount: this.count(m),
-      vote: p ? (m.votes[p.session] ?? null) : null,
       result:
         m.phase === 'complete'
           ? {
               humanLabel: m.humanLabel,
               choice: m.choice!,
               reason: m.reason,
-              guessTarget: m.guessTarget ?? 'human',
-              humanWon:
-                m.guessTarget === 'ai' ? m.choice !== m.humanLabel : m.choice === m.humanLabel,
-              votes: {
-                A: Object.values(m.votes).filter((v) => v === 'A').length,
-                B: Object.values(m.votes).filter((v) => v === 'B').length,
-              },
+              humanWon: m.choice !== m.humanLabel,
             }
           : null,
       message: m.message,
@@ -197,30 +136,21 @@ export class Game {
     const availability = unavailable
       ? { ...capacity, available: false, message: unavailable }
       : capacity;
-    const rooms = [...this.rooms.values()]
-      .filter((m) => !ended(m.phase) && m.phase !== 'waiting')
-      .map((m) => ({
-        id: m.id,
-        phase: m.phase as 'ready' | 'opening' | 'opening_ai' | 'chat' | 'verdict',
-        deadline: m.deadline,
-        spectators: this.count(m),
-        createdAt: m.createdAt,
-      }));
 
     for (const p of peer ? [peer] : this.peers.values())
       p.send({
         type: 'lobby',
-        data: { rooms, availability, score, queued: p.queue ?? null },
+        data: { availability, score, queued: p.queue ?? null },
       });
   }
 
   broadcast(m: Match) {
     for (const p of this.peers.values())
-      if (p.roomId === m.id) p.send({ type: 'room', data: this.view(m, p) });
+      if (p.roomId === m.id && this.role(m, p)) p.send({ type: 'room', data: this.view(m, p) });
   }
 
   async persist(m: Match) {
-    await this.store.save(m.id, m);
+    if (m.phase === 'complete') await this.store.saveOutcome(m.id, m.choice === m.humanLabel);
 
     if (ended(m.phase)) this.score = undefined;
 
@@ -230,7 +160,7 @@ export class Game {
 
   activeSession(p: Peer) {
     return (
-      [...this.rooms.values()].some((m) => !ended(m.phase) && this.role(m, p) !== 'spectator') ||
+      [...this.rooms.values()].some((m) => !ended(m.phase) && this.role(m, p) !== null) ||
       [...this.peers.values()].some(
         (other) =>
           other.id !== p.id &&
@@ -239,7 +169,7 @@ export class Game {
             (other.roomId &&
               this.rooms.has(other.roomId) &&
               !ended(this.rooms.get(other.roomId)!.phase) &&
-              this.role(this.rooms.get(other.roomId)!, other) !== 'spectator')),
+              this.role(this.rooms.get(other.roomId)!, other) !== null)),
       )
     );
   }
@@ -265,7 +195,6 @@ export class Game {
     const m: Match = {
       id,
       phase: 'waiting',
-      guessTarget: 'ai',
       createdAt: this.now(),
       deadline: this.now() + LIMITS.actionMs,
       humanLabel: Math.random() < 0.5 ? 'A' : 'B',
@@ -274,13 +203,9 @@ export class Game {
       openingHuman: null,
       humanMessageCount: 0,
       aiRequests: 0,
-      votes: {},
       choice: null,
       reason: '',
       message: null,
-      model: this.ai.model,
-      promptVersion: PROMPT_VERSION,
-      systemPrompt: SYSTEM_PROMPT,
     };
 
     this.rooms.set(id, m);
@@ -321,11 +246,7 @@ export class Game {
       await this.expire(m);
 
     if (['queue', 'create', 'join'].includes(c.type)) {
-      if (
-        p.queue ||
-        (m && !ended(m.phase) && this.role(m, p) !== 'spectator') ||
-        this.activeSession(p)
-      )
+      if (p.queue || (m && !ended(m.phase) && this.role(m, p) !== null) || this.activeSession(p))
         throw new ActionError('You already have an active seat or are finding a match.');
 
       await this.available();
@@ -384,40 +305,18 @@ export class Game {
 
         return;
       }
-      case 'home':
-      case 'watch': {
-        if (
-          m &&
-          !ended(m.phase) &&
-          this.role(m, p) !== 'spectator' &&
-          !(c.type === 'watch' && c.id === m.id)
-        )
+      case 'home': {
+        if (m && !ended(m.phase) && this.role(m, p))
           throw new ActionError('Leave your match before opening another page.');
 
         p.queue = undefined;
-
-        if (c.type === 'home') {
-          p.roomId = undefined;
-          await this.lobby(p);
-
-          return;
-        }
-
-        let target = this.rooms.get(c.id);
-
-        if (!target) target = (await this.store.load<Match>(c.id)) ?? undefined;
-
-        if (!target) throw new ActionError('This match could not be found.');
-
-        p.roomId = target.id;
-        p.send({ type: 'room', data: this.view(target, p) });
-
-        if (this.rooms.has(target.id)) this.broadcast(target);
+        p.roomId = undefined;
+        await this.lobby(p);
 
         return;
       }
       case 'leave':
-        if (m && !ended(m.phase) && this.role(m, p) !== 'spectator')
+        if (m && !ended(m.phase) && this.role(m, p) !== null)
           await this.finish(m, 'abandoned', 'A player left. This match was not counted.');
 
         p.queue = undefined;
@@ -431,7 +330,7 @@ export class Game {
       if (
         !m ||
         !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase) ||
-        this.role(m, p) === 'spectator'
+        this.role(m, p) === null
       )
         throw new ActionError('Only seated players can set their context.');
 
@@ -479,7 +378,7 @@ export class Game {
       if (!(m.names?.judge && m.names?.player))
         throw new ActionError('Waiting for both players to enter their names.');
 
-      if (role === 'spectator' || !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase))
+      if (role === null || !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase))
         throw new ActionError('Chat is not accepting messages.');
 
       if (m.phase === 'ready' && role !== 'judge')
@@ -545,17 +444,6 @@ export class Game {
       m.choice = c.choice;
       m.reason = c.reason.trim();
       await this.finish(m, 'complete', null);
-    } else if (c.type === 'vote') {
-      if (
-        role !== 'spectator' ||
-        m.humanSession === p.session ||
-        m.judgeSession === p.session ||
-        !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase)
-      )
-        throw new ActionError('Only spectators can submit an audience guess.');
-
-      m.votes[p.session] = c.choice;
-      await this.persist(m);
     }
   }
 

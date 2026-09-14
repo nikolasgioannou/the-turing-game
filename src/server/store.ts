@@ -15,7 +15,7 @@ export class Store {
 
   async init() {
     for (const sql of [
-      `CREATE TABLE IF NOT EXISTS matches(id text PRIMARY KEY, payload jsonb NOT NULL, updated_at timestamptz DEFAULT now())`,
+      `CREATE TABLE IF NOT EXISTS match_outcomes(id text PRIMARY KEY, ai_won boolean NOT NULL)`,
       `CREATE TABLE IF NOT EXISTS daily_usage(day text PRIMARY KEY, input_used bigint NOT NULL DEFAULT 0, output_used bigint NOT NULL DEFAULT 0, input_reserved bigint NOT NULL DEFAULT 0, output_reserved bigint NOT NULL DEFAULT 0)`,
       `CREATE TABLE IF NOT EXISTS reservations(id text PRIMARY KEY, day text NOT NULL REFERENCES daily_usage(day), input_left bigint NOT NULL, output_left bigint NOT NULL)`,
       `CREATE TABLE IF NOT EXISTS ai_requests(id text PRIMARY KEY, match_id text NOT NULL, day text NOT NULL, input_tokens bigint NOT NULL, output_tokens bigint NOT NULL, metadata jsonb NOT NULL, created_at timestamptz DEFAULT now())`,
@@ -25,25 +25,14 @@ export class Store {
       await this.db.query(sql);
   }
 
-  async save(id: string, payload: unknown) {
+  async saveOutcome(id: string, aiWon: boolean) {
     await this.db.query(
-      'INSERT INTO matches(id,payload) VALUES($1,$2::jsonb) ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload, updated_at=now()',
-      [id, JSON.stringify(payload)],
-    );
-  }
-
-  async load<T>(id: string): Promise<T | null> {
-    return (
-      (await this.db.query<{ payload: T }>('SELECT payload FROM matches WHERE id=$1', [id]))[0]
-        ?.payload ?? null
+      'INSERT INTO match_outcomes(id,ai_won) VALUES($1,$2) ON CONFLICT(id) DO NOTHING',
+      [id, aiWon],
     );
   }
 
   async recover() {
-    // No reconnection: durable unfinished snapshots become failures after process restart.
-    await this.db.query(
-      `UPDATE matches SET payload=payload || '{"phase":"failed","deadline":null,"message":"The server restarted. This match was not counted."}'::jsonb WHERE payload->>'phase' NOT IN ('complete','abandoned','failed')`,
-    );
     // In-flight requests were pre-charged; only unused reservations are released.
 
     await this.db.transaction(async (tx) => {
@@ -77,26 +66,15 @@ export class Store {
 
     return {
       available,
-      message: available
-        ? null
-        : 'The daily AI capacity has been reached. You can still watch games and browse replays.',
+      message: available ? null : 'The daily AI capacity has been reached. Try again tomorrow.',
       resetsAt,
     };
   }
 
   async score() {
-    // Count persisted verdicts, never unfinished/failed matches or audience guesses.
-    // Old matches asked for the human, so preserve their original scoring direction.
-    const [row] = await this.db.query<{ completed: string; ai_wins: string }>(`
-      SELECT count(*) AS completed,
-        count(*) FILTER (WHERE CASE WHEN payload->>'guessTarget' = 'ai'
-          THEN payload->>'choice' = payload->>'humanLabel'
-          ELSE payload->>'choice' <> payload->>'humanLabel' END) AS ai_wins
-      FROM matches
-      WHERE payload->>'phase' = 'complete'
-        AND payload->>'choice' IN ('A', 'B')
-        AND payload->>'humanLabel' IN ('A', 'B')
-    `);
+    const [row] = await this.db.query<{ completed: string; ai_wins: string }>(
+      'SELECT count(*) AS completed, count(*) FILTER (WHERE ai_won) AS ai_wins FROM match_outcomes',
+    );
 
     return { completed: Number(row?.completed ?? 0), aiWins: Number(row?.ai_wins ?? 0) };
   }

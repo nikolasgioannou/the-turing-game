@@ -328,3 +328,11 @@ Validation: 187 unit/integration checks pass, including 24 style/prompt fixtures
 Development now runs Vite on localhost:5173 with HMR and a watched Bun API on loopback port 3000. The supervisor stops both children on interruption or either child exiting. Vite proxies API and WebSocket traffic; development no longer discovers or permits LAN interface origins. Production keeps its container listener and configured origin. Local development uses PGlite in data/local, independent of production database settings. Removed the custom development origin/port overrides and Wi-Fi setup instructions; the clipboard permission fallback remains useful locally.
 
 Validation: 187 tests, typecheck and production build pass. Verified the proxied session/API and WebSocket lobby, LAN-origin rejection, loopback listeners, a real Chrome HMR update, server watch restarts, and supervisor shutdown. Both development servers were stopped after verification.
+
+## Participant-only matches
+
+Removed live spectating, audience guesses/counts, room listings, public match endpoints, replay links/loading, and historical replay/scoring branches. Only authenticated participants receive room views. Refresh reconnects an active seat through its session rather than a shareable match URL. The current result remains visible until returning to the lobby.
+
+New persistence stores only match IDs and win/loss outcomes for the homepage aggregate, alongside provider usage accounting. Messages, names, drafts and judge reasoning are not saved. The application no longer reads or writes the old matches table. After explicit approval, deleted the retired matches table from the local data/local database. Outcome and provider-usage tables were retained.
+
+Validation: 189 unit/integration checks, typecheck, build and formatting checks pass. All 18 real-browser journeys pass, including a complete timed match, refresh/reconnect, early verdict, participant results and 404 responses from retired public match routes. The local stack was restarted after the database cleanup.
