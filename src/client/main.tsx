@@ -213,7 +213,7 @@ function App() {
       ) : null}
       <main className="pt-6 max-[640px]:pt-4 [.app-shell:has(.active-chat)_&]:min-h-0 [.app-shell:has(.active-chat)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex [.app-shell:has(.arcade-lobby)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex-col [.app-shell:has(.arcade-lobby)_&]:justify-center [.app-shell:has(.arcade-lobby)_&]:py-6">
         {room && !waitingInvite ? (
-          <Room room={room} send={send} home={home} connected={connected} />
+          <Room key={room.id} room={room} send={send} home={home} connected={connected} />
         ) : (
           <>
             <section className="arcade-lobby">
@@ -554,22 +554,9 @@ function Composer({
 
   draftCallback.current = onDraft;
 
-  const sharesDraft = !!onDraft;
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useEffect(() => {
-    if (!sharesDraft) return;
-
-    const timer = setTimeout(() => draftCallback.current?.(shorten(value, limit)), 120);
-
-    return () => clearTimeout(timer);
-  }, [sharesDraft, value, limit]);
-
-  useEffect(
-    () => () => {
-      draftCallback.current?.('');
-    },
-    [],
-  );
+  useEffect(() => () => clearTimeout(draftTimer.current), []);
 
   useEffect(() => {
     input.current?.focus({ preventScroll: true });
@@ -587,6 +574,8 @@ function Composer({
         if (!sendBlocked && value.trim() && count <= limit) {
           onSubmit(value);
           setValue('');
+          clearTimeout(draftTimer.current);
+          draftCallback.current?.('');
         }
       }}
     >
@@ -596,7 +585,16 @@ function Composer({
         ref={input}
         id="message"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          clearTimeout(draftTimer.current);
+
+          if (draftCallback.current)
+            draftTimer.current = setTimeout(
+              () => draftCallback.current?.(shorten(input.current?.value ?? '', limit)),
+              120,
+            );
+        }}
         placeholder={label}
         rows={2}
         onKeyDown={(e) => {
@@ -654,6 +652,29 @@ function Room({
   const done = ended(room.phase),
     isJudge = room.role === 'judge',
     isHuman = room.role === 'human';
+  const [name, setName] = useState(() => {
+    try {
+      return localStorage.getItem('tg_name') ?? '';
+    } catch {
+      return '';
+    }
+  });
+  const needsName = (isJudge || isHuman) && !done && !room.ownName;
+  const contextSent = useRef(false);
+
+  useEffect(() => {
+    if (!connected) {
+      contextSent.current = false;
+
+      return;
+    }
+
+    if (!room.ownName || contextSent.current || done || (!isJudge && !isHuman)) return;
+
+    contextSent.current = true;
+    send({ type: 'context', name: room.ownName, ...(isHuman ? { hints: deviceHints() } : {}) });
+  }, [connected, room.ownName, done, isJudge, isHuman]);
+
   const copy = async (invite = false) => {
     try {
       await navigator.clipboard.writeText(
@@ -686,33 +707,36 @@ function Room({
 
   const canSend =
     connected &&
+    room.contextReady !== false &&
     !guessing &&
     (room.phase === 'chat' ||
-      (isJudge && room.phase === 'ready') ||
-      (isHuman && room.phase === 'opening'));
+      (isJudge && ['ready', 'opening', 'opening_ai'].includes(room.phase)) ||
+      (isHuman && ['opening', 'opening_ai'].includes(room.phase)));
   const status = !connected
     ? 'Reconnecting — your draft stays here.'
-    : room.phase === 'ready'
-      ? isJudge
-        ? 'Ask a question to start.'
-        : 'Waiting for the judge to ask a question.'
-      : room.phase === 'opening'
-        ? isHuman
-          ? 'Your turn — answer the opening question.'
-          : 'Waiting for both opening replies.'
-        : room.phase === 'opening_ai'
-          ? 'Waiting for both opening replies. You can draft your next message.'
-          : room.phase === 'verdict'
-            ? isJudge
-              ? 'Choose who is the AI to finish the match.'
-              : 'Waiting for the judge to choose.'
-            : guessing
-              ? 'Choose who is the AI, or go back to chat.'
-              : room.phase === 'chat'
-                ? isJudge
-                  ? 'Ask questions or make a guess anytime.'
-                  : 'Chat with the group. Avoid being mistaken for AI.'
-                : 'Waiting for your opponent.';
+    : room.contextReady === false
+      ? 'Waiting for both players to enter their names.'
+      : room.phase === 'ready'
+        ? isJudge
+          ? 'Ask a question to start.'
+          : 'Waiting for the judge to ask a question.'
+        : room.phase === 'opening'
+          ? isHuman
+            ? 'Your turn — answer the opening question.'
+            : 'You can keep asking while the opening replies are prepared.'
+          : room.phase === 'opening_ai'
+            ? 'Opening replies are being prepared. You can keep chatting.'
+            : room.phase === 'verdict'
+              ? isJudge
+                ? 'Choose who is the AI to finish the match.'
+                : 'Waiting for the judge to choose.'
+              : guessing
+                ? 'Choose who is the AI, or go back to chat.'
+                : room.phase === 'chat'
+                  ? isJudge
+                    ? 'Ask questions or make a guess anytime.'
+                    : 'Chat with the group. Avoid being mistaken for AI.'
+                  : 'Waiting for your opponent.';
 
   return (
     <div
@@ -724,6 +748,52 @@ function Room({
         (room.phase === 'verdict' || guessing ? ' verdict-chat' : '')
       }
     >
+      {needsName ? (
+        <Dialog label="Your first name" onClose={home}>
+          <h2 className="mb-4 font-arcade text-lg text-ink">{isJudge ? 'Judge' : 'Player'}</h2>
+          <p className="mb-5 text-sm text-muted">
+            {isJudge
+              ? 'First name. The players will talk to you like a person.'
+              : 'First name. The judge sees what you type, not this.'}
+          </p>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+
+              if (!name.trim()) return;
+
+              try {
+                localStorage.setItem('tg_name', name.trim());
+              } catch {}
+
+              contextSent.current = true;
+
+              send({
+                type: 'context',
+                name: name.trim(),
+                ...(isHuman ? { hints: deviceHints() } : {}),
+              });
+            }}
+            className="flex flex-col gap-4"
+          >
+            <label htmlFor="first-name" className="text-sm">
+              First name
+            </label>
+            <Input
+              id="first-name"
+              autoComplete="given-name"
+              maxLength={24}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className="p-3"
+              required
+            />
+            <Button type="submit" disabled={!connected || !name.trim()}>
+              Enter
+            </Button>
+          </form>
+        </Dialog>
+      ) : null}
       {done ? (
         <RoomTitle>
           <div>
@@ -889,6 +959,7 @@ function Room({
           aria-label="Chat controls"
         >
           <p className="mb-2 text-xs leading-normal text-muted" role="status">
+            {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
             {status}
           </p>
           {isJudge || isHuman ? (
@@ -901,8 +972,8 @@ function Room({
                 send({ type: 'message', text });
               }}
               onDraft={
-                isHuman && ['ready', 'opening', 'opening_ai', 'chat'].includes(room.phase)
-                  ? (text) => send({ type: 'draft', text, hints: deviceHints() })
+                isHuman && ['opening', 'opening_ai', 'chat'].includes(room.phase)
+                  ? (text) => send({ type: 'draft', text })
                   : undefined
               }
               sendBlocked={!canSend}

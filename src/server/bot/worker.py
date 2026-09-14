@@ -4,6 +4,7 @@ import json
 import sys
 from transport import emit, pending
 from reference import Game
+import re
 
 # Upstream diagnostics contain drafts/output. Never retain those logs.
 import reference
@@ -38,8 +39,12 @@ async def main():
             await bot.on_message(command["role"], command["text"])
         elif kind == "draft" and bot:
             await bot.on_draft(command["text"])
-        elif kind == "hints" and bot:
-            bot.hints = command["hints"]
+        elif kind == "context" and bot:
+            name = re.sub(r"[^\w \-'.]", "", command["name"])[:24].strip()
+            if name:
+                bot.names[command["role"]] = name
+            if command["role"] == "player" and "hints" in command:
+                bot.hints = command["hints"]
         elif kind == "stop":
             break
     for task in asyncio.all_tasks():

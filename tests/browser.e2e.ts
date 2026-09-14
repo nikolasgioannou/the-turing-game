@@ -12,6 +12,12 @@ async function participants(browser: Browser) {
   await h.getByRole('button', { name: /Play as human/ }).click();
   await j.getByRole('button', { name: 'Start game', exact: true }).click();
   await j.getByRole('button', { name: /Play as judge/ }).click();
+  await h.getByLabel('First name', { exact: true }).waitFor();
+  await h.screenshot({ path: 'work/name-entry-desktop.png' });
+  await h.getByLabel('First name', { exact: true }).fill('Nik');
+  await h.getByRole('button', { name: 'Enter', exact: true }).click();
+  await j.getByLabel('First name', { exact: true }).fill('Marc');
+  await j.getByRole('button', { name: 'Enter', exact: true }).click();
   await expect(j.getByLabel('Message the group')).toBeVisible();
   await expect(h.getByLabel('Message the group')).toBeEnabled();
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
@@ -112,6 +118,10 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
   const invite = await h.getByLabel('Invitation link').inputValue();
 
   await j.goto(invite);
+  await h.getByLabel('First name', { exact: true }).fill('Nik');
+  await h.getByRole('button', { name: 'Enter', exact: true }).click();
+  await j.getByLabel('First name', { exact: true }).fill('Marc');
+  await j.getByRole('button', { name: 'Enter', exact: true }).click();
   await expect(j.getByLabel('Message the group')).toBeVisible();
   await expect(h.getByLabel('Message the group')).toBeEnabled();
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
@@ -397,4 +407,63 @@ test('home page shows creator links and a live score on desktop and mobile', asy
 
     await page.screenshot({ path: `work/home-details-${viewport.width}.png`, fullPage: true });
   }
+});
+
+test('latest upstream names, ongoing opening and independent live reply', async ({ browser }) => {
+  test.setTimeout(120000);
+
+  const { h, j, humanContext, judgeContext } = await participants(browser);
+
+  try {
+    await j.getByLabel('Message the group').fill('what food do you love');
+    await j.getByRole('button', { name: 'Send', exact: true }).click();
+    await h.getByLabel('Message the group').fill('pizza');
+    await h.getByRole('button', { name: 'Send', exact: true }).click();
+    await h.getByLabel('Message the group').fill('especially with mushrooms');
+    await h.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(j.getByRole('button', { name: 'Send', exact: true })).toBeDisabled(); // empty, not phase-blocked
+    await j.getByLabel('Message the group').fill('tell me why');
+    await expect(j.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
+    await j.getByRole('button', { name: 'Send', exact: true }).click();
+
+    await expect(j.getByRole('button', { name: 'Make a guess', exact: true })).toBeVisible({
+      timeout: 45000,
+    });
+
+    await expect(j.getByText('especially with mushrooms', { exact: true })).toBeVisible();
+
+    const rows = j.getByLabel('Group chat');
+    // Count contestant labels instead: message DOM can evolve independently of this journey.
+    const countBefore = await rows.getByText(/^Contestant [AB]$/).count();
+
+    await j.getByLabel('Message the group').fill('what do you do for fun');
+    await j.getByRole('button', { name: 'Send', exact: true }).click();
+
+    await expect
+      .poll(() => rows.getByText(/^Contestant [AB]$/).count(), { timeout: 45000 })
+      .toBeGreaterThan(countBefore);
+
+    await expect(h.getByLabel('Message the group')).toHaveValue('');
+    await h.reload();
+    await expect(h.getByText('Judge: Marc.', { exact: false })).toBeVisible();
+    await expect(h.getByLabel('Your first name')).toHaveCount(0);
+    await j.getByRole('button', { name: 'Make a guess', exact: true }).click();
+    await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
+    await j.getByRole('button', { name: 'Submit verdict & reveal', exact: true }).click();
+    await expect(j.getByRole('heading', { name: /Contestant .* wins!/ })).toBeVisible();
+  } finally {
+    await humanContext.close();
+    await judgeContext.close();
+  }
+});
+
+test('name entry keeps the mobile composer usable', async ({ browser }) => {
+  const { h, j, humanContext, judgeContext } = await participants(browser);
+
+  await h.setViewportSize({ width: 390, height: 844 });
+  await expect(h.getByLabel('Message the group')).toBeEnabled();
+  expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await h.screenshot({ path: 'work/name-entry-mobile.png' });
+  await humanContext.close();
+  await judgeContext.close();
 });

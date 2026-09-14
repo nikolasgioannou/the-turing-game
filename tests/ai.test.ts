@@ -4,6 +4,7 @@ import {
   MODEL,
   openRouterBody,
   requestCompletion,
+  retryDelay,
   type BotHooks,
 } from '../src/server/ai';
 
@@ -173,6 +174,15 @@ test('real Python worker bridges opening and live replies, then cancels on closu
   };
 
   try {
+    bot.send({ type: 'context', role: 'judge', name: 'Marc' });
+
+    bot.send({
+      type: 'context',
+      role: 'player',
+      name: 'Nik',
+      hints: { mobile: 'true', platform: 'iPhone', tz: 'America/New_York' },
+    });
+
     bot.send({ type: 'message', role: 'judge', text: 'what is love' });
     bot.send({ type: 'draft', text: 'i guess love is just caring for ppl' });
     bot.send({ type: 'message', role: 'player', text: 'i guess love is just caring for ppl' });
@@ -185,6 +195,15 @@ test('real Python worker bridges opening and live replies, then cancels on closu
     await until(() => states.some((s) => s.messages.filter((m) => m.from === 'B').length >= 2));
     expect(calls.every((c) => c.model === MODEL && [400, 500].includes(c.max_tokens))).toBe(true);
     expect(calls.some((c) => c.max_tokens === 500)).toBe(true);
+    expect(calls.some((c) => JSON.stringify(c).includes('on a phone (iPhone)'))).toBe(true);
+
+    expect(
+      calls.some(
+        (c) =>
+          JSON.stringify(c).includes('human’s first name is Nik') ||
+          JSON.stringify(c).includes("human's first name is Nik"),
+      ),
+    ).toBe(true);
 
     expect(
       calls
@@ -221,4 +240,31 @@ test('canceling an in-flight provider call settles its conservative reservation'
   await expect(result).rejects.toThrow('aborted');
   expect(reservations).toHaveLength(1);
   expect(settlements).toMatchObject([{ usage: null }]);
+});
+
+test('transport honors SDK retry hints and rejects excessive retry-after waits', () => {
+  expect(retryDelay(new Headers({ 'retry-after-ms': '1250' }))).toBe(1250);
+  expect(retryDelay(new Headers({ 'retry-after': '2' }))).toBe(2000);
+
+  const delay = retryDelay(new Headers({ 'retry-after': '120' }));
+
+  expect(delay).toBeGreaterThanOrEqual(375);
+  expect(delay).toBeLessThanOrEqual(500);
+});
+
+test('successful accounting does not hold back a model response', async () => {
+  const { hooks } = harness();
+  let release!: () => void;
+
+  hooks.settle = () =>
+    new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+  const fetcher = (async () =>
+    Response.json({ choices: [{ message: { content: 'ready' } }] })) as unknown as typeof fetch;
+  const result = await requestCompletion(params, 6, new AbortController().signal, hooks, fetcher);
+
+  expect(result).toBe('ready');
+  release();
 });

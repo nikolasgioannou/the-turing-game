@@ -1,5 +1,5 @@
 # Extracted from mbaghadjian/turing-game server.py at
-# 3c09d6b9515c57837863617f874952ee2f173e7d. See README.md for adaptations.
+# a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc. See README.md for adaptations.
 import asyncio
 import difflib
 import json
@@ -46,6 +46,8 @@ HOW TO WRITE
 - You are a person texting in a group chat. No assistant voice. Never explain yourself, never be polite or helpful, never use markdown, lists, quotes, em dashes, or words like "certainly".
 - Don't copy the human's words verbatim, and don't copy their sentence skeleton either. The Judge reads your two answers side by side; if you both open with the same word or follow the same shape ("probably X, its just Y") that parallel is itself a tell. Same register, different construction, different opener.
 - Humans give half answers, ask questions back, skip things sometimes. Don't over-answer. Don't react to every single thing the other player says; respond to them only when a person would.
+- NEVER fake being human: no keyboard mash ("asdkjf"), no "phone glitched", "wifi lagging", "sorry autocorrect", "brb", "my cat walked on the keyboard", no typos-as-a-bit, no "sorry im drunk". Those are what a machine thinks a person does, and the Judge knows it. You are a person; you don't need to perform malfunctions. The only exception is mirroring a stunt the human actually did first.
+- When the Judge compliments or sides with the OTHER player ("damn thats good", "B is winning"), you are a rival: be a little salty or dismissive in this person's register ("mine was better", "ok sure", "thats a basic answer"), point at your own answer, or say nothing. Never respond with a stunt.
 - No analogies, metaphors, wordplay or quips ("A just farts and dodges", "not much else to prove") unless the human is doing that. Plain literal statements in their words. A clever line is a tell.
 - Commas: never an Oxford comma ("a, b and c", not "a, b, and c"). One comma in a message is plenty; most messages have none.
 - SHORTER THAN THE HUMAN. Every extra word is surface area for the Judge. If the human writes 12 words, you write 8. Never two sentences where one does. Never add a tag like "very human" or "peak human"; that's trying too hard. Never explain a joke.
@@ -1095,9 +1097,10 @@ Keep it under 220 words. No preamble."""
         if len(words) >= 3 and len(set(words)) <= max(1, len(words) // 3):
             traits.append("repeating the same word")
         for w in words:
-            if len(w) >= 6 and w.isalpha() and not re.search(r"(.)\1{2,}", w):
-                vowel_ratio = sum(1 for c in w if c in "aeiouy") / len(w)
-                if vowel_ratio < 0.2 or re.search(r"[^aeiouy]{5,}", w):
+            if len(w) >= 5 and w.isalpha() and not re.search(r"(.)\1{2,}", w):
+                no_vowels = not any(c in "aeiouy" for c in w)
+                real = {"strengths", "lengths", "twelfths", "rhythms", "birthplace", "catchphrase", "watchstrap", "worlds", "months", "tenths", "sixths", "eighths"}
+                if no_vowels or (re.search(r"[^aeiouy]{5,}", w) and len(w) >= 6 and w not in real):   # "jkfhskdjf", "asdkjf"; not "things"
                     traits.append("keyboard-mash / gibberish")
                     break
         if len(t) >= 4 and sum(1 for c in t if not c.isalnum() and not c.isspace()) / len(t) >= 0.35:
@@ -1348,6 +1351,15 @@ Keep it under 220 words. No preamble."""
                 if precise:
                     prompt += "\n\nThat's too precise for a person who doesn't know. No exact numbers or dates; be vague or wrong, like the human."
                     continue
+            human_stunt = bool(self.draft_is_weird()) or bool(self.weird_traits(self._human_samples()[-1])) if self._human_samples() else False
+            fake_re = re.compile(r"\b(glitch|glitched|lagging|lag\b|autocorrect|keyboard|wifi|my phone|phone died|brb|cat walked|drunk|typo)\b", re.I)
+            if not human_stunt:
+                faked = [c for c in clean if fake_re.search(c) or "keyboard-mash / gibberish" in self.weird_traits(c) or "symbol spam" in self.weird_traits(c)]
+                if faked:
+                    if attempt < 2:
+                        prompt += "\n\nNo fake malfunctions (gibberish, 'phone glitched', 'wifi lagging', 'brb'). That's a machine performing humanity. Say something a person would actually say, or send false."
+                        continue
+                    clean = [c for c in clean if c not in faked]
             if attempt < 2 and clean and any(re.fullmatch(r"\W*(just |flat |hard )?(no|nope|pass|nah|no thanks)\W*", m, re.I) for m in clean):
                 prompt += "\n\nA bare 'no'/'just no'/'pass' is a tell. Say WHY in a few blunt words, the way this person would (e.g. 'thats gross and dangerous')."
                 continue

@@ -671,3 +671,22 @@ looping, 35% volume, pause, and no horizontal overflow at 390px.
 Moved the volume range into the exported design-system Slider component. Tailwind styles provide a
 square cyan thumb, dark bordered track, focus and disabled states for WebKit and Firefox while
 retaining native keyboard behavior and input props. Music owns only volume state and width.
+
+## Latest reference behavior port
+
+Pinned a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc: updated system prompt, anti-stunt filtering and
+gibberish detection. Opening now accepts additional messages from both humans and follows worker
+publication order. Added first-name entry, private human-name context, public judge name,
+join/reconnect device hints and event-based 120 ms drafts with immediate submit clearing. Retained
+correct lowercase mobile hints. Correction to the initial audit: upstream typing snapshot fields are
+always false, so visible indicators remain off, as the owner explicitly confirmed.
+
+Transport now honors SDK retry hints/backoff and does not delay successful delivery on accounting
+settlement. Mandatory admission/request budgets and cancellation remain. OpenRouter is still a
+different transport; network/timeout behavior is not claimed to be identical to direct Anthropic.
+
+Validation: 33 Bun tests pass (including Python source-parity/worker checks), typecheck and build
+pass. A real OpenRouter browser match passed name entry, multi-message opening, an independent live
+reply with an empty human textbox, refresh and early verdict in 11.3 seconds. A separate
+non-generating desktop/mobile name-entry check passed; both screenshots were inspected. Restarted
+the idle public app on its existing ngrok URL and verified a public WebSocket lobby response.

@@ -12,7 +12,7 @@ and optional reasoning commit together before the reveal.
 ## Conversation
 
 The AI behavior is copied from mbaghadjian/turing-game at commit
-3c09d6b9515c57837863617f874952ee2f173e7d. It runs Claude Haiku 4.5 through OpenRouter. Its original
+a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc. It runs Claude Haiku 4.5 through OpenRouter. Its original
 prompts, style analyst, draft observation, randomized planning, hedges, retries, message shaping,
 accusations, occasional nudges and delivery pacing are retained. See `src/server/bot/README.md`.
 

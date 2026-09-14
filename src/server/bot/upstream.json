@@ -1,7 +1,7 @@
 {
   "repo": "https://github.com/mbaghadjian/turing-game",
-  "commit": "3c09d6b9515c57837863617f874952ee2f173e7d",
-  "systemSha256": "b813222c57e2ae9a011d792472c6cfd1eb7939cbf91c0fbd662a313049f48e47",
+  "commit": "a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc",
+  "systemSha256": "958d1a138cdf508501576ee643071ee14493f233d0fc7781a72b78b750e83bb9",
   "members": {
     "__init__": "198098871a85d170cfc22d447b40d3d275150f75f5a7a27b07effb450bd2a2db",
     "log": "4c7a4b09ea038261700a41b4eda2b8195f73a4ce2c102af147512c87e4a7f1ce",
@@ -51,14 +51,14 @@
     "people_facts": "31829097a44f19115dad3638f8e0bf60c7ebe79dc30e02b1b0ef6a8c7c4e3512",
     "accusation_evidence": "8f3b4df3df925752d4b0588934227b267f380582e44f5af2943e27419053c635",
     "_human_samples": "3e47c1681b23891957f5e1d9dc3c1618dde73649747723ccbfb990c66d4aea61",
-    "weird_traits": "d564656984fd2c4fe0cd0e057f6324c34f53fd1a1fe86b054d50493680d31dbf",
+    "weird_traits": "479fb439a1a58b9a4122e1fe750e68e9aa2349d8121c4c89e4a834bfafba7c7c",
     "frantic": "43c886a5b6435439ed52149f5f2f8da926e03ec84cad8adc94eb7738d5e9004c",
     "draft_is_weird": "e9cf004b2e4bb79603a4d681455d95911bfaed699b521f640567b62ae62d138c",
     "style_rules": "9b256e8faf80c454cf91a34e612baf27b6bbcc982ca52eae7dd6bb7c5c0d9937",
     "voice_samples": "3b55315d7f0e18dcd82713318d635a95fedea69b3b43f4c8e15fec5c5b3ddf38",
     "transcript": "389dd2060660d99611cc2814e66bca371e7bbfa3cf980fc59ce2fcc96d10519c",
     "hedged_create": "cc2032f5751da9e3426a08bff1e15cf8b48a9b1f9b572f800fe59779e7897368",
-    "generate": "808967cb1ba8006c99c679fe81838ce2729736925b2207e27163b58fd635d91e",
+    "generate": "a7449a7c55fdcf887bab24d40878070e663015f66eb7b2fc1497954ffa4faca1",
     "parse": "a62d3b5b631c4b5dac0042aaee9e14b7945d521f2e533ba6347a53dd28fa0d60"
   }
 }

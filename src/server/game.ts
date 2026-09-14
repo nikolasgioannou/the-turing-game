@@ -36,6 +36,7 @@ type Round = {
 };
 
 export type Match = {
+  names?: { judge?: string; player?: string };
   guessTarget?: 'ai';
   id: string;
   phase: Phase;
@@ -150,6 +151,10 @@ export class Game {
       role,
       ownLabel: role === 'human' ? m.humanLabel : null,
       ownOpening: role === 'human' ? (m.openingHuman ?? null) : null,
+      contextReady: !!(m.names?.judge && m.names?.player),
+      judgeName: m.names?.judge ?? '',
+      ownName:
+        role === 'human' ? (m.names?.player ?? '') : role === 'judge' ? (m.names?.judge ?? '') : '',
       messages: messages.map(({ id, sender, text, sentAt }) => ({ id, sender, text, sentAt })),
       startedAt: m.startedAt ?? null,
       ...(role !== 'spectator' && m.phase === 'waiting' ? { inviteToken: m.inviteToken } : {}),
@@ -410,15 +415,39 @@ export class Game {
         return;
     }
 
+    if (c.type === 'context') {
+      if (!m || ended(m.phase) || this.role(m, p) === 'spectator')
+        throw new ActionError('Only seated players can set their context.');
+
+      const role = this.role(m, p) === 'human' ? 'player' : 'judge';
+      const name = c.name
+        .replace(/[^\p{L}\p{N}_ \-'.]/gu, '')
+        .slice(0, 24)
+        .trim();
+
+      m.names ??= {};
+
+      if (name) m.names[role] = name;
+
+      this.bot(m)?.send({
+        type: 'context',
+        role,
+        name,
+        ...(role === 'player' && c.hints ? { hints: c.hints } : {}),
+      });
+
+      await this.persist(m);
+
+      return;
+    }
+
     if (c.type === 'draft') {
       if (!m || this.role(m, p) !== 'human')
         throw new ActionError('Only the human contestant can share a draft.');
 
-      if (!['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase)) return;
+      if (!['opening', 'opening_ai', 'chat'].includes(m.phase)) return;
 
       const bot = this.bot(m);
-
-      if (c.hints) bot?.send({ type: 'hints', hints: c.hints });
 
       bot?.send({ type: 'draft', text: c.text });
 
@@ -430,7 +459,10 @@ export class Game {
     const role = this.role(m, p);
 
     if (c.type === 'message') {
-      if (role === 'spectator' || !['ready', 'opening', 'chat'].includes(m.phase))
+      if (m.names && !(m.names.judge && m.names.player))
+        throw new ActionError('Waiting for both players to enter their names.');
+
+      if (role === 'spectator' || !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase))
         throw new ActionError('Chat is not accepting messages.');
 
       if (m.phase === 'ready' && role !== 'judge')
@@ -438,8 +470,11 @@ export class Game {
 
       this.bot(m);
 
-      if (m.phase === 'opening') {
-        if (role !== 'human') throw new ActionError('Wait for the opening replies.');
+      if (role === 'human' && ['opening', 'opening_ai'].includes(m.phase)) {
+        const sent = m.messages.filter((message) => message.sender === m.humanLabel).length;
+
+        if (sent + (m.openingHuman ? 1 : 0) >= LIMITS.messagesPerPerson)
+          throw new ActionError('You have reached the message limit for this chat.');
 
         m.openingHuman = c.text;
         m.phase = 'opening_ai';
@@ -573,32 +608,18 @@ export class Game {
       m.deadline = Math.round(state.endsAt! * 1000);
       changed = true;
     }
-    // A submitted opening may reach the worker just after its early attack.
-    // Retain it until the worker confirms publication, rather than dropping it.
+    // The worker publishes held opening messages, including multiple submissions,
+    // in its original order. Live human messages are already published by Bun.
 
-    if (state.phase === 'live' && m.openingHuman !== null) {
-      const held = state.messages.find((message) => message.from === m.humanLabel);
-
-      if (held) {
-        m.messages.push({
-          id: held.id,
-          sender: m.humanLabel,
-          text: held.text,
-          sentAt: Math.round(held.ts * 1000),
-        });
-
-        m.openingHuman = null;
-        changed = true;
-      }
-    }
+    const publishedHumans = m.messages.filter((message) => message.sender === m.humanLabel).length;
+    let seenHumans = 0;
 
     for (const message of state.messages) {
-      if (
-        message.from === 'judge' ||
-        message.from === m.humanLabel ||
-        m.messages.some((existing) => existing.id === message.id)
-      )
-        continue;
+      if (message.from === 'judge') continue;
+
+      if (message.from === m.humanLabel && seenHumans++ < publishedHumans) continue;
+
+      if (m.messages.some((existing) => existing.id === message.id)) continue;
 
       m.messages.push({
         id: message.id,
@@ -607,6 +628,11 @@ export class Game {
         sentAt: Math.round(message.ts * 1000),
       });
 
+      changed = true;
+    }
+
+    if (state.phase === 'live' && m.openingHuman !== null && seenHumans > 0) {
+      m.openingHuman = null;
       changed = true;
     }
 

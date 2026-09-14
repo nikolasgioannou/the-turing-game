@@ -138,7 +138,7 @@ test('reference can start before the human sends; subsequent human reply is publ
   expect(m.messages.at(-1)?.text).toBe('care');
 });
 
-test('drafts in opening and live chat go only to worker, including deletion and hints', async () => {
+test('drafts in opening and live chat go only to worker, including deletion', async () => {
   const { h, j, m } = await question();
   const spectator = await peer();
 
@@ -450,4 +450,72 @@ test('verdict broadcasts the updated aggregate to people on the homepage', async
   expect(lastScore()).toEqual({ completed: 1, aiWins: 1 });
   await game.tick();
   expect(lastScore()).toEqual({ completed: 1, aiWins: 1 });
+});
+
+test('opening allows both players to continue and preserves worker publication order', async () => {
+  const { h, j, m } = await question();
+
+  await game.handle(h.p, { type: 'message', text: 'first' });
+  await game.handle(j.p, { type: 'message', text: 'anything else' });
+  await game.handle(h.p, { type: 'message', text: 'second' });
+  expect(m.openingHuman).toBe('second');
+  expect(m.messages.map((x) => x.text)).toEqual(['what is love', 'anything else']);
+
+  const first = { id: 'first', from: m.humanLabel, text: 'first', ts: clock / 1000 };
+
+  await emit(m, [first], 'opening');
+  expect(m.messages.at(-1)?.text).toBe('first');
+
+  const rest: BotState['messages'] = [
+    first,
+    { id: 'second', from: m.humanLabel, text: 'second', ts: clock / 1000 },
+    { id: 'answer', from: m.humanLabel === 'A' ? 'B' : 'A', text: 'answer', ts: clock / 1000 },
+  ];
+
+  await emit(m, rest);
+  await emit(m, rest);
+
+  expect(m.messages.map((x) => x.text)).toEqual([
+    'what is love',
+    'anything else',
+    'first',
+    'second',
+    'answer',
+  ]);
+
+  expect(m.openingHuman).toBeNull();
+});
+
+test('name and device context stays role-scoped, and pre-question drafts are ignored', async () => {
+  const { h, j, m } = await pair();
+
+  await game.handle(h.p, { type: 'draft', text: 'too early' });
+  expect(sessions.has(m.id)).toBe(false);
+
+  const hints = {
+    mobile: 'true',
+    platform: 'iPhone',
+    tz: 'America/New_York',
+    day: 'Monday',
+    localTime: '1:00 PM',
+  };
+
+  await game.handle(h.p, { type: 'context', name: 'PrivateName', hints });
+  await expect(game.handle(j.p, { type: 'message', text: 'hi' })).rejects.toThrow('names');
+  await game.handle(j.p, { type: 'context', name: 'Marc', hints });
+
+  expect(sessions.get(m.id)!.commands).toEqual([
+    { type: 'context', role: 'player', name: 'PrivateName', hints },
+    { type: 'context', role: 'judge', name: 'Marc' },
+  ]);
+
+  expect(JSON.stringify(game.view(m, j.p))).not.toContain('PrivateName');
+  expect(JSON.stringify(game.view(m))).not.toContain('PrivateName');
+  expect(JSON.stringify(await store.load(m.id))).not.toContain('iPhone');
+  expect(game.view(m, h.p).judgeName).toBe('Marc');
+
+  const watcher = await peer();
+
+  await game.handle(watcher.p, { type: 'watch', id: m.id });
+  await expect(game.handle(watcher.p, { type: 'context', name: 'spoof' })).rejects.toThrow();
 });

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { Label } from '../shared/protocol';
 import type { Allowance } from './store';
 
-export const PROMPT_VERSION = 'mbaghadjian-3c09d6b';
+export const PROMPT_VERSION = 'mbaghadjian-a2bc11a';
 export const SYSTEM_PROMPT = readFileSync(new URL('./bot/system.txt', import.meta.url), 'utf8');
 export const MODEL = 'anthropic/claude-haiku-4.5';
 
@@ -18,7 +18,7 @@ export type BotState = {
 export type BotCommand =
   | { type: 'message'; role: 'judge' | 'player'; text: string }
   | { type: 'draft'; text: string }
-  | { type: 'hints'; hints: Record<string, string> };
+  | { type: 'context'; role: 'judge' | 'player'; name: string; hints?: Record<string, string> };
 
 export type Completion = {
   system: string;
@@ -61,6 +61,22 @@ export function openRouterBody(params: Completion) {
   };
 }
 
+// Anthropic SDK retry hints and backoff; OpenRouter remains the HTTP transport.
+export function retryDelay(headers: Headers, now = Date.now()) {
+  const millis = headers.get('retry-after-ms');
+  const seconds = headers.get('retry-after');
+  const requested =
+    millis !== null
+      ? Number(millis)
+      : seconds !== null
+        ? Number.isFinite(Number(seconds))
+          ? Number(seconds) * 1000
+          : Date.parse(seconds) - now
+        : NaN;
+
+  return requested > 0 && requested <= 60_000 ? requested : 500 * (1 - Math.random() * 0.25);
+}
+
 export async function requestCompletion(
   params: Completion,
   timeout: number,
@@ -76,6 +92,7 @@ export async function requestCompletion(
 
     const id = await hooks.reserve(bound);
     let status: number | undefined;
+    let responseHeaders = new Headers();
     let settled = false;
 
     try {
@@ -92,6 +109,7 @@ export async function requestCompletion(
       });
 
       status = response.status;
+      responseHeaders = response.headers;
 
       if (!response.ok) throw new AIError(`openrouter_${status}`);
 
@@ -109,12 +127,16 @@ export async function requestCompletion(
           ? { input: input!, output: output! }
           : null;
 
-      await hooks.settle(id, usage, {
-        status: 'ok',
-        model: result.model ?? MODEL,
-        provider: result.provider ?? 'openrouter',
-        requestId: result.id,
-      });
+      void hooks
+        .settle(id, usage, {
+          status: 'ok',
+          model: result.model ?? MODEL,
+          provider: result.provider ?? 'openrouter',
+          requestId: result.id,
+        })
+        .catch((error) =>
+          hooks.failed(error instanceof Error ? error : new Error('Usage settlement failed')),
+        );
 
       settled = true;
 
@@ -131,12 +153,31 @@ export async function requestCompletion(
         signal.aborted ||
         attempt ||
         settled ||
-        (status && status < 500 && ![408, 409, 429].includes(status))
+        responseHeaders.get('x-should-retry') === 'false' ||
+        (responseHeaders.get('x-should-retry') !== 'true' &&
+          status &&
+          status < 500 &&
+          ![408, 409, 429].includes(status))
       )
         throw error;
       // Match the reference Anthropic client's single automatic transport retry.
 
-      await Bun.sleep(500 * (1 - Math.random() * 0.25));
+      const delay = retryDelay(responseHeaders);
+
+      await new Promise<void>((resolve, reject) => {
+        const abort = () => {
+          clearTimeout(timer);
+          reject(signal.reason);
+        };
+        const timer = setTimeout(() => {
+          signal.removeEventListener('abort', abort);
+          resolve();
+        }, delay);
+
+        signal.addEventListener('abort', abort, { once: true });
+
+        if (signal.aborted) abort();
+      });
     }
   }
 

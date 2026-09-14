@@ -29,9 +29,10 @@ source commit and the limited adaptations at the application boundary.
 Bun phases remain waiting → ready → opening → opening_ai → chat → verdict → complete, with
 abandoned/failed exits. The bot's opening can reveal a held human reply alongside its answer, or
 enter chat first from a developed draft / 40 seconds of silence. Bun accepts the worker's chat start
-timestamp and 90-second deadline. Only the worker's new AI message IDs are appended; repeated
-snapshots cannot duplicate output. Human public messages are accepted immediately by Bun. A
-submitted opening stays private until the worker publishes it, including races with early attack.
+timestamp and 90-second deadline. Worker snapshots publish AI and held opening messages without
+duplicates. Live human and judge messages are accepted immediately by Bun. Both players may continue
+during opening; a second human submission releases the previous held one, matching upstream. The
+latest opening stays private until worker publication, including early-attack races.
 
 Chat expiry and early verdict stop the worker and abort pending HTTP calls. Late worker events
 cannot alter a closed match. Anonymous HttpOnly session cookies own seats, so reconnects/refreshes
@@ -40,7 +41,8 @@ technical failures and preserve conservative charges for in-flight requests.
 
 Browser drafts use the reference client's 120 ms debounce in opening and live states. Only the human
 contestant can submit drafts. Text is transient in the worker; public DTOs and saved matches never
-include it. The current timezone, weekday, local time and device hints are passed privately. The
+include it. Names are collected on entry; timezone, weekday, local time and device hints are passed
+privately on entry/reconnect. Human names never enter public DTOs; the judge name is public. The
 worker's original clock context handles date questions. Unsent drafts are shared with OpenRouter.
 
 ## Accounting and secrets

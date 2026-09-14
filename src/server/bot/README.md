@@ -1,14 +1,15 @@
 # Reference bot
 
 Behavior source: [mbaghadjian/turing-game](https://github.com/mbaghadjian/turing-game), `server.py`
-at **3c09d6b9515c57837863617f874952ee2f173e7d**.
+at **a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc**.
 
 The original Python brain is retained to preserve its prompts, random distributions, timing,
 regexes, similarity calculations, style analysis, normalization, retries and multi-bubble delivery.
-`reference.py` contains all 49 original non-transport methods and class constants. `system.txt` is
-an exact copy of SYSTEM for recording the prompt version in match metadata. The manifest hashes
-Python ASTs against the pinned source, ignoring formatting. Tests verify every retained member and
-the exact system prompt. Do not casually edit this file or regenerate the manifest to hide drift.
+`reference.py` contains all 49 retained non-transport methods and class constants. New upstream
+spectator-only constructor fields are omitted. `system.txt` is an exact copy of SYSTEM for recording
+the prompt version in match metadata. The manifest hashes Python ASTs against the pinned source,
+ignoring formatting. Tests verify every retained member and the exact system prompt. Do not casually
+edit this file or regenerate the manifest to hide drift.
 
 ## Integration changes
 
@@ -28,8 +29,9 @@ the exact system prompt. Do not casually edit this file or regenerate the manife
   shape expected by the original brain. Credentials and HTTPS requests remain in Bun. Python uses
   only its standard library; it runs no local inference and needs no model dependencies.
 - Drafts use the source client's 120 ms debounce, including opening drafts. Browser timezone,
-  weekday, time and device hints use the same fields. Our anonymous UI supplies no pre-game names;
-  the source accepts empty names too. No additional system prompt or calendar instruction is added.
+  weekday, time and device hints use the same fields. First names are collected at entry; only the
+  judge name is public. The human name is private context. Names and device hints are refreshed on
+  reconnect, not on each draft. No additional system prompt or calendar instruction is added.
 - Drafts and style cards remain transient in the worker and are sent to OpenRouter. They are not
   written to application traces, database snapshots or public views. Original verbose logs are
   suppressed because they include private text.
@@ -44,3 +46,15 @@ stochastic outputs and latency cannot be guaranteed. The bot's decision code is 
 Run `bun test` for source parity, deterministic brain checks, the actual Python worker with a
 controlled HTTP transport, and game/store/HTTP adapter tests. `bun run test:e2e` requires a real
 OpenRouter key and makes paid model calls.
+
+Latest revision adds anti-stunt prompt guidance, fake-malfunction response filtering and refined
+gibberish detection. Both humans may continue messaging during the opening. The worker publishes
+held messages in source order. The native composer sends drafts only after input events (120 ms) and
+clears immediately on submit. Mobile hints deliberately use lowercase booleans, correcting the
+upstream Python string-conversion mismatch. Upstream explicitly disables visible typing indicators,
+so ours remain off too.
+
+Transport honors retry-after-ms, retry-after and x-should-retry with one retry and jittered SDK
+backoff. Successful accounting is queued without holding up response delivery; reservations remain
+mandatory before dispatch. OpenRouter latency, fetch timeout semantics and the Bun/Python bridge are
+still integration differences from Anthropic's Python SDK; exact wall-clock parity is not claimed.
