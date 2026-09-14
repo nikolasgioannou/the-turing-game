@@ -1,23 +1,38 @@
 # Fly deployment and operations
 
-## Deployment gate
+## Production infrastructure
 
-The owner explicitly asked us to pause before Fly provisioning/deployment so they can supply more details. Do not create an app/database, configure paid services or deploy until that discussion occurs. The local app is independently testable. The owner will install/sign into flyctl; do not install it globally for them.
+The app is `the-turing-game` in the `the-turing-game` organization, with public origin https://the-turing-game.fly.dev and primary region `iad` (Virginia). Provisioning was approved by the owner. Deployment validation is recorded in docs/progress.md.
 
-Finalize organization, available app name, region, Managed Postgres plan and domain. The checked-in app name/origin and iad region are proposed values, not proof of a reserved app. Fly Managed Postgres Basic was documented at $38/month plus storage when checked on 2026-09-13; verify again before provisioning.
+One always-on Bun app machine connects to Fly Managed Postgres cluster `turing-production` (`dzx6qo65n8g0jpv5`) in the same region. The approved Basic plan costs $38/month plus $2.80/month for 10 GB provisioned storage, excluding application hosting and OpenRouter usage. Pricing was verified during provisioning on 2026-09-14. There is no app volume or Python runtime; OpenRouter handles all model inference.
 
-## Target topology
+Keep exactly one app machine. Deploy with `--ha=false --strategy immediate`; overlapping servers must not each recover the other's rooms. Scale-out is unsupported until room ownership/shared matchmaking is implemented. App restarts and deployments end active matches. PostgreSQL preserves outcomes and usage accounting, not conversations.
 
-One always-on Bun app machine + Fly Managed Postgres in the same region. No app volume. Fly defaults can create extra Machines: use `fly deploy --ha=false` for the first deployment and verify exactly one app machine. Keep immediate deployment strategy; overlapping servers must not each recover the other's rooms. Scale-out is explicitly unsupported until room ownership/shared matchmaking is implemented. App restarts end active matches as technical failures.
+## Manual GitHub deployment
 
-## After owner supplies deployment details
+Open the repository’s Actions tab, select **Deploy production**, click **Run workflow**, and choose `main`. Pushes do not deploy automatically. Other branches are skipped. Runs are serialized without canceling an in-progress deployment.
 
-1. Verify Fly login and organization, app name and region.
-2. Create the approved app and Managed Postgres cluster; attach its database so Fly provides `DATABASE_URL`. Use Fly's current `fly mpg --help` and official create/attach docs; never provision legacy unmanaged Fly Postgres by mistake.
-3. Set OPENROUTER_API_KEY as a Fly secret. The container runs Bun for the application and TypeScript bot worker; model inference uses OpenRouter only.
-4. Run local checks and `fly config validate`. Use a remote builder if Docker is not installed locally. No global Docker install is necessary.
-5. Deploy with one machine. Check logs and `/api/health`, confirm real PostgreSQL schema/data, and run a real three-session smoke test.
-6. Restart once when no real players are active, verify outcome persistence and usage accounting, and document the live URL.
+The workflow installs the package.json Bun version, verifies the lockfile, checks formatting/types/tests/build, then uses Fly’s remote builder and checks the public health endpoint. GitHub actions are pinned to commit hashes and flyctl is pinned to 0.4.102. The production job uses a GitHub environment named `production`.
+
+The environment secret `FLY_API_TOKEN` holds an app-scoped deployment token. It was created with Fly’s default 20-year lifetime on 2026-09-14; Fly does not document a never-expiring deployment token. Rotate it by creating a replacement deploy token and updating this environment secret. Do not use an organization-wide or personal login token.
+
+Application secrets belong in Fly: `DATABASE_URL` is provided by the managed database attachment, and `OPENROUTER_API_KEY` must be a separate production key. The workflow does not need either application credential. Never commit keys or connection strings. Local `.env.production` is ignored by Git and excluded from the Docker build context.
+
+## Direct deployment and checks
+
+From the project directory with flyctl authenticated:
+
+```sh
+bun run format:check
+bun run check
+fly config validate
+fly deploy --remote-only --ha=false --strategy immediate
+fly status
+fly checks list
+curl --fail https://the-turing-game.fly.dev/api/health
+```
+
+No local Docker installation is required. Inspect Fly logs when a health check or startup fails. After infrastructure changes, run a real two-participant game and a separate homepage session, verify an outcome, then restart when no players are active and verify the outcome and usage accounting remain intact.
 
 ## Usage model
 
@@ -36,8 +51,8 @@ bun scripts/ops.ts resume-ai
 
 Provider authentication/credit failures end the affected match as a technical failure. Transient completion failures retain the bot's retry/fallback behavior. Exhausted daily capacity blocks new admission and new requests, without counting a match result.
 
-## Limitations to keep explicit
+## Limitations
 
 - App instance is single-authority and not highly available; PostgreSQL high availability does not change that.
-- PGlite tests execute PostgreSQL semantics but do not verify Fly networking, credentials, remote connection pooling or the production container.
-- Secrets, `.env`, test browser binaries, profiles, caches and local data are excluded from git and Docker context.
+- Local PGlite tests do not verify Fly networking, credentials, remote connection pooling or the production container. Validate these on deployment.
+- Secrets, `.env` files, browser profiles, caches and local data are excluded from Git and the Docker context.

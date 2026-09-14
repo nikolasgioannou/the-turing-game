@@ -22,7 +22,7 @@ Explicit leave abandons. Disconnection/refresh retains the authenticated seat wh
 
 Reserve initial match capacity before admission. Each real API attempt, including hedges, retries and style analysis, is separately charged. Dynamically top up under the existing daily token caps; release unused capacity at closure. No legacy ten-request cap controls bot behavior. Missing usage remains conservatively charged.
 
-Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, and a TypeScript worker runs the conversation engine. OpenRouter is the sole inference route. Fly deployment is still paused pending owner details. Keep dependencies project-local and create conventional commits at completed milestones.
+Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, and a TypeScript worker runs the conversation engine. OpenRouter is the sole inference route. Fly production deployment is configured in docs/deployment.md. Keep dependencies project-local and create conventional commits at completed milestones.
 
 ## Homepage credits and live score
 

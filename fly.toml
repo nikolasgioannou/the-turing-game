@@ -1,4 +1,4 @@
-# Finalize app name, organization and region with the owner before provisioning.
+# Production app in the the-turing-game organization.
 app = "the-turing-game"
 primary_region = "iad"
 kill_signal = "SIGTERM"

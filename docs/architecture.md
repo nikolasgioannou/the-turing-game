@@ -33,7 +33,7 @@ Admission reserves 75,000 input / 5,120 output tokens. Requests atomically top u
 
 ## Deployment and UI
 
-A single Fly machine is the authority; multi-machine room ownership is not implemented. Production uses PostgreSQL and requires APP_ORIGIN. The container runs Bun only, including the conversation engine and timezone handling. Fly deployment remains separately gated.
+A single Fly machine is the authority; multi-machine room ownership is not implemented. Production uses PostgreSQL and requires APP_ORIGIN. The container runs Bun only, including the conversation engine and timezone handling. See docs/deployment.md for production infrastructure and the manual GitHub deployment workflow.
 
 Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global effects. Components own utility classes. VS Code uses Tailwind language mode. `bun run format` runs Prettier and the syntax-aware blank-line pass; bot behavior is verified by deterministic fixtures and prompt hashes. Only transcript history scrolls during active chat.
 

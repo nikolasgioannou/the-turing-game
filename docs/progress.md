@@ -344,3 +344,11 @@ Centered the countdown and moved the judge’s guess action into the match toolb
 The judge now selects the human. Selecting the human gives both judge and player a win; selecting the bot gives both a loss. Updated instructions, scoring, homepage outcome accounting and personal result explanations. A single result panel shows “You won!” or “You lost.” with the selected identity. Human and bot pixel icons replace anonymous A/B badges only after the verdict. Bot prompts and invocation mechanics are unchanged.
 
 Validation: all 189 unit/integration checks, typecheck, build and formatting pass. All 20 browser journeys pass across the full run and four focused reruns after fixing outdated winner-text and toolbar selectors. Real OpenRouter games cover both personal outcomes, identity secrecy, composer limits, refresh and early guesses. Reviewed desktop/mobile chat and revealed result screenshots.
+
+## Fly production setup
+
+Created the-turing-game app and a Basic Managed Postgres cluster in the-turing-game organization, both in iad. Attached PostgreSQL and uploaded the separately supplied production OpenRouter key. Configured the GitHub production environment with an app-scoped Fly token using the default 20-year lifetime. Credentials remain in provider secret stores and ignored local files.
+
+The Bun-only remote container build succeeded (74 MB). Initial deployment started exactly one 512 MB app machine; HTTPS and Fly health checks pass, and the production operational command connects to PostgreSQL. Local validation passes all 189 unit/integration checks, types and build.
+
+Added a workflow_dispatch-only production workflow, restricted to main, with pinned actions, serialized deployments, validation and remote build. Production browser smoke and the first GitHub workflow run are being verified next.
