@@ -27,7 +27,7 @@ selects an existing Python runtime.
 ## Bot behavior
 
 The bot is copied from [mbaghadjian/turing-game](https://github.com/mbaghadjian/turing-game) at
-`3c09d6b9515c57837863617f874952ee2f173e7d`: same prompts, Claude Haiku 4.5, response planning, style
+`a2bc11ac8e62b2a9560d2895cdd3adfe9ddc13dc`: same prompts, Claude Haiku 4.5, response planning, style
 analysis, draft handling, hedged requests, normalization and pacing. It can send before the human
 and adapt to unsent drafts. OpenRouter receives that context; application storage does not retain
 unsent drafts. See [provenance and integration details](src/server/bot/README.md).

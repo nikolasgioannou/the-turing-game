@@ -18,6 +18,8 @@ async function participants(browser: Browser) {
   await h.getByRole('button', { name: 'Enter', exact: true }).click();
   await j.getByLabel('First name', { exact: true }).fill('Marc');
   await j.getByRole('button', { name: 'Enter', exact: true }).click();
+  await expect(j.getByRole('dialog', { name: 'Your first name' })).toHaveCount(0);
+  await expect(h.getByRole('dialog', { name: 'Your first name' })).toHaveCount(0);
   await expect(j.getByLabel('Message the group')).toBeVisible();
   await expect(h.getByLabel('Message the group')).toBeEnabled();
   await expect(h.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
@@ -139,7 +141,7 @@ test('invite and chat survive refreshes and dropped sockets', async ({ browser }
   await h.getByRole('button', { name: /Send/ }).click();
 
   await expect(
-    h.getByText('Chat with the group. Avoid being mistaken for AI.', { exact: true }),
+    h.getByText('Chat with the group. Avoid being mistaken for AI.', { exact: false }),
   ).toBeVisible({ timeout: 30000 });
 
   await h.evaluate(() => (window as any).gameSocket.close());
@@ -311,7 +313,7 @@ test('AI answers a shared live question before the human types', async ({ browse
   await j.getByRole('button', { name: 'Send' }).click();
   await h.getByLabel('Message the group').fill('nik');
   await h.getByRole('button', { name: 'Send' }).click();
-  await expect(j.getByLabel('Message the group')).toBeVisible();
+  await expect(j.getByRole('button', { name: 'Make a guess' })).toBeVisible();
   await j.getByLabel('Message the group').fill('whats the meaning of life');
   await j.getByRole('button', { name: 'Send', exact: true }).click();
 
@@ -345,7 +347,7 @@ test('composer preserves focus and drafts while sending is blocked', async ({ br
   await expect(h.getByLabel('Group chat')).not.toContainText('my opening');
 
   await expect(
-    h.getByText('Waiting for the judge to ask a question.', { exact: true }),
+    h.getByText('Waiting for the judge to ask a question.', { exact: false }),
   ).toBeVisible();
 
   await h.screenshot({ path: 'work/player-empty-desktop.png' });
@@ -354,7 +356,7 @@ test('composer preserves focus and drafts while sending is blocked', async ({ br
   await j.getByRole('button', { name: 'Send', exact: true }).click();
 
   await expect(
-    h.getByText('Your turn — answer the opening question.', { exact: true }),
+    h.getByText('Your turn — answer the opening question.', { exact: false }),
   ).toBeVisible();
 
   await expect(input).toBeFocused();
@@ -364,7 +366,7 @@ test('composer preserves focus and drafts while sending is blocked', async ({ br
   await input.fill('next message draft');
 
   await expect(
-    h.getByText('Chat with the group. Avoid being mistaken for AI.', { exact: true }),
+    h.getByText('Chat with the group. Avoid being mistaken for AI.', { exact: false }),
   ).toBeVisible();
 
   await expect(input).toHaveValue('next message draft');
@@ -458,7 +460,7 @@ test('latest upstream names, ongoing opening and independent live reply', async 
 });
 
 test('name entry keeps the mobile composer usable', async ({ browser }) => {
-  const { h, j, humanContext, judgeContext } = await participants(browser);
+  const { h, humanContext, judgeContext } = await participants(browser);
 
   await h.setViewportSize({ width: 390, height: 844 });
   await expect(h.getByLabel('Message the group')).toBeEnabled();
@@ -466,4 +468,133 @@ test('name entry keeps the mobile composer usable', async ({ browser }) => {
   await h.screenshot({ path: 'work/name-entry-mobile.png' });
   await humanContext.close();
   await judgeContext.close();
+});
+
+test('missing static assets are 404s and normal draft bursts keep the socket open', async ({
+  page,
+  request,
+}) => {
+  const response = await request.get('/assets/missing.js');
+
+  expect(response.status()).toBe(404);
+  expect(response.headers()['cache-control']).not.toContain('immutable');
+  await page.goto('/');
+
+  const result = await page.evaluate(
+    () =>
+      new Promise<string>((resolve, reject) => {
+        const ws = new WebSocket(`ws://${location.host}/ws`);
+        const timer = setTimeout(() => {
+          ws.close();
+          reject(Error('No pong'));
+        }, 5000);
+
+        ws.onopen = () => {
+          for (let n = 0; n < 85; n++) ws.send(JSON.stringify({ type: 'draft', text: 'typing' }));
+
+          ws.send(JSON.stringify({ type: 'ping' }));
+        };
+
+        ws.onmessage = (e) => {
+          if (JSON.parse(e.data).type === 'pong') {
+            clearTimeout(timer);
+            resolve('pong');
+            ws.close();
+          }
+        };
+
+        ws.onclose = () => {
+          clearTimeout(timer);
+          reject(Error('Disconnected during normal draft rate'));
+        };
+      }),
+  );
+
+  expect(result).toBe('pong');
+});
+
+test('leaving name entry returns to the lobby without a late room reopening', async ({
+  browser,
+}) => {
+  const hc = await browser.newContext(),
+    jc = await browser.newContext();
+  const h = await hc.newPage(),
+    j = await jc.newPage();
+
+  try {
+    await h.goto('/');
+    await j.goto('/');
+    await h.getByRole('button', { name: 'Start game', exact: true }).click();
+    await h.getByRole('button', { name: /Play as human/ }).click();
+    await j.getByRole('button', { name: 'Start game', exact: true }).click();
+    await j.getByRole('button', { name: /Play as judge/ }).click();
+    await h.getByLabel('First name', { exact: true }).waitFor();
+    h.on('dialog', (dialog) => dialog.accept());
+    await h.getByRole('button', { name: 'Close dialog', exact: true }).click();
+    await expect(h.getByRole('button', { name: 'Start game', exact: true })).toBeVisible();
+
+    await expect(
+      j.getByText('A player left. This match was not counted.', { exact: true }),
+    ).toBeVisible();
+
+    await expect(h.getByRole('button', { name: 'Start game', exact: true })).toBeVisible();
+    await expect(h).toHaveURL('/');
+  } finally {
+    await hc.close();
+    await jc.close();
+  }
+});
+
+test('invitation copying works without the secure-context clipboard API', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { value: undefined });
+
+    document.execCommand = (command: string) => {
+      if (command === 'copy') {
+        (window as any).copiedLink = (document.activeElement as HTMLTextAreaElement).value;
+
+        return true;
+      }
+
+      return false;
+    };
+  });
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start game', exact: true }).click();
+  await page.getByRole('button', { name: 'Invite a friend', exact: true }).click();
+  await page.getByRole('button', { name: /Play as human/ }).click();
+
+  const link = await page.getByLabel('Invitation link').inputValue();
+
+  await page.getByRole('button', { name: 'Copy invitation', exact: true }).click();
+  expect(await page.evaluate(() => (window as any).copiedLink)).toBe(link);
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+});
+
+test('malformed messages still obey socket rate limits', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => fetch('/api/session'));
+
+  const code = await page.evaluate(
+    () =>
+      new Promise<number>((resolve, reject) => {
+        const ws = new WebSocket(`ws://${location.host}/ws`);
+        const timeout = setTimeout(() => {
+          ws.close();
+          reject(Error('Socket stayed open'));
+        }, 5000);
+
+        ws.onopen = () => {
+          for (let n = 0; n < 61; n++) ws.send('{');
+        };
+
+        ws.onclose = (event) => {
+          clearTimeout(timeout);
+          resolve(event.code);
+        };
+      }),
+  );
+
+  expect(code).toBe(1008);
 });

@@ -4,17 +4,16 @@ Project-owned React components built with Tailwind v4. Import from `./ui` in cli
 attributes, event handlers, accessibility attributes and React 19 refs are forwarded. Components
 contain presentation; routes own game state and server calls.
 
-| Component                              | Purpose                                                   | Variants                                                 |
-| -------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------- |
-| `Button`                               | Actions; defaults to `type="button"`                      | `primary`, `secondary`, `ghost`, `arcade`; explicit size |
-| `ButtonLink`                           | Navigation/download with button appearance                | Same variants and sizes                                  |
-| `SegmentButton`                        | Game mode toggle                                          | Selection via `aria-pressed`                             |
-| `ChoiceButton`                         | Verdict and spectator choices                             | `tone="a"` or `"b"`, `compact`; `aria-pressed`           |
-| `RoleButton`                           | Role picker                                               | `tone`, `title`, description children                    |
-| `Input`, `Textarea`                    | Shared border, surface and focus treatment                | Native field attributes; layout via `className`          |
-| `Panel`                                | Content surface                                           | `tone="accent"` or `"neutral"`                           |
-| `Dialog`                               | Native modal, Escape/backdrop close and focus restoration | Required `label`, `onClose`                              |
-| `AppShell`, `RoomTitle`, `RoomToolbar` | Responsive game layout                                    | Room state via the ancestor `group/room`                 |
+| Component               | Purpose                                                   | Variants                                                 |
+| ----------------------- | --------------------------------------------------------- | -------------------------------------------------------- |
+| `Button`                | Actions; defaults to `type="button"`                      | `primary`, `secondary`, `ghost`, `arcade`; explicit size |
+| `SegmentButton`         | Game mode toggle                                          | Selection via `aria-pressed`                             |
+| `ChoiceButton`          | Verdict and spectator choices                             | `tone="a"` or `"b"`, `compact`; `aria-pressed`           |
+| `RoleButton`            | Role picker                                               | `tone`, `title`, description children                    |
+| `Input`, `Textarea`     | Shared border, surface and focus treatment                | Native field attributes; layout via `className`          |
+| `Panel`                 | Content surface                                           | `tone="accent"` or `"neutral"`                           |
+| `Dialog`                | Native modal, Escape/backdrop close and focus restoration | Required `label`, `onClose`                              |
+| `AppShell`, `RoomTitle` | Responsive game layout                                    | Room state via the ancestor `group/room`                 |
 
 `ChatMessageItem` in `../chat-message.tsx` is the shared domain component for live and saved
 messages.

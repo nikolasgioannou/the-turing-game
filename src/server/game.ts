@@ -1,6 +1,7 @@
+import { commandSchema } from '../shared/commands';
 import {
-  commandSchema,
   ended,
+  normalizeName,
   LIMITS,
   type ChatMessage,
   type Event,
@@ -51,6 +52,7 @@ export type Match = {
   messages: ChatMessage[];
   startedAt: number | null;
   openingHuman: string | null;
+  humanMessageCount?: number;
   aiRequests: number;
   rounds?: Round[]; // Historical five-round replays only.
   votes: Record<string, Label>;
@@ -68,6 +70,8 @@ export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
   private bots = new Map<string, BotSession>();
+  private score?: ReturnType<Store['score']>;
+  private contexts = new Map<string, Record<string, string>>();
   private serial: Promise<unknown> = Promise.resolve();
 
   constructor(
@@ -183,7 +187,11 @@ export class Game {
   async lobby(peer?: Peer) {
     const [capacity, score] = await Promise.all([
       this.store.availability(this.now()),
-      this.store.score(),
+      (this.score ??= this.store.score().catch((error) => {
+        this.score = undefined;
+
+        throw error;
+      })),
     ]);
     const unavailable = this.ai.unavailable?.();
     const availability = unavailable
@@ -213,6 +221,9 @@ export class Game {
 
   async persist(m: Match) {
     await this.store.save(m.id, m);
+
+    if (ended(m.phase)) this.score = undefined;
+
     this.broadcast(m);
     await this.lobby();
   }
@@ -261,6 +272,7 @@ export class Game {
       messages: [],
       startedAt: null,
       openingHuman: null,
+      humanMessageCount: 0,
       aiRequests: 0,
       votes: {},
       choice: null,
@@ -416,20 +428,25 @@ export class Game {
     }
 
     if (c.type === 'context') {
-      if (!m || ended(m.phase) || this.role(m, p) === 'spectator')
+      if (
+        !m ||
+        !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase) ||
+        this.role(m, p) === 'spectator'
+      )
         throw new ActionError('Only seated players can set their context.');
 
       const role = this.role(m, p) === 'human' ? 'player' : 'judge';
-      const name = c.name
-        .replace(/[^\p{L}\p{N}_ \-'.]/gu, '')
-        .slice(0, 24)
-        .trim();
+      const name = normalizeName(c.name);
+
+      if (!name) throw new ActionError('Enter a first name using letters or numbers.');
 
       m.names ??= {};
 
       if (name) m.names[role] = name;
 
-      this.bot(m)?.send({
+      if (role === 'player' && c.hints) this.contexts.set(m.id, c.hints);
+
+      this.bots.get(m.id)?.send({
         type: 'context',
         role,
         name,
@@ -459,7 +476,7 @@ export class Game {
     const role = this.role(m, p);
 
     if (c.type === 'message') {
-      if (m.names && !(m.names.judge && m.names.player))
+      if (!(m.names?.judge && m.names?.player))
         throw new ActionError('Waiting for both players to enter their names.');
 
       if (role === 'spectator' || !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase))
@@ -470,15 +487,26 @@ export class Game {
 
       this.bot(m);
 
-      if (role === 'human' && ['opening', 'opening_ai'].includes(m.phase)) {
-        const sent = m.messages.filter((message) => message.sender === m.humanLabel).length;
+      if (role === 'human') {
+        const sent =
+          m.humanMessageCount ??
+          m.messages.filter((message) => message.sender === m.humanLabel).length +
+            (m.openingHuman ? 1 : 0);
 
-        if (sent + (m.openingHuman ? 1 : 0) >= LIMITS.messagesPerPerson)
+        if (sent >= LIMITS.messagesPerPerson)
           throw new ActionError('You have reached the message limit for this chat.');
 
+        m.humanMessageCount = sent + 1;
+      }
+
+      if (
+        role === 'human' &&
+        (['opening', 'opening_ai'].includes(m.phase) || m.openingHuman !== null)
+      ) {
         m.openingHuman = c.text;
-        m.phase = 'opening_ai';
-        m.deadline = this.now() + LIMITS.actionMs;
+
+        if (m.phase !== 'chat') m.phase = 'opening_ai';
+
         this.bot(m)?.send({ type: 'message', role: 'player', text: c.text });
         await this.persist(m);
 
@@ -585,6 +613,20 @@ export class Game {
 
       this.bots.set(m.id, bot);
 
+      for (const role of ['judge', 'player'] as const) {
+        const name = m.names?.[role];
+
+        if (name)
+          bot.send({
+            type: 'context',
+            role,
+            name,
+            ...(role === 'player' && this.contexts.has(m.id)
+              ? { hints: this.contexts.get(m.id)! }
+              : {}),
+          });
+      }
+
       return bot;
     } catch (error) {
       throw new ActionError(error instanceof AIError ? error.code : 'Could not start the AI.');
@@ -613,13 +655,16 @@ export class Game {
 
     const publishedHumans = m.messages.filter((message) => message.sender === m.humanLabel).length;
     let seenHumans = 0;
+    const knownIds = new Set(m.messages.map((message) => message.id));
 
     for (const message of state.messages) {
       if (message.from === 'judge') continue;
 
       if (message.from === m.humanLabel && seenHumans++ < publishedHumans) continue;
 
-      if (m.messages.some((existing) => existing.id === message.id)) continue;
+      if (knownIds.has(message.id)) continue;
+
+      knownIds.add(message.id);
 
       m.messages.push({
         id: message.id,
@@ -631,7 +676,11 @@ export class Game {
       changed = true;
     }
 
-    if (state.phase === 'live' && m.openingHuman !== null && seenHumans > 0) {
+    if (
+      state.phase === 'live' &&
+      m.openingHuman !== null &&
+      seenHumans >= (m.humanMessageCount ?? 1)
+    ) {
       m.openingHuman = null;
       changed = true;
     }
@@ -648,6 +697,7 @@ export class Game {
   private stopBot(m: Match) {
     this.bots.get(m.id)?.stop();
     this.bots.delete(m.id);
+    this.contexts.delete(m.id);
   }
 
   async finish(m: Match, phase: Phase, message: string | null) {

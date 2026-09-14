@@ -57,7 +57,13 @@ const session = (req: Request) => {
   return match?.[1];
 };
 
-type SocketData = { peer: Peer; lastPing: number; window: number; messages: number };
+type SocketData = {
+  peer: Peer;
+  lastPing: number;
+  window: number;
+  messages: number;
+  drafts: number;
+};
 
 const sockets = new Set<ServerWebSocket<SocketData>>();
 const perIp = new Map<string, { count: number; until: number }>();
@@ -108,7 +114,7 @@ const server = Bun.serve<SocketData>({
 
       if (
         server.upgrade(req, {
-          data: { peer, lastPing: Date.now(), window: Date.now(), messages: 0 },
+          data: { peer, lastPing: Date.now(), window: Date.now(), messages: 0, drafts: 0 },
         })
       )
         return;
@@ -142,7 +148,12 @@ const server = Bun.serve<SocketData>({
 
     let file = Bun.file(path);
 
-    if (!(await file.exists())) file = Bun.file(resolve(root, 'index.html'));
+    if (!(await file.exists())) {
+      if (url.pathname !== '/' && !/^\/match\/[a-f0-9-]{36}$/.test(url.pathname))
+        return json({ error: 'Not found' }, 404);
+
+      file = Bun.file(resolve(root, 'index.html'));
+    }
 
     if (!(await file.exists()))
       return new Response('Start the Vite development server or run bun run build.', {
@@ -181,12 +192,7 @@ const server = Bun.serve<SocketData>({
       if (now - ws.data.window > 10_000) {
         ws.data.window = now;
         ws.data.messages = 0;
-      }
-
-      if (++ws.data.messages > 60) {
-        ws.close(1008, 'Too many messages');
-
-        return;
+        ws.data.drafts = 0;
       }
 
       let raw: unknown;
@@ -194,7 +200,17 @@ const server = Bun.serve<SocketData>({
       try {
         raw = JSON.parse(String(data));
       } catch {
-        ws.data.peer.send({ type: 'error', message: 'Invalid message.' });
+        if (++ws.data.messages > 60) ws.close(1008, 'Too many messages');
+        else ws.data.peer.send({ type: 'error', message: 'Invalid message.' });
+
+        return;
+      }
+
+      const isDraft =
+        typeof raw === 'object' && raw !== null && 'type' in raw && raw.type === 'draft';
+
+      if (isDraft ? ++ws.data.drafts > 100 : ++ws.data.messages > 60) {
+        ws.close(1008, 'Too many messages');
 
         return;
       }

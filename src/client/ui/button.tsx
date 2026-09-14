@@ -23,11 +23,7 @@ type StyleProps = {
   className?: string;
 };
 
-export function buttonStyles({
-  variant = 'primary',
-  size = 'default',
-  className = '',
-}: StyleProps = {}) {
+function buttonStyles({ variant = 'primary', size = 'default', className = '' }: StyleProps = {}) {
   return `button rounded-none focus-visible:outline-2 focus-visible:outline-player-b focus-visible:outline-offset-5 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${sizes[size]} ${className}`;
 }
 
@@ -39,15 +35,6 @@ export function Button({
   ...props
 }: ComponentProps<'button'> & StyleProps) {
   return <button type={type} className={buttonStyles({ variant, size, className })} {...props} />;
-}
-
-export function ButtonLink({
-  variant,
-  size,
-  className,
-  ...props
-}: ComponentProps<'a'> & StyleProps) {
-  return <a className={buttonStyles({ variant, size, className })} {...props} />;
 }
 
 export function SegmentButton({

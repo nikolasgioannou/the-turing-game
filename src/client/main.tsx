@@ -1,7 +1,8 @@
+import { copyText } from './clipboard';
 import { Music } from './music';
 import { CreatorCredits, LiveScore } from './home-details';
 import { HowToPlay } from './how-to-play';
-import { AppShell, RoomTitle, RoomToolbar } from './ui/layout';
+import { AppShell, RoomTitle } from './ui/layout';
 import {
   Button,
   ChoiceButton,
@@ -12,10 +13,11 @@ import {
   Textarea,
   Panel,
 } from './ui';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   characters,
+  normalizeName,
   shorten,
   ended,
   LIMITS,
@@ -49,7 +51,7 @@ function App() {
     [instructionsOpen, setInstructionsOpen] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
-  const cancelledInvite = useRef<string | null>(null);
+  const dismissedRoom = useRef<string | null>(null);
   const send = (command: Command) => {
     setError(null);
 
@@ -78,7 +80,7 @@ function App() {
 
     async function start() {
       try {
-        const response = await fetch('/api/session');
+        const response = await fetch('/api/session', { signal: AbortSignal.timeout(10000) });
 
         if (!response.ok) throw new Error('Session unavailable');
 
@@ -119,7 +121,7 @@ function App() {
             setLobby(event.data);
             setJoining(false);
           } else if (event.type === 'room') {
-            if (event.data.id === cancelledInvite.current) return;
+            if (event.data.id === dismissedRoom.current) return;
 
             setRoom(event.data);
             setStartOpen(event.data.phase === 'waiting' && event.data.role !== 'spectator');
@@ -170,6 +172,7 @@ function App() {
     if (room && !ended(room.phase) && room.role !== 'spectator') {
       if (!confirm('Leave this match? It will end for both players.')) return;
 
+      dismissedRoom.current = room.id;
       send({ type: 'leave' });
     } else send({ type: 'home' });
 
@@ -183,7 +186,7 @@ function App() {
   };
   const waitingInvite = room?.phase === 'waiting' && room.role !== 'spectator';
   const cancelInvite = (close = false) => {
-    if (room) cancelledInvite.current = room.id;
+    if (room) dismissedRoom.current = room.id;
 
     send({ type: 'leave' });
     setRoom(null);
@@ -366,7 +369,7 @@ function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void })
           variant="primary"
           onClick={async () => {
             try {
-              await navigator.clipboard.writeText(link);
+              await copyText(link);
               setCopied(true);
             } catch {
               setCopied(false);
@@ -659,7 +662,8 @@ function Room({
       return '';
     }
   });
-  const needsName = (isJudge || isHuman) && !done && !room.ownName;
+  const contextPhase = ['ready', 'opening', 'opening_ai', 'chat'].includes(room.phase);
+  const needsName = (isJudge || isHuman) && contextPhase && !room.ownName;
   const contextSent = useRef(false);
 
   useEffect(() => {
@@ -669,15 +673,15 @@ function Room({
       return;
     }
 
-    if (!room.ownName || contextSent.current || done || (!isJudge && !isHuman)) return;
+    if (!room.ownName || contextSent.current || !contextPhase || (!isJudge && !isHuman)) return;
 
     contextSent.current = true;
     send({ type: 'context', name: room.ownName, ...(isHuman ? { hints: deviceHints() } : {}) });
-  }, [connected, room.ownName, done, isJudge, isHuman]);
+  }, [connected, room.ownName, contextPhase, isJudge, isHuman]);
 
   const copy = async (invite = false) => {
     try {
-      await navigator.clipboard.writeText(
+      await copyText(
         invite
           ? `${location.origin}/#invite=${room.inviteToken}`
           : `${location.origin}/match/${room.id}`,
@@ -760,7 +764,7 @@ function Room({
             onSubmit={(event) => {
               event.preventDefault();
 
-              if (!name.trim()) return;
+              if (!normalizeName(name)) return;
 
               try {
                 localStorage.setItem('tg_name', name.trim());
@@ -770,7 +774,7 @@ function Room({
 
               send({
                 type: 'context',
-                name: name.trim(),
+                name: normalizeName(name),
                 ...(isHuman ? { hints: deviceHints() } : {}),
               });
             }}
@@ -788,7 +792,7 @@ function Room({
               className="p-3"
               required
             />
-            <Button type="submit" disabled={!connected || !name.trim()}>
+            <Button type="submit" disabled={!connected || !normalizeName(name)}>
               Enter
             </Button>
           </form>
@@ -960,7 +964,11 @@ function Room({
         >
           <p className="mb-2 text-xs leading-normal text-muted" role="status">
             {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
-            {status}
+            {room.role === 'spectator'
+              ? room.phase === 'verdict'
+                ? 'Waiting for the judge to choose.'
+                : 'Watch the conversation and guess who is the AI.'
+              : status}
           </p>
           {isJudge || isHuman ? (
             <Composer

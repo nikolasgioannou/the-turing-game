@@ -9,7 +9,9 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["bun", "vite/client"]
+    "types": ["bun", "vite/client"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["src", "scripts", "tests", "vite.config.ts", "playwright.config.ts"]
 }

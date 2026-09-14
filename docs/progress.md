@@ -690,3 +690,30 @@ pass. A real OpenRouter browser match passed name entry, multi-message opening, 
 reply with an empty human textbox, refresh and early verdict in 11.3 seconds. A separate
 non-generating desktop/mobile name-entry check passed; both screenshots were inspected. Restarted
 the idle public app on its existing ngrok URL and verified a public WebSocket lobby response.
+
+## Cleanup and bug audit
+
+Used the installed Vercel React Best Practices skill and project find-skills workflow. Removed
+unused toolbar/link components, legacy protocol fields, dead CSS and the obsolete AI SDK skill.
+Enabled TypeScript unused locals/parameters checks. Moved Zod command schemas out of the browser
+runtime; JS fell from 340.99 KB to 258.67 KB (104.86 KB to 81.59 KB gzipped).
+
+Fixed context updates spawning workers after chat expiry, empty/missing-name bypasses, rapid opening
+submissions bypassing message caps, stale snapshots clearing a newer held opening, and ongoing
+opening submissions extending the action deadline. Context is buffered privately until the first bot
+stimulus. Cached scoreboard aggregates across unchanged ticks. Separated bounded draft traffic from
+chat-action rate limits so legitimate 120 ms drafts do not disconnect players. Missing asset
+requests now return uncached 404s rather than immutable HTML. Added an HTTP LAN clipboard fallback
+and a timeout for session bootstrap. Updated stale upstream and test references. Pinned
+reference.py/prompts remain unchanged.
+
+Automatic approval review rejected removing the provider recovery controls; service-state schema and
+resume-ai remain intact. Existing databases, history and local model/cache artifacts were not
+deleted.
+
+Fixed a late room broadcast reopening the page after leaving name entry, and corrected spectator
+status text. Validation: typecheck, production build and 37 unit/worker tests pass. All 17 browser
+journeys pass across the full run and focused follow-ups, using real OpenRouter where AI is needed.
+The initial run exposed a test synchronization race with the closing name dialog; waiting for its
+removal fixed the four affected journeys. Desktop/mobile chat, lobby and replay screenshots were
+reviewed. Restarted the idle local app with the existing ngrok origin and database.

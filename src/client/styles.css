@@ -35,8 +35,8 @@
 
   body {
     @apply m-0;
-    background-attachment: fixed;
     background: radial-gradient(ellipse at 50% 15%, #192328 0, var(--color-canvas) 65%);
+    background-attachment: fixed;
   }
 
   button,
@@ -76,19 +76,6 @@
     filter: brightness(1.12);
   }
 
-  footer {
-    margin: 48px 0 0;
-    border-top: 1px solid #2b324e;
-    padding: 24px 0 30px;
-    @apply flex justify-between gap-5;
-    color: #858e82;
-    font-size: 12px;
-  }
-
-  footer span:first-child {
-    letter-spacing: 0.1em;
-  }
-
   button:focus-visible,
   input:focus-visible,
   textarea:focus-visible {
@@ -115,24 +102,8 @@
     letter-spacing: 1px;
   }
 
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .near-limit {
-    color: #e6c784;
-  }
-
   .over-limit {
     color: #ffab9c;
-  }
-
-  @media (max-width: 700px) {
-    footer span:last-child {
-      @apply hidden;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {

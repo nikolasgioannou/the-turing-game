@@ -17,12 +17,3 @@ export function RoomTitle({ className = '', ...props }: ComponentProps<'div'>) {
     />
   );
 }
-
-export function RoomToolbar({ className = '', ...props }: ComponentProps<'div'>) {
-  return (
-    <div
-      className={`room-topline mb-2.5 flex items-center justify-between gap-3.75 text-[11px] group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:gap-3 group-[.active-chat]/room:text-xs max-[700px]:flex-wrap [&_.eyebrow]:m-0 max-[700px]:[&_.eyebrow]:text-[10px] max-[600px]:group-[.active-chat]/room:[&_.eyebrow]:hidden ${className}`}
-      {...props}
-    />
-  );
-}

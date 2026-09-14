@@ -229,11 +229,4 @@ export class Store {
       await tx.query('DELETE FROM reservations WHERE id=$1', [id]);
     });
   }
-
-  async pause(reason: string, ms: number) {
-    await this.db.query('UPDATE service_state SET reason=$1,until_at=$2 WHERE id=1', [
-      reason,
-      Date.now() + ms,
-    ]);
-  }
 }

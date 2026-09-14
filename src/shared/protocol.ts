@@ -1,9 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
+import type { commandSchema } from './commands';
 
 export const LIMITS = {
-  chatMs: 90_000,
   messagesPerPerson: 30,
-  question: 300,
   answer: 500,
   reason: 1000,
   actionMs: 90_000,
@@ -15,60 +14,6 @@ export const shorten = (text: string, max: number) =>
     .slice(0, max)
     .map((s) => s.segment)
     .join('');
-const text = (max: number) =>
-  z
-    .string()
-    .max(8000)
-    .transform((s) => s.trim())
-    .refine(
-      (s) =>
-        characters(s) > 0 && characters(s) <= max && new TextEncoder().encode(s).length <= max * 4,
-      'Check the character limit.',
-    );
-export const commandSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('queue'), role: z.enum(['human', 'judge']) }),
-  z.object({ type: z.literal('cancel') }),
-  z.object({ type: z.literal('create'), role: z.enum(['human', 'judge']) }),
-  z.object({ type: z.literal('join'), token: z.string().min(20).max(100) }),
-  z.object({ type: z.literal('watch'), id: z.string().uuid() }),
-  z.object({ type: z.literal('home') }),
-  z.object({ type: z.literal('message'), text: text(LIMITS.answer) }),
-  z.object({
-    type: z.literal('draft'),
-    text: z
-      .string()
-      .max(8000)
-      .refine(
-        (s) =>
-          characters(s) <= LIMITS.answer && new TextEncoder().encode(s).length <= LIMITS.answer * 4,
-      ),
-  }),
-  z.object({
-    type: z.literal('verdict'),
-    choice: z.enum(['A', 'B']),
-    reason: z
-      .string()
-      .max(8000)
-      .refine((s) => characters(s) <= LIMITS.reason)
-      .default(''),
-  }),
-  z.object({ type: z.literal('vote'), choice: z.enum(['A', 'B']) }),
-  z.object({ type: z.literal('leave') }),
-  z.object({
-    type: z.literal('context'),
-    name: z.string().max(24),
-    hints: z
-      .object({
-        mobile: z.string().max(40),
-        tz: z.string().max(40),
-        localTime: z.string().max(40),
-        day: z.string().max(40),
-        platform: z.string().max(40),
-      })
-      .optional(),
-  }),
-  z.object({ type: z.literal('ping') }),
-]);
 
 export type Command = z.infer<typeof commandSchema>;
 
@@ -88,7 +33,6 @@ export type Phase =
   | 'failed';
 
 export type ChatMessage = {
-  replyTo?: string;
   id: string;
   sender: 'judge' | Label;
   text: string;
@@ -143,3 +87,9 @@ export type Event =
   | { type: 'pong' };
 
 export const ended = (phase: Phase) => ['complete', 'abandoned', 'failed'].includes(phase);
+
+export const normalizeName = (name: string) =>
+  name
+    .replace(/[^\p{L}\p{N}_ \-'.]/gu, '')
+    .slice(0, 24)
+    .trim();

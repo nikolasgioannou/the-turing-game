@@ -1,3 +1,4 @@
+import { commandSchema } from '../src/shared/commands';
 import { afterAll, beforeAll, beforeEach, expect, test, describe } from 'bun:test';
 import { database } from '../src/server/database';
 import {
@@ -9,7 +10,7 @@ import {
 } from '../src/server/store';
 import { Game, type Peer, type Match } from '../src/server/game';
 import type { AI, BotHooks, BotCommand, BotState } from '../src/server/ai';
-import { characters, commandSchema, type Event } from '../src/shared/protocol';
+import { characters, type Event } from '../src/shared/protocol';
 
 process.env.PGLITE_PATH = 'memory://';
 
@@ -17,7 +18,7 @@ let store: Store, game: Game, clock: number;
 const sessions = new Map<string, { hooks: BotHooks; commands: BotCommand[]; stopped: boolean }>();
 const ai: AI = {
   model: 'test',
-  start(id, label, hooks) {
+  start(id, _label, hooks) {
     const session = { hooks, commands: [] as BotCommand[], stopped: false };
 
     sessions.set(id, session);
@@ -58,12 +59,17 @@ async function peer(session: string = crypto.randomUUID()) {
   return { p, events };
 }
 
-async function pair() {
+async function pair(withNames = true) {
   const h = await peer(),
     j = await peer();
 
   await game.handle(h.p, { type: 'queue', role: 'human' });
   await game.handle(j.p, { type: 'queue', role: 'judge' });
+
+  if (withNames) {
+    await game.handle(h.p, { type: 'context', name: 'Nik' });
+    await game.handle(j.p, { type: 'context', name: 'Marc' });
+  }
 
   return { h, j, m: game.rooms.get(h.p.roomId!)! };
 }
@@ -487,7 +493,7 @@ test('opening allows both players to continue and preserves worker publication o
 });
 
 test('name and device context stays role-scoped, and pre-question drafts are ignored', async () => {
-  const { h, j, m } = await pair();
+  const { h, j, m } = await pair(false);
 
   await game.handle(h.p, { type: 'draft', text: 'too early' });
   expect(sessions.has(m.id)).toBe(false);
@@ -504,9 +510,13 @@ test('name and device context stays role-scoped, and pre-question drafts are ign
   await expect(game.handle(j.p, { type: 'message', text: 'hi' })).rejects.toThrow('names');
   await game.handle(j.p, { type: 'context', name: 'Marc', hints });
 
+  expect(sessions.has(m.id)).toBe(false);
+  await game.handle(j.p, { type: 'message', text: 'hello' });
+
   expect(sessions.get(m.id)!.commands).toEqual([
-    { type: 'context', role: 'player', name: 'PrivateName', hints },
     { type: 'context', role: 'judge', name: 'Marc' },
+    { type: 'context', role: 'player', name: 'PrivateName', hints },
+    { type: 'message', role: 'judge', text: 'hello' },
   ]);
 
   expect(JSON.stringify(game.view(m, j.p))).not.toContain('PrivateName');
@@ -518,4 +528,97 @@ test('name and device context stays role-scoped, and pre-question drafts are ign
 
   await game.handle(watcher.p, { type: 'watch', id: m.id });
   await expect(game.handle(watcher.p, { type: 'context', name: 'spoof' })).rejects.toThrow();
+});
+
+test('context cannot create workers in waiting or verdict, or bypass name entry', async () => {
+  const { h, j, m } = await pair(false);
+
+  await expect(game.handle(j.p, { type: 'message', text: 'bypass' })).rejects.toThrow('names');
+  await expect(game.handle(h.p, { type: 'context', name: '😀' })).rejects.toThrow('first name');
+  expect(sessions.has(m.id)).toBe(false);
+  await game.handle(h.p, { type: 'context', name: 'Nik' });
+  await game.handle(j.p, { type: 'context', name: 'Marc' });
+  await game.handle(j.p, { type: 'message', text: 'hi' });
+  await emit(m, []);
+  await game.expire(m);
+
+  const worker = sessions.get(m.id)!;
+
+  await expect(game.handle(h.p, { type: 'context', name: 'Nik' })).rejects.toThrow();
+  expect(sessions.get(m.id)).toBe(worker);
+  expect(worker.stopped).toBe(true);
+});
+
+test('rapid opening submissions obey the limit before worker snapshots arrive', async () => {
+  const { h, m } = await question();
+  const deadline = m.deadline;
+
+  for (let n = 0; n < 30; n++) await game.handle(h.p, { type: 'message', text: String(n) });
+
+  await expect(game.handle(h.p, { type: 'message', text: '31st' })).rejects.toThrow(
+    'message limit',
+  );
+
+  expect(m.deadline).toBe(deadline);
+  expect(m.humanMessageCount).toBe(30);
+});
+
+test('a stale opening snapshot cannot clear a newer pending answer or drop later chat', async () => {
+  const { h, m } = await question();
+
+  await game.handle(h.p, { type: 'message', text: 'first' });
+  await game.handle(h.p, { type: 'message', text: 'second' });
+
+  const first = { id: 'first', from: m.humanLabel, text: 'first', ts: clock / 1000 };
+  const ai = {
+    id: 'ai',
+    from: (m.humanLabel === 'A' ? 'B' : 'A') as 'A' | 'B',
+    text: 'ai answer',
+    ts: clock / 1000,
+  };
+
+  await emit(m, [first, ai]);
+  expect(m.openingHuman).toBe('second');
+  await game.handle(h.p, { type: 'message', text: 'third' });
+
+  await emit(m, [
+    first,
+    ai,
+    { id: 'second', from: m.humanLabel, text: 'second', ts: clock / 1000 },
+    { id: 'third', from: m.humanLabel, text: 'third', ts: clock / 1000 },
+  ]);
+
+  expect(m.messages.filter((x) => x.sender === m.humanLabel).map((x) => x.text)).toEqual([
+    'first',
+    'second',
+    'third',
+  ]);
+
+  expect(m.openingHuman).toBeNull();
+});
+
+test('unchanged lobby ticks reuse the aggregate until a result is saved', async () => {
+  const original = store.score.bind(store);
+  let calls = 0;
+
+  store.score = async () => {
+    calls++;
+
+    return original();
+  };
+
+  try {
+    await game.lobby();
+    await game.tick();
+    await game.tick();
+    expect(calls).toBe(1);
+
+    const { j, m } = await opening();
+
+    expect(calls).toBe(1);
+    await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+    expect(calls).toBe(2);
+  } finally {
+    store.score = original;
+  }
 });

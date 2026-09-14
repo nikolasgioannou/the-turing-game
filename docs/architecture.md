@@ -5,7 +5,8 @@ project-local PGlite in development. Shared Zod schemas validate public socket c
 
 ## Boundaries
 
-- `shared/protocol.ts`: limits, command schemas and explicit public views.
+- `shared/protocol.ts`: browser-safe limits, types and explicit public views.
+- `shared/commands.ts`: server-only Zod command validation.
 - `server/database.ts`: PostgreSQL/PGlite adapters.
 - `server/store.ts`: snapshots, request ledger, daily capacity and reservations.
 - `server/game.ts`: sessions, matchmaking, deadlines, scoring and public serialization.
@@ -70,3 +71,7 @@ Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global
 own utility classes. VS Code uses Tailwind language mode. `bun run format` runs Prettier and the
 syntax-aware blank-line pass; the pinned Python source is intentionally retained verbatim and
 verified by AST hashes. Only transcript history scrolls during active chat.
+
+Score aggregates are cached in the game authority until a terminal match save; unchanged lobby ticks
+do not scan transcript history. Names/device context do not spawn workers. Context updates after
+chat ends are rejected, and the latest opening remains held until its own publication.
