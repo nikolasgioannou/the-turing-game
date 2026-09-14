@@ -175,10 +175,12 @@ function App() {
     setRoom(null);
     history.replaceState(null, '', '/');
   };
-  const play = (role: 'human' | 'judge', invite = false) => {
+  const play = (role: 'human' | 'judge' | 'either', invite = false) => {
     setJoining(true);
     setInviteRole(false);
-    send({ type: invite ? 'create' : 'queue', role });
+
+    if (role === 'either') send({ type: 'queue', role });
+    else send({ type: invite ? 'create' : 'queue', role });
   };
   const waitingInvite = room?.phase === 'waiting';
   const cancelInvite = (close = false) => {
@@ -281,7 +283,9 @@ function App() {
                     >
                       <span className="waiting-mark size-3.75 shrink-0 animate-[spin_1.5s_linear_infinite] rounded-full border-2 border-[#59604e] border-t-[#77def2]" />
                       {lobby?.queued
-                        ? `Finding a ${lobby.queued === 'human' ? 'judge' : 'human'}…`
+                        ? lobby.queued === 'either'
+                          ? 'Finding a match for either role…'
+                          : `Finding a ${lobby.queued === 'human' ? 'judge' : 'human'}…`
                         : 'Joining…'}
                     </div>
                     <Button
@@ -329,6 +333,16 @@ function App() {
                       >
                         Find the human.
                       </RoleButton>
+                      {!inviteRole ? (
+                        <RoleButton
+                          tone="neutral"
+                          title="Either role"
+                          disabled={!connected || joining || !lobby?.availability.available}
+                          onClick={() => play('either')}
+                        >
+                          No preference. Fill whichever role is needed.
+                        </RoleButton>
+                      ) : null}
                     </div>
                   </>
                 )}

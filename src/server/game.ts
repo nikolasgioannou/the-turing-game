@@ -8,6 +8,7 @@ import {
   type Label,
   type Phase,
   type Role,
+  type QueuePreference,
   type RoomView,
 } from '../shared/protocol';
 import { AIError, PROMPT_VERSION, type AI, type BotSession, type BotState } from './ai';
@@ -18,7 +19,7 @@ export interface Peer {
   session: string;
   send: (event: Event) => void;
   roomId?: string;
-  queue?: Role;
+  queue?: QueuePreference;
 }
 
 export type Match = {
@@ -255,14 +256,28 @@ export class Game {
     switch (c.type) {
       case 'queue': {
         const other = [...this.peers.values()].find(
-          (x) => x.queue && x.queue !== c.role && x.session !== p.session,
+          (x) =>
+            x.queue &&
+            (x.queue === 'either' || c.role === 'either' || x.queue !== c.role) &&
+            x.session !== p.session,
         );
 
         if (other) {
           const next = await this.newMatch();
 
-          this.assign(next, p, c.role);
-          this.assign(next, other, other.queue!);
+          const role: Role =
+            c.role !== 'either'
+              ? c.role
+              : other.queue === 'human'
+                ? 'judge'
+                : other.queue === 'judge'
+                  ? 'human'
+                  : Math.random() < 0.5
+                    ? 'human'
+                    : 'judge';
+
+          this.assign(next, p, role);
+          this.assign(next, other, role === 'human' ? 'judge' : 'human');
           next.phase = 'ready';
           await this.persist(next);
         } else {

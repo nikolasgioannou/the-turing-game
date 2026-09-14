@@ -662,3 +662,54 @@ for (const correct of [true, false]) {
     await judgeContext.close();
   });
 }
+
+for (const fixedRole of ['human', 'judge'] as const) {
+  test(`either role fills the opposite of a waiting ${fixedRole}`, async ({ browser }) => {
+    const fixedContext = await browser.newContext();
+    const flexibleContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+
+    try {
+      const fixed = await fixedContext.newPage();
+      const flexible = await flexibleContext.newPage();
+
+      await fixed.goto('/');
+      await fixed.getByRole('button', { name: 'Start game', exact: true }).click();
+      await fixed.getByRole('button', { name: `Play as ${fixedRole}`, exact: false }).click();
+      await flexible.goto('/');
+      await flexible.getByRole('button', { name: 'Start game', exact: true }).click();
+      await flexible.screenshot({ path: 'work/either-role-mobile.png' });
+
+      await expect(
+        flexible.getByRole('button', { name: 'Either role', exact: false }),
+      ).toBeInViewport();
+
+      await flexible.getByRole('button', { name: 'Invite a friend', exact: true }).click();
+
+      await expect(flexible.getByRole('button', { name: 'Either role', exact: false })).toHaveCount(
+        0,
+      );
+
+      await flexible.getByRole('button', { name: 'Find a match', exact: true }).click();
+      await flexible.getByRole('button', { name: 'Either role', exact: false }).click();
+
+      for (const page of [fixed, flexible]) {
+        await page.getByLabel('First name', { exact: true }).fill('Test');
+        await page.getByRole('button', { name: 'Enter', exact: true }).click();
+        await expect(page.getByRole('dialog', { name: 'Your first name' })).toHaveCount(0);
+      }
+
+      const human = fixedRole === 'human' ? fixed : flexible;
+      const judge = fixedRole === 'judge' ? fixed : flexible;
+
+      await expect(human.getByLabel('Your contestant')).toBeVisible();
+      await expect(judge.getByLabel('Your contestant')).toHaveCount(0);
+      await judge.getByLabel('Message the group').fill('hello');
+      await expect(judge.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
+      await human.getByLabel('Message the group').fill('hello');
+      await expect(human.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
+    } finally {
+      await fixedContext.close();
+      await flexibleContext.close();
+    }
+  });
+}

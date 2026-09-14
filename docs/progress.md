@@ -362,3 +362,9 @@ GitHub run 34884381483 successfully ran all 189 tests, formatting, typecheck, bu
 The Spaceship DNS records and Fly certificate were active, but WebSocket requests from theturinggame.ai received 403 because APP_ORIGIN still named the Fly hostname. Set the canonical production origin to https://theturinggame.ai, updated the deployment workflow URL/health check, and redirected production page requests from alternate hosts to the canonical origin. Origin validation remains strict.
 
 GitHub deployment 34885428661 passed all 189 tests and deployed successfully. A real game on the custom domain verified AI opening replies, refresh recovery, verdict/reveal and a separate homepage connection without browser errors. The old Fly homepage returns a 308 redirect to the custom domain, and an untrusted WebSocket origin still returns 403.
+
+## Flexible matchmaking
+
+Added Either role to public matchmaking with the description “No preference. Fill whichever role is needed.” Flexible players remain eligible for either seat while queued, respect a matched opponent’s explicit preference and split randomly into opposite roles when both are flexible. Invitations still require an explicit role. Match roles remain strictly human/judge after assignment.
+
+Validation: all 199 unit/integration tests, typecheck and build pass. Tests cover all nine preference combinations, cancellation, duplicate-session protection and invitation validation. Two browser journeys verify matching against each fixed role, mobile control visibility and the resulting judge/player send permissions without creating production games. Reviewed the mobile role dialog screenshot.

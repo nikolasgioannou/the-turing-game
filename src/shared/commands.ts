@@ -13,7 +13,7 @@ const text = (max: number) =>
     );
 
 export const commandSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('queue'), role: z.enum(['human', 'judge']) }),
+  z.object({ type: z.literal('queue'), role: z.enum(['human', 'judge', 'either']) }),
   z.object({ type: z.literal('cancel') }),
   z.object({ type: z.literal('create'), role: z.enum(['human', 'judge']) }),
   z.object({ type: z.literal('join'), token: z.string().min(20).max(100) }),

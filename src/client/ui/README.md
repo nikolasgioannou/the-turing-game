@@ -7,7 +7,7 @@ Project-owned React components built with Tailwind v4. Import from `./ui` in cli
 | `Button` | Actions; defaults to `type="button"` | `primary`, `secondary`, `ghost`, `arcade`; explicit size |
 | `SegmentButton` | Game mode toggle | Selection via `aria-pressed` |
 | `ChoiceButton` | Verdict choices | `tone="a"` or `"b"`, `compact`; `aria-pressed` |
-| `RoleButton` | Role picker | `tone`, `title`, description children |
+| `RoleButton` | Role picker | `tone` (`a`, `b`, `neutral`), `title`, description children |
 | `Input`, `Textarea` | Shared border, surface and focus treatment | Native field attributes; layout via `className` |
 | `Panel` | Content surface | `tone="accent"` or `"neutral"` |
 | `Dialog` | Native modal, Escape/backdrop close and focus restoration | Required `label`, `onClose` |

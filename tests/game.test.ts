@@ -657,3 +657,62 @@ test('completed matches store only an outcome and are not rejoined after returni
 
   expect(refreshed.events.some((event) => event.type === 'room')).toBe(false);
 });
+
+for (const first of ['human', 'judge', 'either'] as const) {
+  for (const second of ['human', 'judge', 'either'] as const) {
+    test(`matchmaking respects preferences: ${first} then ${second}`, async () => {
+      const a = await peer();
+      const b = await peer();
+
+      await game.handle(a.p, { type: 'queue', role: first });
+      expect(a.events.filter((e) => e.type === 'lobby').at(-1)?.data.queued).toBe(first);
+      await game.handle(b.p, { type: 'queue', role: second });
+
+      if (first === second && first !== 'either') {
+        expect(game.rooms.size).toBe(0);
+        expect(a.p.queue).toBe(first);
+        expect(b.p.queue).toBe(second);
+
+        return;
+      }
+
+      expect(game.rooms.size).toBe(1);
+      expect(a.p.roomId).toBe(b.p.roomId);
+
+      const m = game.rooms.get(a.p.roomId!)!;
+      const aRole = game.role(m, a.p);
+      const bRole = game.role(m, b.p);
+
+      expect(new Set([aRole, bRole])).toEqual(new Set(['human', 'judge']));
+
+      if (first !== 'either') expect(aRole).toBe(first);
+
+      if (second !== 'either') expect(bRole).toBe(second);
+
+      expect(a.p.queue).toBeUndefined();
+      expect(b.p.queue).toBeUndefined();
+      expect(m.phase).toBe('ready');
+    });
+  }
+}
+
+test('either-role queue can be canceled and cannot match another socket from the same session', async () => {
+  const a = await peer();
+  const duplicate = await peer(a.p.session);
+
+  await game.handle(a.p, { type: 'queue', role: 'either' });
+
+  await expect(game.handle(duplicate.p, { type: 'queue', role: 'either' })).rejects.toThrow(
+    'active',
+  );
+
+  await game.handle(a.p, { type: 'cancel' });
+
+  const b = await peer();
+
+  await game.handle(b.p, { type: 'queue', role: 'judge' });
+  expect(game.rooms.size).toBe(0);
+  await game.handle(a.p, { type: 'queue', role: 'either' });
+  expect(game.role(game.rooms.get(a.p.roomId!)!, a.p)).toBe('human');
+  expect(commandSchema.safeParse({ type: 'create', role: 'either' }).success).toBe(false);
+});

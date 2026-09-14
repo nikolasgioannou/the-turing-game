@@ -21,11 +21,11 @@ export function RoleButton({
   title,
   children,
   ...props
-}: ComponentProps<'button'> & { tone: 'a' | 'b'; title: string; children: ReactNode }) {
+}: ComponentProps<'button'> & { tone: 'a' | 'b' | 'neutral'; title: string; children: ReactNode }) {
   return (
     <button
       type="button"
-      className={`border bg-[#17191a] p-3.5 text-left hover:border-current hover:bg-[#242a2c] ${tone === 'a' ? 'border-[#8c492e] text-[#ff985c]' : 'border-[#327d91] text-[#66d9fc]'}`}
+      className={`border bg-[#17191a] p-3.5 text-left hover:border-current hover:bg-[#242a2c] ${tone === 'a' ? 'border-[#8c492e] text-[#ff985c]' : tone === 'b' ? 'border-[#327d91] text-[#66d9fc]' : 'border-line text-ink'}`}
       {...props}
     >
       <strong className="block text-sm leading-normal font-bold">{title}</strong>

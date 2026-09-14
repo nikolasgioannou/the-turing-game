@@ -22,6 +22,8 @@ export type Command = z.infer<typeof commandSchema>;
 
 export type Role = 'human' | 'judge';
 
+export type QueuePreference = Role | 'either';
+
 export type Label = 'A' | 'B';
 
 export type Phase =
@@ -69,7 +71,7 @@ export type RoomView = {
 export type Lobby = {
   score: { completed: number; aiWins: number };
   availability: { available: boolean; message: string | null; resetsAt: number };
-  queued: Role | null;
+  queued: QueuePreference | null;
 };
 
 export type Event =
