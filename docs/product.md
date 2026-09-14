@@ -1,6 +1,6 @@
 # Product
 
-Two humans participate: a contestant competing with AI and a judge trying to identify the human. Choosing the human means both judge and human player win; choosing the AI means both lose.
+Two humans participate: a contestant competing with AI and a judge trying to identify the bot. Choosing the AI means both judge and human player win; choosing the human means both lose.
 
 The lobby supports matchmaking or an invited opponent. Matchmaking offers human, judge or Either role; flexible players fill the opposite role of a waiting player, and two flexible players receive opposite roles at random. Friend invitations also offer Either role: the host is randomly assigned human or judge when the invitation is created, and the friend receives the opposite seat. Anonymous A/B assignments remain fixed. Only the authenticated human and judge can view a match. Invite tokens reserve seats; they do not expose private context. A judge may guess early during live chat. Verdict and optional reasoning commit together before the reveal.
 

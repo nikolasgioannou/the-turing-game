@@ -26,7 +26,7 @@ This repository is the canonical implementation. Describe bot behavior directly 
 - Serialize explicit participant views. Never send hidden answers, unrevealed identity mapping, participant credentials, or prompts to browsers.
 - Anonymous A/B assignments stay fixed. Only authenticated participants may access a room; invite tokens reserve seats only.
 - Explicit leave abandons a match. Socket loss does not: sessions reclaim their seats on reconnect/refresh while deadlines continue. Heartbeat only detects dead transports.
-- The judge selects the human: choosing the human means both judge and player win; choosing the AI means both lose.
+- The judge selects the bot: choosing the AI means both judge and player win; choosing the human means both lose.
 - Verdict and optional reasoning commit together before identity reveal.
 - Persist only match IDs and win/loss outcomes for the homepage score, plus provider usage accounting. Transcripts and judge reasoning stay in memory; do not restore public spectating or saved-game access. Abandoned/failed matches are not wins.
 - Usage limits are provider-independent, durable, atomic and include in-flight reservations.

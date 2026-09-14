@@ -380,3 +380,9 @@ Validation: all 201 unit/integration tests, typecheck and build pass. Three focu
 Corrected the system prompt to match the judge selecting the real human. Added direct, consistent positions for subjective comparisons and short non-graphic responses to provocation; mirroring style no longer requires copying refusals or beliefs. Bumped prompt version to turing-v3 and updated the system-prompt integrity fixture. Model, scheduling and filtering are unchanged.
 
 Validation: all 201 unit/integration tests, typecheck and build pass. Four approved synthetic evaluations through the development OpenRouter key answered a preference, a political comparison, a crude question and a repeated preference without blanket dismissals; the repeated preference stayed consistent. This small stochastic sample does not guarantee every future response. No production games were created. These changes and either-role friend invitations have not been deployed.
+
+## Identify the bot and focused verdict controls
+
+The current game objective is identifying the bot, superseding the earlier human-selection flow. Selecting the bot gives both judge and human player a win; selecting the human gives both a loss. Updated lobby, rules, guessing, results, outcome accounting and bot prompt (turing-v4). The judge composer is hidden while guessing, retaining its draft for Back to chat. The verdict form contains the contestant choice and optional reason. Existing stored outcomes remain unchanged.
+
+Validation: all 201 unit/integration tests, typecheck and build pass. Browser regressions now cover the hidden composer, returning to its preserved draft, and both personal results. Live browser execution is pending approval to send development game prompts to OpenRouter; it has not run. Not deployed.

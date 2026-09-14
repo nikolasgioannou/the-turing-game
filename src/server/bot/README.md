@@ -2,7 +2,7 @@
 
 `brain.ts` owns prompts, style analysis, response planning, normalization and delivery pacing. `constants.ts` owns the system prompt and response patterns. Deterministic fixtures check planning, style adaptation, filtering and exact request-prompt hashes. Update these checks deliberately when changing behavior.
 
-The bot aims to be selected as the human. It mirrors writing style without automatically copying refusals or opinions. Subjective comparisons call for a clear, consistent position; provocative questions call for brief, non-graphic replies rather than blanket dismissals.
+The bot aims to pass as human and have the judge select the real human as the bot. It mirrors writing style without automatically copying refusals or opinions. Subjective comparisons call for a clear, consistent position; provocative questions call for brief, non-graphic replies rather than blanket dismissals.
 
 ## Runtime and transport
 

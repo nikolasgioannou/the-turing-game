@@ -633,12 +633,18 @@ for (const correct of [true, false]) {
     await j.getByLabel('Message the group').fill('x'.repeat(501));
     await expect(j.getByText('1 characters over limit')).toBeVisible();
     await expect(j.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
-    await j.getByLabel('Message the group').fill('');
+    await j.getByLabel('Message the group').fill('unsent question');
     await j.getByRole('button', { name: 'Make a guess' }).click();
+    await expect(j.getByLabel('Message the group')).toBeHidden();
+    await expect(j.getByRole('heading', { name: 'Who is the bot?' })).toBeVisible();
+    await j.getByRole('button', { name: 'Back to chat' }).click();
+    await expect(j.getByLabel('Message the group')).toHaveValue('unsent question');
+    await j.getByRole('button', { name: 'Make a guess' }).click();
+    await expect(j.getByLabel('Message the group')).toBeHidden();
 
     await j
       .getByRole('button', {
-        name: `Contestant ${correct ? humanLabel : humanLabel === 'A' ? 'B' : 'A'}`,
+        name: `Contestant ${!correct ? humanLabel : humanLabel === 'A' ? 'B' : 'A'}`,
         exact: true,
       })
       .click();

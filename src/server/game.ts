@@ -117,7 +117,7 @@ export class Game {
               humanLabel: m.humanLabel,
               choice: m.choice!,
               reason: m.reason,
-              humanWon: m.choice === m.humanLabel,
+              humanWon: m.choice !== m.humanLabel,
             }
           : null,
       message: m.message,
@@ -151,7 +151,7 @@ export class Game {
   }
 
   async persist(m: Match) {
-    if (m.phase === 'complete') await this.store.saveOutcome(m.id, m.choice !== m.humanLabel);
+    if (m.phase === 'complete') await this.store.saveOutcome(m.id, m.choice === m.humanLabel);
 
     if (ended(m.phase)) this.score = undefined;
 

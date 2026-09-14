@@ -12,11 +12,11 @@ export function MatchResult({
   const isJudge = role === 'judge';
   const explanation = isJudge
     ? won
-      ? 'You correctly picked the human.'
-      : 'You picked the bot. It fooled you.'
+      ? 'You correctly identified the bot.'
+      : 'You mistook the human for the bot.'
     : won
-      ? 'The judge picked you as the human.'
-      : 'The judge picked the bot instead of you.';
+      ? 'The judge identified the bot. You proved you were human.'
+      : 'The judge mistook you for the bot.';
 
   return (
     <section aria-label="Your result" className="mb-8 border border-line bg-panel p-6 sm:p-8">

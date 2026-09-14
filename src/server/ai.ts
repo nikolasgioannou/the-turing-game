@@ -3,7 +3,7 @@ import { SYSTEM } from './bot/constants';
 import type { Label } from '../shared/protocol';
 import type { Allowance } from './store';
 
-export const PROMPT_VERSION = 'turing-v3';
+export const PROMPT_VERSION = 'turing-v4';
 export const SYSTEM_PROMPT = SYSTEM;
 export const MODEL = 'anthropic/claude-haiku-4.5';
 

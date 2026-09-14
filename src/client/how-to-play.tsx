@@ -12,7 +12,7 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
         </li>
         <li>
           <strong>Meet A and B.</strong> One contestant is human and the other is AI. The judge must
-          find the human.
+          find the bot.
         </li>
         <li>
           <strong>Answer the opener.</strong> The judge asks a question. Both contestants answer
@@ -24,7 +24,7 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
         </li>
         <li>
           <strong>Make the call.</strong> The judge can guess during chat or when time runs out.
-          Pick the human and both the judge and human win. Pick the AI and both lose. Both
+          Pick the bot and both the judge and human win. Pick the human and both lose. Both
           identities are revealed.
         </li>
       </ol>

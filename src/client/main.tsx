@@ -224,7 +224,7 @@ function App() {
               <h1 className="arcade-logo">
                 <span>THE</span>TURING GAME
               </h1>
-              <p className="arcade-tagline">One human. One AI. Find the human.</p>
+              <p className="arcade-tagline">One human. One AI. Find the bot.</p>
               <div className="lobby-actions mt-0 flex flex-col items-center justify-center gap-2.5">
                 <Button
                   variant="arcade"
@@ -330,7 +330,7 @@ function App() {
                         disabled={!connected || joining || !lobby?.availability.available}
                         onClick={() => play('judge', inviteRole)}
                       >
-                        Find the human.
+                        Find the bot.
                       </RoleButton>
                       <RoleButton
                         tone="neutral"
@@ -402,7 +402,7 @@ function ArcadeStage() {
   return (
     <div
       className="arcade-stage mx-auto mt-6.5 max-w-160 max-[640px]:mt-8.75"
-      aria-label="Two contestants face a judge. Identify the human."
+      aria-label="Two contestants face a judge. Identify the bot."
     >
       <svg
         className="block h-auto w-full"
@@ -720,6 +720,8 @@ function Room({
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [room.messages.length]);
 
+  const showVerdict = isJudge && (room.phase === 'verdict' || (room.phase === 'chat' && guessing));
+
   const canSend =
     connected &&
     room.contextReady !== false &&
@@ -743,10 +745,10 @@ function Room({
             ? 'Opening replies are being prepared. You can keep chatting.'
             : room.phase === 'verdict'
               ? isJudge
-                ? 'Choose who is human to finish the match.'
+                ? 'Choose who is the bot to finish the match.'
                 : 'Waiting for the judge to choose.'
               : guessing
-                ? 'Choose who is human, or go back to chat.'
+                ? 'Choose who is the bot, or go back to chat.'
                 : room.phase === 'chat'
                   ? isJudge
                     ? 'Ask questions or make a guess anytime.'
@@ -894,7 +896,7 @@ function Room({
           {!room.messages.length ? (
             <div className="m-auto max-w-md px-4 py-8 text-center text-sm leading-relaxed text-muted">
               <h2 className="mb-4 text-lg font-bold text-ink">
-                {isJudge ? 'Find the human' : 'Blend in. Stay human.'}
+                {isJudge ? 'Find the bot' : 'Blend in. Stay human.'}
               </h2>
               <p className="mb-3">
                 {isJudge
@@ -931,7 +933,7 @@ function Room({
           className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"
         >
-          {status ? (
+          {status && !showVerdict ? (
             <p
               className={
                 room.phase === 'chat' && canSend
@@ -945,23 +947,25 @@ function Room({
             </p>
           ) : null}
           {isJudge || isHuman ? (
-            <Composer
-              label="Message the group"
-              button="Send"
-              limit={LIMITS.answer}
-              onSubmit={(text) => {
-                followChat.current = true;
-                send({ type: 'message', text });
-              }}
-              onDraft={
-                isHuman && ['opening', 'opening_ai', 'chat'].includes(room.phase)
-                  ? (text) => send({ type: 'draft', text })
-                  : undefined
-              }
-              sendBlocked={!canSend}
-            />
+            <div hidden={showVerdict}>
+              <Composer
+                label="Message the group"
+                button="Send"
+                limit={LIMITS.answer}
+                onSubmit={(text) => {
+                  followChat.current = true;
+                  send({ type: 'message', text });
+                }}
+                onDraft={
+                  isHuman && ['opening', 'opening_ai', 'chat'].includes(room.phase)
+                    ? (text) => send({ type: 'draft', text })
+                    : undefined
+                }
+                sendBlocked={!canSend}
+              />
+            </div>
           ) : null}
-          {isJudge && (room.phase === 'verdict' || (room.phase === 'chat' && guessing)) ? (
+          {showVerdict ? (
             <form
               className="verdict-form [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-medium [&_label]:mb-1.5 [&_label]:block [&_label]:text-[13px] [&_textarea]:block [&_textarea]:h-16 [&_textarea]:min-h-16 [&_textarea]:w-full [&_textarea]:resize-none [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:text-base [&_textarea]:leading-[1.6]"
               onSubmit={(e) => {
@@ -971,7 +975,7 @@ function Room({
               }}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2>Who is human?</h2>
+                <h2>Who is the bot?</h2>
                 {room.phase === 'chat' ? (
                   <Button variant="ghost" size="text" onClick={() => setGuessing(false)}>
                     Back to chat

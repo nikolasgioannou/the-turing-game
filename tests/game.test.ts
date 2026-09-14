@@ -210,7 +210,7 @@ test('deadline stops worker and rejects late replies, sending and spectator gues
 
   await game.handle(j.p, {
     type: 'verdict',
-    choice: m.humanLabel,
+    choice: m.humanLabel === 'A' ? 'B' : 'A',
     reason: 'found the bot',
   });
 
@@ -224,7 +224,7 @@ test('early verdict commits reason and identity together, cancels work and settl
 
   await game.handle(j.p, {
     type: 'verdict',
-    choice: m.humanLabel === 'A' ? 'B' : 'A',
+    choice: m.humanLabel,
     reason: 'guess',
   });
 
@@ -304,10 +304,10 @@ test('provider credentials failure closes match rather than awarding a win', asy
   expect(game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result).toBeNull();
 });
 
-test('judge identifies the human using current scoring', async () => {
+test('judge identifies the bot and both humans win', async () => {
   const { j, m } = await opening();
 
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel === 'A' ? 'B' : 'A', reason: '' });
 
   expect(
     game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result?.humanWon,
@@ -443,7 +443,7 @@ test('verdict broadcasts the updated aggregate to people on the homepage', async
     visitor.events.filter((event) => event.type === 'lobby').at(-1)?.data.score;
 
   expect(lastScore()).toEqual({ completed: 0, aiWins: 0 });
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel === 'A' ? 'B' : 'A', reason: '' });
   expect(lastScore()).toEqual({ completed: 1, aiWins: 0 });
   await game.tick();
   expect(lastScore()).toEqual({ completed: 1, aiWins: 0 });
@@ -610,7 +610,13 @@ test('unchanged lobby ticks reuse the aggregate until a result is saved', async 
     const { j, m } = await opening();
 
     expect(calls).toBe(1);
-    await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+
+    await game.handle(j.p, {
+      type: 'verdict',
+      choice: m.humanLabel === 'A' ? 'B' : 'A',
+      reason: '',
+    });
+
     expect(calls).toBe(2);
   } finally {
     store.score = original;
@@ -636,7 +642,11 @@ test('unseated sessions cannot discover or access matches', async () => {
 test('completed matches store only an outcome and are not rejoined after returning home', async () => {
   const { h, j, m } = await opening();
 
-  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'private explanation' });
+  await game.handle(j.p, {
+    type: 'verdict',
+    choice: m.humanLabel === 'A' ? 'B' : 'A',
+    reason: 'private explanation',
+  });
 
   expect(await store.db.query('SELECT * FROM match_outcomes')).toEqual([
     { id: m.id, ai_won: false },
