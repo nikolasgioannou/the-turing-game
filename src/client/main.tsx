@@ -706,17 +706,14 @@ function Room({
         (room.phase === 'verdict' || guessing ? ' verdict-chat' : '')
       }
     >
-      <RoomToolbar>
-        <Button variant="ghost" size="text" onClick={home}>
-          {!done && room.role !== 'spectator' ? 'Leave match' : '← Lobby'}
-        </Button>
-        <span className="eyebrow">MATCH {room.id.slice(0, 6).toUpperCase()}</span>
-        {done ? (
-          <Button variant="ghost" size="text" onClick={() => copy()}>
-            {copied ? 'Copied' : 'Copy replay link'}
+      {!done ? (
+        <RoomToolbar>
+          <Button variant="ghost" size="text" onClick={home}>
+            {room.role !== 'spectator' ? 'Leave match' : '← Lobby'}
           </Button>
-        ) : null}
-      </RoomToolbar>
+          <span className="eyebrow">MATCH {room.id.slice(0, 6).toUpperCase()}</span>
+        </RoomToolbar>
+      ) : null}
       <RoomTitle>
         <div>
           <p className="eyebrow">
