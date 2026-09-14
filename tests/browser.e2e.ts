@@ -382,7 +382,7 @@ test('home page shows creator links and a live score on desktop and mobile', asy
     'https://x.com/NikolasIoannou_',
   );
 
-  await expect(page.getByText(/No completed games yet\.|AI fooled the judge in/)).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Live game score' })).toBeVisible();
 
   for (const viewport of [
     { width: 1440, height: 1100 },

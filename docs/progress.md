@@ -644,3 +644,14 @@ completed games yet”; disconnected clients label the retained number “Last s
 Validation: typecheck, 29 unit/worker tests and build pass. Added aggregate and live-broadcast
 regressions, plus a passing desktop/mobile browser check for creator links, score and overflow. Both
 layouts were visually inspected. The idle Wi-Fi app was restarted to serve the new score.
+
+## Arcade score treatment
+
+Replaced the small score sentence with a compact arcade panel: a large judges-fooled percentage,
+exact match counts, a segmented meter and live/last-score status. Empty history shows a dash and “No
+completed games yet.” Removed the homepage “Conversations and results are saved” line at the owner's
+request, keeping the linked creator credits below the panel.
+
+Typecheck, build and the existing desktop/mobile homepage browser check pass. Visually inspected the
+populated 60% / 3-of-5 scoreboard and the mobile homepage after removing the footer sentence. This
+frontend change is served immediately by the running app; no game restart was needed.

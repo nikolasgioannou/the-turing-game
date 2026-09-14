@@ -333,9 +333,6 @@ function App() {
                 )}
               </Dialog>
             ) : null}
-            <p className="public-note my-5.5 text-center text-[11px] leading-[1.6] text-[#76898f] group-[.active-chat]/room:mt-0 group-[.active-chat]/room:mb-2.5 group-[.active-chat]/room:shrink-0 group-[.active-chat]/room:text-[11px] max-[640px]:text-[10px]">
-              Conversations and results are saved.
-            </p>
             <CreatorCredits />
           </>
         )}
