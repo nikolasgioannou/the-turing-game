@@ -1,6 +1,6 @@
 # The Turing Game
 
-A human and an AI compete to convince a human judge. A paired opening, then one minute of free group
+A human and an AI compete to convince a human judge. A paired opening, then 90 seconds of free group
 chat. Public spectators can guess, and completed games have permanent replay links.
 
 ## Local development
@@ -40,7 +40,8 @@ PLAYWRIGHT_BROWSERS_PATH="$PWD/.cache/ms-playwright" bun run playwright install 
 ```
 
 Do not use `--with-deps` without permission: that can install system packages. Browser profiles and
-caches are temporary/project-local. No live API calls happen in automated tests.
+caches are temporary/project-local. Unit tests use controlled completions; browser tests make real
+requests to the local model.
 
 A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.env`; use
 `PGLITE_PATH=./work/live-ai-postgres` to isolate its usage ledger. It prints the test prompts,
