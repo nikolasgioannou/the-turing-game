@@ -2,8 +2,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -18,32 +18,32 @@
           "id": "j",
           "from": "judge",
           "text": "what is love",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "ur mom",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "nah thats not it",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "inspired",
         "blind": true
       }
@@ -76,8 +76,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -92,32 +92,32 @@
           "id": "j",
           "from": "judge",
           "text": "what is love",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "ur mom",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "nah thats not it",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "blind": true
       }
@@ -150,8 +150,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -166,32 +166,32 @@
           "id": "j",
           "from": "judge",
           "text": "write a poem",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "I think love is about trust.",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "That is how I see it.",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "That is how I see it.",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "inspired",
         "hint": "accuse",
         "accuse": true,
@@ -227,8 +227,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -243,32 +243,32 @@
           "id": "j",
           "from": "judge",
           "text": "write a poem",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "I think love is about trust.",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "That is how I see it.",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "That is how I see it.",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "hint": "accuse",
         "accuse": true,
@@ -304,8 +304,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -320,24 +320,24 @@
           "id": "j",
           "from": "judge",
           "text": "what year was it",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "HELLOOOO!!!!",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "NOOOOO WAY",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.1,
@@ -368,8 +368,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -384,24 +384,24 @@
           "id": "j",
           "from": "judge",
           "text": "what year was it",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "HELLOOOO!!!!",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "NOOOOO WAY",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.9,
@@ -432,8 +432,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -448,32 +448,32 @@
           "id": "j",
           "from": "judge",
           "text": "explain how this works",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "😀😀 hey",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "yeah 🎉",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "yeah 🎉",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "blind": true
       }
@@ -482,7 +482,7 @@
     "text": "I don't really know, but that's extraordinary!",
     "expected": {
       "style_profile": "messages: 3 | words per message: avg 2, min 2, max 2 | starts with capital: 0/3 | lowercase 'i': no | ends with punctuation: 0/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 1 | emoji: 4 | '!': 0 | '?': 0 | multi-line: 0",
-      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"yeah 🎉\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- They use emoji sometimes.",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"yeah 🎉\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- They use emoji in about 2 of 2 messages, alongside words. Use emoji at that rate, never more.",
       "voice_samples": "> 😀😀 hey\n> yeah 🎉",
       "transcript": "[Judge, 30s ago] explain how this works\n[Player A, 25s ago] 😀😀 hey\n[Player A, 11s ago] yeah 🎉",
       "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
@@ -500,14 +500,14 @@
       "weird_traits": [],
       "type_time": 3.5,
       "typing_floor": 1003.769645390071,
-      "promptHash": "dfb296a27ba9ecbb48adbc7be2adf2aaed0f8564f887685a5e6c0a5015bf87cd"
+      "promptHash": "4806f7a22b823f7aa371c529cb6d10c3bf841dd7ff65226eca082bf580350173"
     }
   },
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -522,32 +522,32 @@
           "id": "j",
           "from": "judge",
           "text": "explain how this works",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "😀😀 hey",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "yeah 🎉",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "yeah 🎉",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "blind": true
       }
@@ -556,7 +556,7 @@
     "text": "I don't really know, but that's extraordinary!",
     "expected": {
       "style_profile": "messages: 3 | words per message: avg 2, min 2, max 2 | starts with capital: 0/3 | lowercase 'i': no | ends with punctuation: 0/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 1 | emoji: 4 | '!': 0 | '?': 0 | multi-line: 0",
-      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"yeah 🎉\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- They use emoji sometimes.",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"yeah 🎉\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- They use emoji in about 2 of 2 messages, alongside words. Use emoji at that rate, never more.",
       "voice_samples": "> 😀😀 hey\n> yeah 🎉",
       "transcript": "[Judge, 30s ago] explain how this works\n[Player A, 25s ago] 😀😀 hey\n[Player A, 11s ago] yeah 🎉",
       "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
@@ -574,14 +574,14 @@
       "weird_traits": [],
       "type_time": 3.5,
       "typing_floor": 1001.4154497354497,
-      "promptHash": "dfb296a27ba9ecbb48adbc7be2adf2aaed0f8564f887685a5e6c0a5015bf87cd"
+      "promptHash": "4806f7a22b823f7aa371c529cb6d10c3bf841dd7ff65226eca082bf580350173"
     }
   },
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -596,32 +596,32 @@
           "id": "j",
           "from": "judge",
           "text": "B is a bot",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "café très bon",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "je ne sais pas",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "hint": "accuse",
         "accuse": true,
@@ -657,8 +657,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -673,32 +673,32 @@
           "id": "j",
           "from": "judge",
           "text": "B is a bot",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "café très bon",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "je ne sais pas",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "inspired",
         "hint": "accuse",
         "accuse": true,
@@ -734,8 +734,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -750,18 +750,18 @@
           "id": "j",
           "from": "judge",
           "text": "what is love",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.1,
@@ -792,8 +792,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -808,18 +808,18 @@
           "id": "j",
           "from": "judge",
           "text": "what is love",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.9,
@@ -850,8 +850,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -866,26 +866,26 @@
           "id": "j",
           "from": "judge",
           "text": "write a poem",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "idk",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "blind": true
       }
@@ -918,8 +918,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -934,26 +934,26 @@
           "id": "j",
           "from": "judge",
           "text": "write a poem",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "idk",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "blind": true
       }
@@ -986,8 +986,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1002,32 +1002,32 @@
           "id": "j",
           "from": "judge",
           "text": "what year was it",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "i liek pizza",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "bc it tastes good",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "bc it tastes good",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "hint": "accuse",
         "accuse": true,
@@ -1063,8 +1063,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1079,32 +1079,32 @@
           "id": "j",
           "from": "judge",
           "text": "what year was it",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "i liek pizza",
-          "ts": 975.0
+          "ts": 975
         },
         {
           "id": "1",
           "from": "A",
           "text": "bc it tastes good",
-          "ts": 989.0
+          "ts": 989
         }
       ],
       "draft": "bc it tastes good",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "inspired",
         "hint": "accuse",
         "accuse": true,
@@ -1140,8 +1140,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1156,18 +1156,18 @@
           "id": "j",
           "from": "judge",
           "text": "explain how this works",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "hey\nhey\nhey",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.1,
@@ -1198,8 +1198,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1214,18 +1214,18 @@
           "id": "j",
           "from": "judge",
           "text": "explain how this works",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "hey\nhey\nhey",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.9,
@@ -1256,8 +1256,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1272,26 +1272,26 @@
           "id": "j",
           "from": "judge",
           "text": "B is a bot",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "jkfhskdjf",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "jkfhskdjf",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "inspired",
         "blind": true
       }
@@ -1324,8 +1324,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1340,26 +1340,26 @@
           "id": "j",
           "from": "judge",
           "text": "B is a bot",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "jkfhskdjf",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "jkfhskdjf",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "judge",
-        "stim_ts": 970.0,
-        "land_at": 1005.0,
+        "stim_ts": 970,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "inspired",
         "blind": true
       }
@@ -1392,8 +1392,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1408,26 +1408,26 @@
           "id": "j",
           "from": "judge",
           "text": "what is love",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "strengths",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "hint": "accuse",
         "accuse": true,
@@ -1463,8 +1463,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1479,26 +1479,26 @@
           "id": "j",
           "from": "judge",
           "text": "what is love",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "strengths",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": {
         "stim_from": "human",
-        "stim_ts": 980.0,
-        "land_at": 1005.0,
+        "stim_ts": 980,
+        "land_at": 1005,
         "msgs": null,
         "basis": "",
-        "gen_at": 0.0,
-        "type_secs": 0.0,
+        "gen_at": 0,
+        "type_secs": 0,
         "mode": "borrow",
         "hint": "accuse",
         "accuse": true,
@@ -1534,8 +1534,8 @@
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1550,25 +1550,25 @@
           "id": "j",
           "from": "judge",
           "text": "write a poem",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "💙",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "💙",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.1,
     "text": "I don't really know, but that's extraordinary!",
     "expected": {
       "style_profile": "messages: 2 | words per message: avg 1, min 1, max 1 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 2 | '!': 0 | '?': 0 | multi-line: 0",
-      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"💙\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- They use emoji sometimes.",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"💙\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- Their latest message is JUST an emoji. Reply with just an emoji too (a different one that fits the moment), no words at all.",
       "voice_samples": "> 💙",
       "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] 💙",
       "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
@@ -1586,14 +1586,14 @@
       "weird_traits": [],
       "type_time": 3.5,
       "typing_floor": 1003.769645390071,
-      "promptHash": "22facb01f915e631d3aae358d9f0a76fbec6c97d8c1411cff2376caf4df343c3"
+      "promptHash": "4260404eb838796934d5386337a6a19ee00e2d2e6686160c1af9aeaa4dfd1008"
     }
   },
   {
     "state": {
       "phase": "live",
-      "live_started": 950.0,
-      "ends_at": 1040.0,
+      "live_started": 950,
+      "ends_at": 1040,
       "names": {
         "judge": "Marc",
         "player": "Nik"
@@ -1608,25 +1608,25 @@
           "id": "j",
           "from": "judge",
           "text": "write a poem",
-          "ts": 970.0
+          "ts": 970
         },
         {
           "id": "0",
           "from": "A",
           "text": "💙",
-          "ts": 975.0
+          "ts": 975
         }
       ],
       "draft": "💙",
       "held_first": null,
-      "ai_last_sent": 960.0,
+      "ai_last_sent": 960,
       "plan": null
     },
     "random": 0.9,
     "text": "I don't really know, but that's extraordinary!",
     "expected": {
       "style_profile": "messages: 2 | words per message: avg 1, min 1, max 1 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 2 | '!': 0 | '?': 0 | multi-line: 0",
-      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"💙\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- They use emoji sometimes.",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"💙\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- Their latest message is JUST an emoji. Reply with just an emoji too (a different one that fits the moment), no words at all.",
       "voice_samples": "> 💙",
       "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] 💙",
       "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
@@ -1644,7 +1644,7 @@
       "weird_traits": [],
       "type_time": 3.5,
       "typing_floor": 1001.4154497354497,
-      "promptHash": "22facb01f915e631d3aae358d9f0a76fbec6c97d8c1411cff2376caf4df343c3"
+      "promptHash": "4260404eb838796934d5386337a6a19ee00e2d2e6686160c1af9aeaa4dfd1008"
     }
   }
 ]

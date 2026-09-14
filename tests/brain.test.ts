@@ -248,3 +248,71 @@ test('JSON parsing retains silence, bubble order and draft disclosure status', (
   expect(game.last_reveals).toBe(true);
   expect(game.parse('not json')).toBeNull();
 });
+
+test('an emoji-only human reply is mirrored with an emoji, even if the model insists on words', async () => {
+  const { game, calls } = setup(0.5);
+
+  Object.assign(game, {
+    phase: 'live',
+    live_started: 950,
+    ends_at: 1040,
+    ai_last_sent: 960,
+    human_label: 'B',
+    ai_label: 'A',
+    messages: [
+      { id: '1', from: 'judge', text: 'whats up', ts: 955 },
+      { id: '2', from: 'A', text: 'not much', ts: 960 },
+      { id: '3', from: 'B', text: '💙', ts: 970 },
+    ],
+  });
+
+  game.options.complete = async (params) => {
+    calls.push(params);
+
+    return '{"send":true,"messages":["haha love that"]}';
+  };
+
+  expect(game.humanEmojiOnly()).toBe(true);
+  expect(game.style_rules()).toContain('JUST an emoji');
+
+  const reply = await game.generate('message');
+
+  expect(reply).toHaveLength(1);
+  expect(game.emojiOnly(reply[0])).toBe(true);
+  expect(reply[0]).not.toBe('💙');
+  expect(calls.length).toBe(3);
+  expect(calls[1].messages[0].content).toContain('must be just an emoji');
+});
+
+test('emoji detection accepts skin tones and joiners and rejects words', () => {
+  const { game } = setup();
+
+  for (const text of ['💙', '😂😂', '👍🏽', '👩‍💻', ' 🔥 ']) expect(game.emojiOnly(text)).toBe(true);
+
+  for (const text of ['lol 😂', 'ok', '?', '']) expect(game.emojiOnly(text)).toBe(false);
+
+  expect(game.normalize('😭')).toBe('😭');
+});
+
+test('the bot only pokes a quiet judge after the human has done it first', () => {
+  const { game } = setup();
+
+  Object.assign(game, { human_label: 'B', ai_label: 'A' });
+
+  game.messages = [
+    { id: '1', from: 'judge', text: 'favorite food', ts: 900 },
+    { id: '2', from: 'B', text: 'pizza', ts: 905 },
+  ];
+
+  expect(game.humanNudged()).toBe(false);
+
+  game.messages.push({ id: '3', from: 'B', text: 'hello?', ts: 920 });
+  expect(game.humanNudged()).toBe(true);
+
+  game.messages = [
+    { id: '1', from: 'judge', text: 'favorite food', ts: 900 },
+    { id: '2', from: 'B', text: 'hello', ts: 902 },
+  ];
+
+  expect(game.humanNudged()).toBe(false);
+});

@@ -450,7 +450,8 @@ export class Game {
         this.ends_at &&
         this.ends_at - t > 20 &&
         this.nudges < 2 &&
-        !noNudge
+        !noNudge &&
+        this.humanNudged()
       ) {
         this.lull_nudged = true;
         this.nudges++;
@@ -901,6 +902,42 @@ export class Game {
     return !text || (this.test(C.REFUSAL_RE, text) && !this.test(C.SWEAR_RE, text)) ? null : text;
   }
 
+  isEmoji(c: string) {
+    return /\p{Extended_Pictographic}/u.test(c) || c.codePointAt(0)! > 0x2600;
+  }
+
+  emojiOnly(text: string) {
+    const t = text.replace(/[\s\uFE0F\u200D]/g, '');
+
+    return (
+      t.length > 0 && chars(t).every((c) => this.isEmoji(c) || /[\u{1F3FB}-\u{1F3FF}]/u.test(c))
+    );
+  }
+
+  // The newest thing the human sent (or is drafting) is just an emoji: that's the reply shape to mirror.
+  humanEmojiOnly() {
+    const newest = this.messages.findLast((m) => m.from !== this.ai_label);
+
+    if (this.draft && this.emojiOnly(this.draft)) return true;
+
+    return !!newest && newest.from === this.human_label && this.emojiOnly(newest.text);
+  }
+
+  // The human has poked a quiet Judge themselves this game; only then may the bot do the same.
+  humanNudged() {
+    const judgeTimes = this.messages.filter((m) => m.from === 'judge').map((m) => m.ts);
+
+    return this.messages.some(
+      (m) =>
+        m.from === this.human_label &&
+        m.text.trim().split(/\s+/).length <= 3 &&
+        /^(hello+|hi+|yo+|hey+|\?+|u there|you there|next( q(uestion)?)?|\.\.\.+)\W*$/i.test(
+          m.text.trim(),
+        ) &&
+        judgeTimes.some((jt) => m.ts - jt >= 6 && !judgeTimes.some((x) => x > jt && x < m.ts)),
+    );
+  }
+
   judge_asked_effort() {
     return this.test(C.EFFORT, this.messages.findLast((m) => m.from === 'judge')?.text ?? '');
   }
@@ -1262,7 +1299,7 @@ export class Game {
 
     if (caps >= 0.6) text = text.replace(/\bi\b/g, 'I');
 
-    if (text && !'.!?'.includes(text.slice(-1)) && this.random() < endp)
+    if (text && !'.!?'.includes(text.slice(-1)) && !this.emojiOnly(text) && this.random() < endp)
       text += /^(what|why|how|who|where|when|is|are|do|does|did|can|would|should|which)\b/i.test(
         text,
       )
@@ -1729,11 +1766,30 @@ export class Game {
         format('Messages are short, about %d words. Fragments are fine.', Math.max(1, round(avg))),
       );
 
-    rules.push(
-      chars(joined).some((c) => c.codePointAt(0)! > 0x2600)
-        ? 'They use emoji sometimes.'
-        : 'No emoji.',
-    );
+    const emojiMessages = samples.filter((x) => chars(x).some((c) => this.isEmoji(c))).length;
+    const emojiOnlyMessages = samples.filter((x) => this.emojiOnly(x)).length;
+
+    if (this.humanEmojiOnly())
+      rules.push(
+        'Their latest message is JUST an emoji. Reply with just an emoji too (a different one that fits the moment), no words at all.',
+      );
+    else if (emojiOnlyMessages)
+      rules.push(
+        format(
+          'They sometimes answer with only an emoji (%d of %d messages). Do the same about that often; a lone emoji is a complete reply for this person.',
+          emojiOnlyMessages,
+          n,
+        ),
+      );
+    else if (emojiMessages)
+      rules.push(
+        format(
+          'They use emoji in about %d of %d messages, alongside words. Use emoji at that rate, never more.',
+          emojiMessages,
+          n,
+        ),
+      );
+    else rules.push('No emoji.');
 
     return rules.map((r) => '- ' + r).join('\n');
   }
@@ -2077,6 +2133,22 @@ export class Game {
 
           clean = clean.filter((c) => !faked.includes(c));
         }
+      }
+
+      // The human just replied with only an emoji: a worded reply next to it is the tell.
+      if (this.humanEmojiOnly() && clean.length && !clean.every((c) => this.emojiOnly(c))) {
+        if (attempt < 2) {
+          prompt +=
+            '\n\nThe human answered with just an emoji. Yours must be just an emoji too (a different one that fits), no words.';
+
+          continue;
+        }
+
+        const theirs = new Set(
+          this._human_samples().flatMap((x) => chars(x).filter((c) => this.isEmoji(c))),
+        );
+
+        clean = [['😭', '💀', '😂', '👀', '🙃', '😐'].find((e) => !theirs.has(e)) ?? '😭'];
       }
 
       if (
