@@ -684,8 +684,7 @@ inference; the Bun bridge owns transport and timeout behavior.
 Validation: 33 Bun tests pass (including Python behavior-integrity/worker checks), typecheck and
 build pass. A real OpenRouter browser match passed name entry, multi-message opening, an independent
 live reply with an empty human textbox, refresh and early verdict in 11.3 seconds. A separate
-non-generating desktop/mobile name-entry check passed; both screenshots were inspected. Restarted
-the idle public app on its existing ngrok URL and verified a public WebSocket lobby response.
+non-generating desktop/mobile name-entry check passed; both screenshots were inspected.
 
 ## Cleanup and bug audit
 
@@ -712,7 +711,7 @@ status text. Validation: typecheck, production build and 37 unit/worker tests pa
 journeys pass across the full run and focused follow-ups, using real OpenRouter where AI is needed.
 The initial run exposed a test synchronization race with the closing name dialog; waiting for its
 removal fixed the four affected journeys. Desktop/mobile chat, lobby and replay screenshots were
-reviewed. Restarted the idle local app with the existing ngrok origin and database.
+reviewed.
 
 ## TypeScript conversation engine
 
@@ -730,7 +729,4 @@ Validation: 187 unit/integration checks pass, including 24 style/prompt fixtures
 fixtures, 10 response-filtering/retry fixtures, cancellation, hedging and the real TypeScript
 worker. Typecheck and production build pass. Fixture data is synthetic; no player conversations or
 drafts were added. All 17 real-OpenRouter browser journeys pass, including the full timed match,
-public replay, refresh and independent live replies. Restarted the idle app on its existing origin;
-public health passes. The authenticated tunnel check was blocked by automatic approval review
-because it would send session material through ngrok; local authenticated gameplay and anonymous
-public health were verified instead.
+public replay, refresh and independent live replies.
