@@ -474,3 +474,20 @@ awareness from unknown recent events. The frozen lab baseline remains unchanged.
 Typecheck and 25 focused AI tests pass, including a UTC New Year boundary. Two real local-model
 checks answered the year with 2026 and the date with Sept 14, matching UTC at execution time. No
 active matches were present before refreshing the port-3000 game server.
+
+## Private live typing context
+
+Prompt v22 can use a human contestant's unsent live-chat draft for wording habits and response
+intent. Client updates are capped at one per 300 ms and only sent from the human live composer, with
+a visible disclosure. Drafts do not trigger extra model calls. Each normal invocation gets a
+snapshot of the current draft; later edits do not rewrite an in-flight generation.
+
+Drafts remain in memory, expire after 15 seconds, and clear on send, deletion, disconnect or
+closure. They are excluded from room views, saved match data and DevTools capture. Hidden-draft
+instructions require an independent reply without copying or treating it as a public message;
+existing escaping and encoded-payload masking apply. No judge typing is shared.
+
+Validation: 54 focused game/AI tests (281 assertions), typecheck and build pass. Browser coverage
+confirms draft frames, clear updates, absence from judge chat, and mobile composer usability. A real
+local-model check with a competitive draft produced an independent short reply without tags. The
+idle Wi-Fi server was refreshed for the change.

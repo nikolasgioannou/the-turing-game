@@ -67,6 +67,7 @@ export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
   controllers = new Map<string, AbortController>();
+  private drafts = new Map<string, { text: string; peerId: string; expires: number }>();
   private pendingReplies = new Map<
     string,
     {
@@ -408,6 +409,20 @@ export class Game {
         return;
     }
 
+    if (c.type === 'draft') {
+      if (!m || this.role(m, p) !== 'human')
+        throw new ActionError('Only the human contestant can share a draft.');
+      // Ignore in-flight updates arriving after the chat closes.
+
+      if (m.phase !== 'chat') return;
+
+      if (c.text.trim())
+        this.drafts.set(m.id, { text: c.text, peerId: p.id, expires: this.now() + 15_000 });
+      else this.drafts.delete(m.id);
+
+      return;
+    }
+
     if (!m || ended(m.phase)) throw new ActionError('This match is no longer accepting actions.');
 
     const role = this.role(m, p);
@@ -445,6 +460,8 @@ export class Game {
 
         return;
       }
+
+      if (role === 'human') this.drafts.delete(m.id);
 
       m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
       // A person interrupts unsent lines. Reconsider against the complete new burst.
@@ -589,7 +606,11 @@ export class Game {
 
     attention.burstStarted = null;
 
+    const draft = this.drafts.get(m.id);
+    const opponentDraft = !opening && draft && draft.expires > this.now() ? draft.text : undefined;
+
     const input: AIInput = {
+      ...(opponentDraft ? { opponentDraft } : {}),
       label: m.humanLabel === 'A' ? 'B' : 'A',
       matchId: m.id,
       ...(!opening
@@ -764,6 +785,7 @@ export class Game {
   }
 
   async finish(m: Match, phase: Phase, message: string | null) {
+    this.drafts.delete(m.id);
     this.pendingReplies.delete(m.id);
     m.phase = phase;
     m.message = message;
@@ -775,6 +797,8 @@ export class Game {
   }
 
   async disconnect(p: Peer) {
+    if (p.roomId && this.drafts.get(p.roomId)?.peerId === p.id) this.drafts.delete(p.roomId);
+
     this.peers.delete(p.id);
 
     const m = p.roomId ? this.rooms.get(p.roomId) : undefined;
@@ -786,6 +810,8 @@ export class Game {
   }
 
   async expire(m: Match) {
+    this.drafts.delete(m.id);
+
     if (m.phase === 'chat') {
       this.pendingReplies.delete(m.id);
       m.phase = 'verdict';
@@ -806,6 +832,8 @@ export class Game {
   }
 
   async tick() {
+    for (const [id, draft] of this.drafts) if (draft.expires <= this.now()) this.drafts.delete(id);
+
     for (const m of this.rooms.values()) {
       if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline) await this.expire(m);
 

@@ -24,7 +24,9 @@ seats belong to a connected browser session.
 4. The judge, human, and AI may all post freely in one chronological group chat. They may respond to
    each other and introduce topics. Messages appear immediately as complete messages. There are no
    turns after the opening and no typing/streaming indicators. All posted messages are shared
-   context; unsent drafts are never transmitted.
+   context. During live chat, the human contestant also shares their current draft privately with
+   local AI context (disclosed beside the composer); it is never shown to other players or saved in
+   transcripts. Judge drafts are not transmitted.
 5. At the deadline, chat locks, pending AI work is cancelled and late output is discarded. The judge
    then chooses A or B as human, with optional reasoning. No early verdict. Identities and audience
    totals are revealed only after verdict and reasoning commit together.

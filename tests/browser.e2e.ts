@@ -209,6 +209,34 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
   await expect(j.getByText('im sam', { exact: true })).toBeVisible();
   await j.screenshot({ path: 'work/arcade-chat-desktop.png', fullPage: true });
   await h.setViewportSize({ width: 390, height: 844 });
+
+  await h.evaluate(() => {
+    const original = WebSocket.prototype.send;
+
+    (window as any).draftFrames = [];
+
+    WebSocket.prototype.send = function (data) {
+      if (typeof data === 'string') {
+        const command = JSON.parse(data);
+
+        if (command.type === 'draft') (window as any).draftFrames.push(command.text);
+      }
+
+      return original.call(this, data);
+    };
+  });
+
+  await expect(h.getByText(/Draft shared privately with AI/)).toBeVisible();
+  await expect(j.getByText(/Draft shared privately with AI/)).toHaveCount(0);
+  await h.getByLabel('Message the group').fill('private unfinished thought');
+
+  await expect
+    .poll(() => h.evaluate(() => (window as any).draftFrames.at(-1)))
+    .toBe('private unfinished thought');
+
+  await expect(j.getByRole('log')).not.toContainText('private unfinished thought');
+  await h.getByLabel('Message the group').fill('');
+  await expect.poll(() => h.evaluate(() => (window as any).draftFrames.at(-1))).toBe('');
   await expect(h.getByLabel('Message the group')).toBeInViewport();
   expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await h.screenshot({ path: 'work/arcade-chat-mobile.png', fullPage: true });

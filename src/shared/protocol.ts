@@ -35,6 +35,16 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('home') }),
   z.object({ type: z.literal('message'), text: text(LIMITS.answer) }),
   z.object({
+    type: z.literal('draft'),
+    text: z
+      .string()
+      .max(8000)
+      .refine(
+        (s) =>
+          characters(s) <= LIMITS.answer && new TextEncoder().encode(s).length <= LIMITS.answer * 4,
+      ),
+  }),
+  z.object({
     type: z.literal('verdict'),
     choice: z.enum(['A', 'B']),
     reason: z

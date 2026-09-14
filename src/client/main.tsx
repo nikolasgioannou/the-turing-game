@@ -15,6 +15,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   characters,
+  shorten,
   ended,
   LIMITS,
   type Command,
@@ -539,17 +540,45 @@ function Composer({
   label,
   limit,
   onSubmit,
+  onDraft,
   button,
   disabled = false,
 }: {
   label: string;
   limit: number;
   onSubmit: (text: string) => void;
+  onDraft?: (text: string) => void;
   button: string;
   disabled?: boolean;
 }) {
   const [value, setValue] = useState('');
   const input = useRef<HTMLTextAreaElement>(null);
+  const draftCallback = useRef(onDraft);
+  const draftValue = useRef(value);
+
+  draftCallback.current = onDraft;
+  draftValue.current = value;
+
+  const sharesDraft = !!onDraft && !disabled;
+
+  useEffect(() => {
+    if (!sharesDraft) return;
+
+    let last = '';
+    const timer = setInterval(() => {
+      const next = shorten(draftValue.current, limit);
+
+      if (next !== last) {
+        draftCallback.current?.(next);
+        last = next;
+      }
+    }, 300);
+
+    return () => {
+      clearInterval(timer);
+      draftCallback.current?.('');
+    };
+  }, [sharesDraft, limit]);
 
   useEffect(() => {
     input.current?.focus({ preventScroll: true });
@@ -565,6 +594,8 @@ function Composer({
         e.preventDefault();
 
         if (!disabled && value.trim() && count <= limit) {
+          draftCallback.current?.('');
+          draftValue.current = '';
           onSubmit(value);
           setValue('');
         }
@@ -595,6 +626,7 @@ function Composer({
           className={`col-span-full row-start-2 pl-1 text-[11px] ${count > limit ? 'text-[#ffab9c]' : count > limit - 30 ? 'text-[#e6c784]' : 'text-muted'}`}
         >
           {limit - count} characters remaining
+          {onDraft ? ' · Draft shared privately with AI' : null}
         </span>
         <Button
           type="submit"
@@ -818,6 +850,11 @@ function Room({
                   : room.phase === 'opening'
                     ? 'Submit opening reply'
                     : 'Send'
+              }
+              onDraft={
+                isHuman && room.phase === 'chat'
+                  ? (text) => send({ type: 'draft', text })
+                  : undefined
               }
               disabled={!connected}
             />

@@ -574,3 +574,62 @@ test('refresh restores the session seat and private opening without changing the
   await game.handle(returnJudge.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
   expect(m.phase).toBe('complete');
 });
+
+describe('private contestant drafts', () => {
+  test('only contestant drafts reach AI context and never broadcasts or saved matches', async () => {
+    const { h, j, m } = await opening();
+
+    await complete();
+
+    const spectator = await peer();
+
+    await game.handle(spectator.p, { type: 'watch', id: m.id });
+
+    const events = JSON.stringify([h.events, j.events, spectator.events]);
+    const requests = m.aiRequests;
+
+    await expect(game.handle(j.p, { type: 'draft', text: 'judge draft' })).rejects.toThrow();
+
+    await expect(
+      game.handle(spectator.p, { type: 'draft', text: 'spectator draft' }),
+    ).rejects.toThrow();
+
+    await game.handle(h.p, { type: 'draft', text: 'ur joking right' });
+    expect(m.aiRequests).toBe(requests);
+    expect(JSON.stringify([h.events, j.events, spectator.events])).toBe(events);
+    expect(JSON.stringify(await store.load(m.id))).not.toContain('ur joking right');
+    await game.handle(j.p, { type: 'message', text: 'what do you think' });
+    await game.generate(m);
+    expect(lastInput.opponentDraft).toBe('ur joking right');
+    expect(lastInput.messages.some((message) => message.text === 'ur joking right')).toBe(false);
+    await complete('no way');
+    await game.handle(h.p, { type: 'message', text: 'actually never mind' });
+    await game.generate(m);
+    expect(lastInput.opponentDraft).toBeUndefined();
+    await complete();
+  });
+
+  test('drafts clear on deletion, disconnect, timeout and chat closure', async () => {
+    const { h, m } = await opening();
+
+    await complete();
+    await game.handle(h.p, { type: 'draft', text: 'unfinished' });
+    await game.handle(h.p, { type: 'draft', text: '' });
+    expect(game['drafts'].has(m.id)).toBe(false);
+    await game.handle(h.p, { type: 'draft', text: 'unfinished' });
+    await game.disconnect(h.p);
+    expect(game['drafts'].has(m.id)).toBe(false);
+    await game.connect(h.p);
+    await game.handle(h.p, { type: 'draft', text: 'unfinished' });
+    clock += 15_001;
+    m.aiDueAt = null;
+    await game.tick();
+    expect(game['drafts'].has(m.id)).toBe(false);
+    await game.handle(h.p, { type: 'draft', text: 'unfinished' });
+    await game.expire(m);
+    expect(game['drafts'].has(m.id)).toBe(false);
+    await game.handle(h.p, { type: 'draft', text: 'late update' });
+    expect(game['drafts'].has(m.id)).toBe(false);
+    expect(commandSchema.safeParse({ type: 'draft', text: 'x'.repeat(501) }).success).toBe(false);
+  });
+});

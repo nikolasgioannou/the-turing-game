@@ -147,3 +147,12 @@ own their static Tailwind classes. Both game and feedback routes consume these c
 form/ARIA props are forwarded; submit buttons are explicit and the modal restores trigger focus. The
 stylesheet is limited to theme/font/global rules and custom arcade effects. Workspace VS Code
 settings associate CSS with the Tailwind language mode, with IntelliSense recommended locally.
+
+Live contestant drafts use a bounded `draft` WebSocket command, sampled by the client every 300 ms
+only while the human contestant's live-chat composer is enabled. The game authorizes the session and
+holds the latest draft outside Match in a transient map. No broadcast or persistence occurs. The
+snapshot is included only in normal AI invocations; typing does not schedule/cancel model calls.
+Drafts expire after 15 seconds without updates and clear on send, deletion, disconnect, chat closure
+or match finish. Model context escapes/masks draft text and explicitly marks it as unfinished and
+unseen. DevTools capture is disabled for invocations containing drafts, keeping unsent content out
+of traces. Existing opening behavior and the frozen lab baseline are unchanged.
