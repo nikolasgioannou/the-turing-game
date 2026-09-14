@@ -15,6 +15,7 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 FROM oven/bun:1.4.2-slim
+RUN apt-get update && apt-get install -y --no-install-recommends python3 tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
 COPY --from=production-dependencies /app/node_modules ./node_modules

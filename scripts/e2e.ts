@@ -1,17 +1,7 @@
 import { resolve } from 'node:path';
-import { localModelConfig } from '../src/server/local-model';
 
-try {
-  const response = await fetch(localModelConfig().baseURL.replace(/\/$/, '') + '/models', {
-    signal: AbortSignal.timeout(3000),
-  });
-
-  if (!response.ok) throw new Error('Model service unavailable');
-} catch {
-  console.error(
-    'Browser tests require the real local model. Start it with bun run ai:local, then retry.',
-  );
-
+if (!process.env.OPENROUTER_API_KEY) {
+  console.error('Browser journeys require OPENROUTER_API_KEY in .env.');
   process.exit(1);
 }
 

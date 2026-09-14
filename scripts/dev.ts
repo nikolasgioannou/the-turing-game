@@ -1,10 +1,10 @@
-// One local game server, using the real model. The model service runs separately.
+// Build and serve the game with OpenRouter.
 const build = Bun.spawn(['bun', 'run', 'build'], { stdio: ['inherit', 'inherit', 'inherit'] });
 
 if (await build.exited) process.exit(1);
 
 const port = process.env.DEV_PORT ?? '3000';
-const child = Bun.spawn(['bun', 'run', 'start:local'], {
+const child = Bun.spawn(['bun', 'run', 'start'], {
   stdio: ['inherit', 'inherit', 'inherit'],
   env: {
     ...process.env,

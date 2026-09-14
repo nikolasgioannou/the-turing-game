@@ -15,22 +15,16 @@
     "check": "bun run typecheck && bun test && bun run build",
     "test:e2e": "bun scripts/e2e.ts",
     "format": "bun scripts/format.ts",
-    "format:check": "bun scripts/format.ts --check",
-    "devtools": "bun node_modules/@ai-sdk/devtools/bin/cli.js",
-    "ai:local": "bun scripts/local-ai.ts",
-    "start:local": "bun scripts/local-ai.ts game"
+    "format:check": "bun scripts/format.ts --check"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "3.0.48",
     "@electric-sql/pglite": "0.5.8",
-    "ai": "7.0.99",
     "postgres": "3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "4.6.4"
   },
   "devDependencies": {
-    "@ai-sdk/devtools": "1.0.19",
     "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@types/bun": "1.4.2",

@@ -5,7 +5,8 @@ boundaries, and docs/progress.md when resuming work.
 
 ## Ownership and tools
 
-- Use Bun and TypeScript end to end, React for UI, Tailwind for styles, Fly for deployment.
+- Use Bun/TypeScript for the app, React/Tailwind for UI, Fly for deployment. The pinned reference
+  bot runs unchanged Python logic in a standard-library worker; OpenRouter handles inference.
 - Use the committed bun.lock. All dependencies, skills, downloaded tools, browser binaries and
   caches must remain under this project. No global installs/config changes without explicit
   permission.
@@ -35,10 +36,9 @@ boundaries, and docs/progress.md when resuming work.
 
 ## Product invariants
 
-- Paired opening, then a 90-second group chat. The clock starts at opening reveal. 90-second
-  opening/verdict action timeouts.
-- Opening: human submits privately; AI uses it only for style. Reveal both in random order together.
-  Then all three may post and respond freely. Cancel late AI replies at chat closure.
+- Follow the pinned reference bot opening: hold the human until AI reveal, or allow its early attack
+  from drafts / silence. The first AI reply starts 90-second group chat. Preserve the original
+  message order and all brain mechanics. Cancel late AI replies at chat closure.
 - Serialize explicit public views. Never send hidden answers, identity mapping, participant
   credentials, prompt, or early audience results to browsers.
 - Anonymous A/B assignments stay fixed. All rooms are publicly watchable; invite tokens reserve
@@ -60,7 +60,7 @@ boundaries, and docs/progress.md when resuming work.
   fast; use focused checks for changed interactions.
 - Test state transitions, authority checks, opening/identity secrecy, simultaneous opening reveal,
   chat deadline and pacing, usage exhaustion/races, stale AI completions, timeouts and disconnects.
-- Exercise real HTTP/WebSocket flows using the real local model for browser journeys. Unit tests may
+- Exercise real HTTP/WebSocket flows using real OpenRouter for browser journeys. Unit tests may
   inject controlled completions to verify state transitions and failures; no application mock mode
   or canned-response provider.
 - Review desktop/mobile UI, keyboard labels, focus and contrast. Test full journeys in isolated

@@ -176,7 +176,18 @@ test('mobile lobby has usable controls and no horizontal overflow', async ({ bro
 test('desktop lobby screenshot', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Start game', exact: true })).toBeEnabled();
+
+  const start = page.getByRole('button', { name: 'Start game', exact: true });
+
+  if (process.env.OPENROUTER_API_KEY) await expect(start).toBeEnabled();
+  else {
+    await expect(start).toBeDisabled();
+
+    await expect(
+      page.getByText('Set OPENROUTER_API_KEY in .env and restart the server.'),
+    ).toBeVisible();
+  }
+
   await page.screenshot({ path: 'work/lobby-desktop.png', fullPage: true });
 });
 
@@ -294,9 +305,12 @@ test('AI answers a shared live question before the human types', async ({ browse
   await j.getByLabel('Message the group').fill('whats the meaning of life');
   await j.getByRole('button', { name: 'Send', exact: true }).click();
 
-  await expect(
-    j.getByLabel('Group chat').getByText(`Contestant ${aiLabel}`, { exact: true }),
-  ).toHaveCount(2, { timeout: 25000 });
+  await expect
+    .poll(
+      () => j.getByLabel('Group chat').getByText(`Contestant ${aiLabel}`, { exact: true }).count(),
+      { timeout: 45000 },
+    )
+    .toBeGreaterThanOrEqual(2);
 
   await expect(h.getByLabel('Message the group')).toHaveValue('');
   await j.getByRole('button', { name: 'Make a guess' }).click();

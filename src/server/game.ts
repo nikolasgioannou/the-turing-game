@@ -1,6 +1,4 @@
-import { conversationOpportunity, humanCadence, type TypingDraft } from './conversation';
 import {
-  characters,
   commandSchema,
   ended,
   LIMITS,
@@ -11,7 +9,14 @@ import {
   type Role,
   type RoomView,
 } from '../shared/protocol';
-import { AIError, PROMPT_VERSION, SYSTEM_PROMPT, type AI, type AIInput } from './ai';
+import {
+  AIError,
+  PROMPT_VERSION,
+  SYSTEM_PROMPT,
+  type AI,
+  type BotSession,
+  type BotState,
+} from './ai';
 import { Store } from './store';
 
 export interface Peer {
@@ -45,13 +50,7 @@ export type Match = {
   messages: ChatMessage[];
   startedAt: number | null;
   openingHuman: string | null;
-  aiDueAt: number | null;
   aiRequests: number;
-  attention?: {
-    seenHumanIds: string[];
-    typingRates?: number[];
-    lastContribution: string;
-  };
   rounds?: Round[]; // Historical five-round replays only.
   votes: Record<string, Label>;
   choice: Label | null;
@@ -67,23 +66,7 @@ export class ActionError extends Error {}
 export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
-  controllers = new Map<string, AbortController>();
-  private drafts = new Map<string, TypingDraft>();
-  private draftRevision = 0;
-  private pendingReplies = new Map<
-    string,
-    {
-      lines: string[];
-      due: number;
-      sender: Label;
-      opening: boolean;
-      text: string;
-      charsPerSecond: number;
-      draftRevision?: number;
-      replyTo?: string;
-      published?: boolean;
-    }
-  >();
+  private bots = new Map<string, BotSession>();
   private serial: Promise<unknown> = Promise.resolve();
 
   constructor(
@@ -193,7 +176,11 @@ export class Game {
   }
 
   async lobby(peer?: Peer) {
-    const availability = await this.store.availability(this.now());
+    const capacity = await this.store.availability(this.now());
+    const unavailable = this.ai.unavailable?.();
+    const availability = unavailable
+      ? { ...capacity, available: false, message: unavailable }
+      : capacity;
     const rooms = [...this.rooms.values()]
       .filter((m) => !ended(m.phase) && m.phase !== 'waiting')
       .map((m) => ({
@@ -239,6 +226,10 @@ export class Game {
   }
 
   async available() {
+    const unavailable = this.ai.unavailable?.();
+
+    if (unavailable) throw new ActionError(unavailable);
+
     const state = await this.store.availability(this.now());
 
     if (!state.available) throw new ActionError(state.message!);
@@ -262,7 +253,6 @@ export class Game {
       messages: [],
       startedAt: null,
       openingHuman: null,
-      aiDueAt: null,
       aiRequests: 0,
       votes: {},
       choice: null,
@@ -420,34 +410,14 @@ export class Game {
     if (c.type === 'draft') {
       if (!m || this.role(m, p) !== 'human')
         throw new ActionError('Only the human contestant can share a draft.');
-      // Ignore in-flight updates arriving after the chat closes.
 
-      if (m.phase !== 'chat') return;
+      if (!['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase)) return;
 
-      const previous = this.drafts.get(m.id);
+      const bot = this.bot(m);
 
-      if (previous?.text === c.text || (!previous && !c.text.trim())) return;
+      if (c.hints) bot?.send({ type: 'hints', hints: c.hints });
 
-      if (c.text.trim()) {
-        const judgeId = [...m.messages].reverse().find((message) => message.sender === 'judge')?.id;
-
-        this.drafts.set(m.id, {
-          text: c.text,
-          peerId: p.id,
-          expires: this.now() + 15_000,
-          startedAt: previous && previous.judgeId === judgeId ? previous.startedAt : this.now(),
-          changedAt: this.now(),
-          revision: ++this.draftRevision,
-          judgeId,
-        });
-      } else this.drafts.delete(m.id);
-      // Invalidate unpublished draft-based work when the human revises it.
-
-      const pending = this.pendingReplies.get(m.id);
-
-      if (pending?.draftRevision !== undefined) this.pendingReplies.delete(m.id);
-
-      this.scheduleConversation(m);
+      bot?.send({ type: 'draft', text: c.text });
 
       return;
     }
@@ -463,14 +433,16 @@ export class Game {
       if (m.phase === 'ready' && role !== 'judge')
         throw new ActionError('The judge starts the chat.');
 
+      this.bot(m);
+
       if (m.phase === 'opening') {
         if (role !== 'human') throw new ActionError('Wait for the opening replies.');
 
         m.openingHuman = c.text;
         m.phase = 'opening_ai';
-        m.deadline = null;
+        m.deadline = this.now() + LIMITS.actionMs;
+        this.bot(m)?.send({ type: 'message', role: 'player', text: c.text });
         await this.persist(m);
-        await this.generate(m);
 
         return;
       }
@@ -485,36 +457,19 @@ export class Game {
         m.phase = 'opening';
         m.deadline = this.now() + LIMITS.actionMs;
         m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
+        this.bot(m)?.send({ type: 'message', role: 'judge', text: c.text });
         await this.persist(m);
 
         return;
       }
 
-      if (role === 'human') {
-        const draft = this.drafts.get(m.id);
-        const elapsed = draft ? this.now() - draft.startedAt : 0;
-
-        if (elapsed >= 500) {
-          const rates = (this.attention(m).typingRates ??= []);
-
-          rates.push(Math.max(2, Math.min(15, characters(c.text) / (elapsed / 1000))));
-
-          if (rates.length > 6) rates.shift();
-        }
-
-        this.drafts.delete(m.id);
-      }
-
       m.messages.push({ id: crypto.randomUUID(), sender, text: c.text, sentAt: this.now() });
-      // Preserve the first answer to an earlier turn while humans keep chatting.
-      // Draft-derived work and continuation lines can still become obsolete.
 
-      const pending = this.pendingReplies.get(m.id);
-
-      if (pending?.draftRevision !== undefined || pending?.published)
-        this.pendingReplies.delete(m.id);
-
-      this.scheduleConversation(m);
+      this.bot(m)?.send({
+        type: 'message',
+        role: role === 'human' ? 'player' : 'judge',
+        text: c.text,
+      });
 
       await this.persist(m);
     } else if (c.type === 'verdict') {
@@ -538,336 +493,144 @@ export class Game {
     }
   }
 
-  private attention(m: Match) {
-    return (m.attention ??= {
-      seenHumanIds: [],
-      lastContribution: '',
-    });
-  }
+  private bot(m: Match): BotSession | undefined {
+    const existing = this.bots.get(m.id);
 
-  private humanMessages(m: Match) {
-    return m.messages.filter(
-      (message) => message.sender === 'judge' || message.sender === m.humanLabel,
-    );
-  }
-
-  private scheduleConversation(m: Match) {
-    const opportunity = conversationOpportunity(
-      m.messages,
-      m.humanLabel,
-      this.drafts.get(m.id),
-      this.now(),
-    );
-
-    m.aiDueAt = opportunity ? Math.max(this.now(), opportunity.readyAt) : null;
-  }
-
-  private async deliverReply(m: Match) {
-    const pending = this.pendingReplies.get(m.id);
-
-    if (!pending || this.now() < pending.due) return;
-
-    if (
-      (!pending.opening && (m.phase !== 'chat' || this.now() >= m.deadline!)) ||
-      (pending.opening && m.phase !== 'opening_ai')
-    ) {
-      this.pendingReplies.delete(m.id);
-
-      return;
-    }
-
-    if (
-      pending.draftRevision !== undefined &&
-      this.drafts.get(m.id)?.revision !== pending.draftRevision
-    ) {
-      this.pendingReplies.delete(m.id);
-      this.scheduleConversation(m);
-
-      return;
-    }
-
-    pending.draftRevision = undefined;
-
-    const text = pending.lines.shift()!;
-    const sentAt = this.now();
-
-    if (pending.opening) {
-      const pair: ChatMessage[] = [
-        { id: crypto.randomUUID(), sender: m.humanLabel, text: m.openingHuman!, sentAt },
-        { id: crypto.randomUUID(), sender: pending.sender, text, sentAt },
-      ];
-
-      if (Math.random() < 0.5) pair.reverse();
-
-      m.messages.push(...pair);
-      m.openingHuman = null;
-      m.phase = 'chat';
-      m.startedAt = sentAt;
-      m.deadline = sentAt + LIMITS.chatMs;
-      this.attention(m).seenHumanIds = this.humanMessages(m).map((message) => message.id);
-      pending.opening = false;
-    } else {
-      m.messages.push({
-        id: crypto.randomUUID(),
-        sender: pending.sender,
-        text,
-        sentAt,
-        replyTo: pending.replyTo,
-      });
-    }
-
-    pending.published = true;
-    this.attention(m).lastContribution = pending.text;
-
-    if (pending.lines.length) {
-      pending.due =
-        sentAt +
-        250 +
-        Math.random() * 450 +
-        (characters(pending.lines[0]!) / pending.charsPerSecond) * 1000;
-
-      m.aiDueAt = null;
-    } else {
-      this.pendingReplies.delete(m.id);
-      this.scheduleConversation(m);
-    }
-
-    await this.persist(m);
-  }
-
-  async generate(m: Match) {
-    const opening = m.phase === 'opening_ai';
-
-    if (
-      (!opening && (m.phase !== 'chat' || this.now() >= m.deadline!)) ||
-      this.controllers.has(m.id) ||
-      this.pendingReplies.has(m.id) ||
-      m.aiRequests >= LIMITS.aiRequests
-    )
-      return;
-
-    const attention = this.attention(m);
-    const humanSnapshot = this.humanMessages(m).map((message) => message.id);
-    const unseen = this.humanMessages(m).filter(
-      (message) => !attention.seenHumanIds.includes(message.id),
-    );
-    const opportunity = opening
-      ? null
-      : conversationOpportunity(m.messages, m.humanLabel, this.drafts.get(m.id), this.now());
-
-    if (!opening && (!opportunity || opportunity.readyAt > this.now())) {
-      this.scheduleConversation(m);
-
-      return;
-    }
-
-    const opponentDraft = opportunity?.draft?.text;
-    const draftRevision = opportunity?.draft?.revision;
-    const cadence = humanCadence(m.messages, m.humanLabel, attention.typingRates);
-
-    const input: AIInput = {
-      ...(opponentDraft ? { opponentDraft } : {}),
-      label: m.humanLabel === 'A' ? 'B' : 'A',
-      matchId: m.id,
-      ...(!opening
-        ? {
-            invocation: {
-              reason:
-                opportunity?.target === 'judge'
-                  ? ('judge_message' as const)
-                  : ('opponent_message' as const),
-              target: opportunity!.target,
-              evidence: opportunity!.evidence,
-              observedResponseMs: cadence.responseMs,
-              newHumanMessages: unseen.length,
-            },
-          }
-        : {}),
-      messages: m.messages.map(({ sender, text }) => ({ sender, text })),
-      ...(opening ? { privateOpeningReference: m.openingHuman! } : {}),
-    };
-    let requestId: string;
+    if (existing) return existing;
 
     try {
-      requestId = await this.store.beginRequest(m.id, {
-        model: this.ai.model,
-        promptVersion: PROMPT_VERSION,
-        messageCount: m.messages.length,
-        request: m.aiRequests + 1,
-        trigger: opening ? 'opening' : input.invocation?.reason,
-        newHumanMessageIds: unseen.map((message) => message.id),
+      const bot = this.ai.start(m.id, m.humanLabel, {
+        state: (state) => {
+          void this.run(() => this.receiveBot(m, state));
+        },
+        reserve: (bound) =>
+          this.run(async () => {
+            if (
+              !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase) ||
+              (m.deadline !== null && this.now() >= m.deadline)
+            )
+              throw new AIError('match_closed');
+
+            try {
+              const id = await this.store.beginRequest(
+                m.id,
+                { model: this.ai.model, promptVersion: PROMPT_VERSION, request: ++m.aiRequests },
+                bound,
+              );
+
+              return id;
+            } catch {
+              await this.finish(
+                m,
+                'failed',
+                'AI capacity was exhausted. This match was not counted.',
+              );
+
+              throw new AIError('capacity');
+            }
+          }),
+        settle: (id, usage, metadata) =>
+          this.run(() => this.store.settleRequest(id, usage, metadata)),
+        failed: (error) => {
+          void this.run(async () => {
+            if (ended(m.phase) || m.phase === 'verdict') return;
+
+            await this.finish(m, 'failed', 'The AI is unavailable. This match was not counted.');
+
+            console.error(
+              'Bot unavailable:',
+              error instanceof AIError ? error.code : 'worker_error',
+            );
+          });
+        },
       });
-    } catch {
-      await this.finish(m, 'failed', 'The AI could not start. This match was not counted.');
+
+      this.bots.set(m.id, bot);
+
+      return bot;
+    } catch (error) {
+      throw new ActionError(error instanceof AIError ? error.code : 'Could not start the AI.');
+    }
+  }
+
+  private async receiveBot(m: Match, state: BotState) {
+    if (ended(m.phase) || m.phase === 'verdict') return;
+
+    if (m.deadline !== null && this.now() >= m.deadline) {
+      await this.expire(m);
 
       return;
     }
 
-    m.aiRequests++;
-    m.aiDueAt = null;
+    let changed = false;
 
-    const controller = new AbortController();
+    if (state.phase === 'live' && m.phase !== 'chat') {
+      m.phase = 'chat';
+      m.startedAt = Math.round(state.startedAt! * 1000);
+      m.deadline = Math.round(state.endsAt! * 1000);
+      changed = true;
+    }
+    // A submitted opening may reach the worker just after its early attack.
+    // Retain it until the worker confirms publication, rather than dropping it.
 
-    this.controllers.set(m.id, controller);
+    if (state.phase === 'live' && m.openingHuman !== null) {
+      const held = state.messages.find((message) => message.from === m.humanLabel);
 
-    const timer = setTimeout(() => controller.abort(), 30_000);
-    const invokedAt = this.now();
-    const charsPerSecond = (cadence.charsPerSecond ?? 7) * (0.85 + Math.random() * 0.3);
-    const thinkingMs =
-      cadence.responseMs === undefined
-        ? 800 + Math.random() * 1600
-        : Math.max(300, Math.min(4000, cadence.responseMs * (0.2 + Math.random() * 0.1)));
-    // Generation runs outside the serialized command queue, allowing disconnects and other games.
+      if (held) {
+        m.messages.push({
+          id: held.id,
+          sender: m.humanLabel,
+          text: held.text,
+          sentAt: Math.round(held.ts * 1000),
+        });
 
-    void this.ai
-      .complete(input, controller.signal)
-      .then((result) =>
-        this.run(async () => {
-          await this.store.settleRequest(requestId, result.usage, {
-            provider: result.provider,
-            model: result.model,
-            requestId: result.requestId,
-            status: 'ok',
-          });
+        m.openingHuman = null;
+        changed = true;
+      }
+    }
 
-          const lines = result.text
-            .split(/\r\n|[\n\r]/u)
-            .map((line) => line.trim())
-            .filter(Boolean);
-          const firstLine = lines[0] ?? '';
-
-          if (opening && m.phase === 'opening_ai') {
-            if (result.text === '[WAIT]') {
-              await this.finish(m, 'failed', 'The AI did not answer. This match was not counted.');
-
-              return;
-            }
-
-            this.pendingReplies.set(m.id, {
-              lines,
-              sender: input.label,
-              opening: true,
-              text: result.text,
-              charsPerSecond,
-              due: invokedAt + thinkingMs + (characters(firstLine) / charsPerSecond) * 1000,
-            });
-
-            await this.deliverReply(m);
-
-            return;
-          }
-
-          if (m.phase !== 'chat') return;
-
-          if (this.now() >= m.deadline!) {
-            await this.expire(m);
-
-            return;
-          }
-          // Never publish a draft composed before an intervening human message.
-
-          const currentHumanIds = this.humanMessages(m).map((message) => message.id);
-
-          if (draftRevision !== undefined && currentHumanIds.at(-1) !== humanSnapshot.at(-1)) {
-            // The message handler has already scheduled reconsideration after the burst.
-            await this.persist(m);
-
-            return;
-          }
-
-          if (draftRevision !== undefined && this.drafts.get(m.id)?.revision !== draftRevision) {
-            this.scheduleConversation(m);
-            await this.persist(m);
-
-            return;
-          }
-
-          attention.seenHumanIds = humanSnapshot;
-
-          const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ').toLocaleLowerCase();
-          const duplicate = normalize(result.text) === normalize(attention.lastContribution);
-
-          if (result.text === '[WAIT]' || duplicate || !firstLine) {
-            // Declining to speak must not start another idle polling loop.
-            m.aiDueAt = null;
-          } else {
-            this.pendingReplies.set(m.id, {
-              lines,
-              sender: input.label,
-              opening: false,
-              draftRevision,
-              replyTo: opportunity?.key,
-              text: result.text,
-              charsPerSecond,
-              due: invokedAt + thinkingMs + (characters(firstLine) / charsPerSecond) * 1000,
-            });
-
-            m.aiDueAt = null;
-            await this.deliverReply(m);
-          }
-
-          await this.persist(m);
-        }),
+    for (const message of state.messages) {
+      if (
+        message.from === 'judge' ||
+        message.from === m.humanLabel ||
+        m.messages.some((existing) => existing.id === message.id)
       )
-      .catch((error) =>
-        this.run(async () => {
-          await this.store.settleRequest(requestId, null, {
-            status: 'failed',
-            code: error instanceof AIError ? error.code : 'unknown',
-          });
+        continue;
 
-          if (m.phase !== 'chat' && m.phase !== 'opening_ai') return;
-
-          if (m.phase === 'chat' && this.now() >= m.deadline!) {
-            await this.expire(m);
-
-            return;
-          }
-
-          await this.store.pause(
-            'The AI is temporarily unavailable. Please try again later.',
-            error instanceof AIError ? error.retryMs : 60_000,
-          );
-
-          await this.finish(
-            m,
-            'failed',
-            'The AI is temporarily unavailable. This match was not counted.',
-          );
-        }),
-      )
-      .finally(() => {
-        clearTimeout(timer);
-        this.controllers.delete(m.id);
-      })
-      .catch(() => {
-        // A storage failure must not leave a live room waiting indefinitely.
-        m.phase = 'failed';
-        m.deadline = null;
-        m.message = 'The game service is unavailable. This match was not counted.';
-        this.broadcast(m);
-
-        console.error(
-          'Could not persist AI finalization; startup recovery will retain the conservative charge.',
-        );
+      m.messages.push({
+        id: message.id,
+        sender: message.from,
+        text: message.text,
+        sentAt: Math.round(message.ts * 1000),
       });
+
+      changed = true;
+    }
+
+    if (state.phase === 'voting') {
+      await this.expire(m);
+
+      return;
+    }
+
+    if (changed) await this.persist(m);
+  }
+
+  private stopBot(m: Match) {
+    this.bots.get(m.id)?.stop();
+    this.bots.delete(m.id);
   }
 
   async finish(m: Match, phase: Phase, message: string | null) {
-    this.drafts.delete(m.id);
-    this.pendingReplies.delete(m.id);
     m.phase = phase;
     m.message = message;
-    m.aiDueAt = null;
     m.deadline = null;
-    this.controllers.get(m.id)?.abort();
+    this.stopBot(m);
     await this.store.release(m.id);
     await this.persist(m);
   }
 
   async disconnect(p: Peer) {
-    if (p.roomId && this.drafts.get(p.roomId)?.peerId === p.id) this.drafts.delete(p.roomId);
-
     this.peers.delete(p.id);
 
     const m = p.roomId ? this.rooms.get(p.roomId) : undefined;
@@ -879,14 +642,10 @@ export class Game {
   }
 
   async expire(m: Match) {
-    this.drafts.delete(m.id);
-
     if (m.phase === 'chat') {
-      this.pendingReplies.delete(m.id);
       m.phase = 'verdict';
       m.deadline = this.now() + LIMITS.actionMs;
-      m.aiDueAt = null;
-      this.controllers.get(m.id)?.abort();
+      this.stopBot(m);
       await this.store.release(m.id);
       await this.persist(m);
     } else {
@@ -901,15 +660,8 @@ export class Game {
   }
 
   async tick() {
-    for (const [id, draft] of this.drafts) if (draft.expires <= this.now()) this.drafts.delete(id);
-
     for (const m of this.rooms.values()) {
       if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline) await this.expire(m);
-
-      await this.deliverReply(m);
-
-      if (m.phase === 'chat' && m.aiDueAt !== null && this.now() >= m.aiDueAt)
-        await this.generate(m);
 
       if (ended(m.phase) && ![...this.peers.values()].some((p) => p.roomId === m.id))
         this.rooms.delete(m.id);

@@ -591,3 +591,36 @@ copy explicitly identifies what the original judge selected. Existing outcomes a
 Validation: 61 unit tests, typecheck and build pass, including both A/B assignments and legacy
 scoring. Real-model browser checks cover early verdict, an independent live answer, and persistent
 composer.
+
+## OpenRouter and pinned reference bot — 2026-09-14
+
+Replaced local inference and the custom conversation controller with the bot from
+mbaghadjian/turing-game at 3c09d6b9515c57837863617f874952ee2f173e7d. The original Python brain runs
+in an isolated standard-library worker. Its prompts and all retained class members are pinned by
+source-parity hashes. Forty-six methods are unchanged; three only remove mock/transport typing
+references. The Bun bridge changes the provider wire format to OpenRouter's Claude Haiku 4.5, routed
+to Anthropic, and retains the reference's token limits, disabled thinking, hedges, retries, style
+analysis and timing. Exact output/network latency is not claimed.
+
+The reference now owns opening attacks, paired publication, independent live answers, draft-based
+plans, accusations/nudges and multi-message delivery. Removed old scheduler/prompt transformations,
+local model adapter/launcher/downloader/requirements/skill, and AI SDK/DevTools dependencies. The
+human draft debounce is 120 ms and includes opening; browser clock/device hints use the reference
+fields. Unsent drafts and style cards stay out of database/public views/logs, but go to OpenRouter
+with the user's explicit approval. Worker credentials remain in Bun only.
+
+Preserved app sessions, refresh recovery, public replay secrecy, early verdict, AI-guess scoring,
+message/action limits and daily budgets. Replaced the fixed ten-call ceiling with atomically bounded
+per-request top-ups so retries, hedges and analyst calls all count. Late messages are rejected after
+closure; opening submissions racing an early attack are retained until published.
+
+Validation: typecheck, 27 Bun tests (including seven Python source/behavior tests and an actual
+worker opening/live exchange with controlled HTTP), and production build pass. Two browser checks
+pass: missing-key lobby display and cross-origin WebSocket rejection. The lobby was visually
+inspected. The initial screenshot check expected an enabled Start button; it was updated to cover
+the deliberate missing-key state. No paid OpenRouter requests or full live-model browser journeys
+were run because OPENROUTER_API_KEY remains empty. The owner must add it and restart.
+
+Stopped the project's MLX service on 8080 after checking the game had no active matches. Restarted
+the app at http://192.168.1.192:3000 with the OpenRouter path and existing data/wifi database.
+Historical progress entries above describe superseded implementations. Fly remains undeployed.

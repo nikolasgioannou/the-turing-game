@@ -18,7 +18,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'bun scripts/local-ai.ts game',
+    command: 'bun src/server/index.ts',
     url: 'http://localhost:3100/api/health',
     reuseExistingServer: false,
     env: {

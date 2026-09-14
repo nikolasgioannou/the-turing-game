@@ -248,4 +248,4 @@ async function stop() {
 
 process.on('SIGTERM', stop);
 process.on('SIGINT', stop);
-console.log(`The Turing Game listening on ${server.url} (live AI)`);
+console.log(`The Turing Game listening on ${server.url} (OpenRouter)`);

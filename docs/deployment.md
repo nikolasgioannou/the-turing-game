@@ -26,9 +26,8 @@ implemented. App restarts end active matches as technical failures.
 2. Create the approved app and Managed Postgres cluster; attach its database so Fly provides
    `DATABASE_URL`. Use Fly's current `fly mpg --help` and official create/attach docs; never
    provision legacy unmanaged Fly Postgres by mistake.
-3. Deployment is paused: the app requires a local loopback model service on its host. The current
-   Mac MLX setup is not provisioned on Fly. No hosted-provider credentials or fallback are
-   configured.
+3. Set OPENROUTER_API_KEY as a Fly secret. The container includes Python 3 and timezone data for the
+   reference bot worker; model inference uses OpenRouter only.
 4. Run local checks and `fly config validate`. Use a remote builder if Docker is not installed
    locally. No global Docker install is necessary.
 5. Deploy with one machine. Check logs and `/api/health`, confirm real PostgreSQL schema/data, and
@@ -38,16 +37,11 @@ implemented. App restarts end active matches as technical failures.
 
 ## Usage model
 
-Per-day input and output ceilings are app-owned, independently of the local model. Each match
-reserves 200,000 input + 2,560 output tokens (40,000/512 per round). This is deliberately
-conservative: no more than five maximum-reservation matches can begin concurrently at the initial
-input cap. Actual reported usage releases the difference. Unused rounds release their reservation at
-termination; unknown/failed request usage stays charged at its maximum.
-
-Reservations belong to the UTC day on which the match is admitted. A match finishing after midnight
-consumes its prior-day allowance. Daily resets never release capacity belonging to running games. A
-maximum of five requests per match and fixed per-request output limits bound consumption. Adding
-retries or another tokenizer requires updating reservations and tests first.
+Daily token caps are enforced atomically. Initial admission reserves 75,000 input / 5,120 output
+tokens; each provider attempt reserves its actual conservative input-byte bound and 400 chat / 500
+analyst output tokens, topping up only within the daily cap. Retries and hedges count separately.
+Unknown/canceled usage remains conservatively charged; measured usage reconciles it. Reservations
+stay on the admission UTC day. Chat closure releases unused capacity and cancels workers/requests.
 
 ## Operational commands
 
@@ -62,10 +56,9 @@ bun scripts/ops.ts resume-ai
 `resume-ai` clears the provider circuit after credits/credentials/provider outage are fixed. It does
 not bypass token caps. No user-facing admin controls.
 
-Provider authentication/credit errors pause new games for 24 hours (or until operator resume);
-transient provider errors pause for a minute. In-flight failed games preserve transcripts and do not
-count as wins. If the daily allowance is exhausted, viewing and replay still work, and matchmaking
-explains the reset time.
+Provider authentication/credit failures end the affected match as a technical failure. Transient
+completion failures retain the reference's retry/fallback behavior. Exhausted daily capacity blocks
+new admission and new requests, while replays remain available.
 
 ## Limitations to keep explicit
 

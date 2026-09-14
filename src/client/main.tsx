@@ -549,31 +549,25 @@ function Composer({
   const [value, setValue] = useState('');
   const input = useRef<HTMLTextAreaElement>(null);
   const draftCallback = useRef(onDraft);
-  const draftValue = useRef(value);
 
   draftCallback.current = onDraft;
-  draftValue.current = value;
 
-  const sharesDraft = !!onDraft && !sendBlocked;
+  const sharesDraft = !!onDraft;
 
   useEffect(() => {
     if (!sharesDraft) return;
 
-    let last = '';
-    const timer = setInterval(() => {
-      const next = shorten(draftValue.current, limit);
+    const timer = setTimeout(() => draftCallback.current?.(shorten(value, limit)), 120);
 
-      if (next !== last) {
-        draftCallback.current?.(next);
-        last = next;
-      }
-    }, 300);
+    return () => clearTimeout(timer);
+  }, [sharesDraft, value, limit]);
 
-    return () => {
-      clearInterval(timer);
+  useEffect(
+    () => () => {
       draftCallback.current?.('');
-    };
-  }, [sharesDraft, limit]);
+    },
+    [],
+  );
 
   useEffect(() => {
     input.current?.focus({ preventScroll: true });
@@ -589,7 +583,6 @@ function Composer({
         e.preventDefault();
 
         if (!sendBlocked && value.trim() && count <= limit) {
-          draftValue.current = '';
           onSubmit(value);
           setValue('');
         }
@@ -906,8 +899,8 @@ function Room({
                 send({ type: 'message', text });
               }}
               onDraft={
-                isHuman && room.phase === 'chat'
-                  ? (text) => send({ type: 'draft', text })
+                isHuman && ['ready', 'opening', 'opening_ai', 'chat'].includes(room.phase)
+                  ? (text) => send({ type: 'draft', text, hints: deviceHints() })
                   : undefined
               }
               sendBlocked={!canSend}
@@ -1025,3 +1018,31 @@ function Room({
 }
 
 createRoot(document.getElementById('root')!).render(<App />);
+
+// Same browser context supplied by the reference client; never used as identity.
+function deviceHints() {
+  const ua = navigator.userAgent || '';
+  let tz = '';
+
+  try {
+    tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {}
+
+  const d = new Date();
+
+  return {
+    mobile: String(/iPhone|Android|iPad|Mobile/i.test(ua)),
+    tz,
+    localTime: d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    day: d.toLocaleDateString([], { weekday: 'long' }),
+    platform: /iPhone/.test(ua)
+      ? 'iPhone'
+      : /Android/.test(ua)
+        ? 'Android phone'
+        : /Mac/.test(ua)
+          ? 'Mac'
+          : /Windows/.test(ua)
+            ? 'Windows PC'
+            : 'computer',
+  };
+}

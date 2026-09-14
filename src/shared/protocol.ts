@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const LIMITS = {
   chatMs: 90_000,
-  aiRequests: 10,
   messagesPerPerson: 30,
   question: 300,
   answer: 500,
@@ -36,6 +35,15 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('message'), text: text(LIMITS.answer) }),
   z.object({
     type: z.literal('draft'),
+    hints: z
+      .object({
+        mobile: z.string().max(40),
+        tz: z.string().max(40),
+        localTime: z.string().max(40),
+        day: z.string().max(40),
+        platform: z.string().max(40),
+      })
+      .optional(),
     text: z
       .string()
       .max(8000)

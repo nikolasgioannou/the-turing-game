@@ -1,10 +1,9 @@
-import { LIMITS } from '../shared/protocol';
 import type { Database } from './database';
 
 export const INPUT_PER_REQUEST = 7_500,
   OUTPUT_PER_REQUEST = 512;
-export const MATCH_INPUT = INPUT_PER_REQUEST * LIMITS.aiRequests,
-  MATCH_OUTPUT = OUTPUT_PER_REQUEST * LIMITS.aiRequests;
+export const MATCH_INPUT = 75_000,
+  MATCH_OUTPUT = 5_120;
 
 export type Allowance = { input: number; output: number };
 
@@ -115,7 +114,11 @@ export class Store {
     });
   }
 
-  async beginRequest(matchId: string, metadata: unknown) {
+  async beginRequest(
+    matchId: string,
+    metadata: unknown,
+    bound: Allowance = { input: INPUT_PER_REQUEST, output: OUTPUT_PER_REQUEST },
+  ) {
     const id = crypto.randomUUID();
 
     await this.db.transaction(async (tx) => {
@@ -123,26 +126,51 @@ export class Store {
         matchId,
       ]);
 
+      if (!r) throw new Error('No reserved AI capacity.');
+
       if (
-        !r ||
-        Number(r.input_left) < INPUT_PER_REQUEST ||
-        Number(r.output_left) < OUTPUT_PER_REQUEST
+        !Number.isSafeInteger(bound.input) ||
+        !Number.isSafeInteger(bound.output) ||
+        bound.input <= 0 ||
+        bound.output <= 0
       )
-        throw new Error('No reserved AI capacity.');
+        throw new Error('Invalid request allowance.');
+
+      const extraInput = Math.max(0, bound.input - Number(r.input_left));
+      const extraOutput = Math.max(0, bound.output - Number(r.output_left));
+      const [day] = await tx.query<any>('SELECT * FROM daily_usage WHERE day=$1 FOR UPDATE', [
+        r.day,
+      ]);
+
+      if (
+        Number(day.input_used) + Number(day.input_reserved) + extraInput > this.caps.input ||
+        Number(day.output_used) + Number(day.output_reserved) + extraOutput > this.caps.output
+      )
+        throw new Error('No daily AI capacity.');
+
+      await tx.query(
+        'UPDATE reservations SET input_left=input_left+$2,output_left=output_left+$3 WHERE id=$1',
+        [matchId, extraInput, extraOutput],
+      );
+
+      await tx.query(
+        'UPDATE daily_usage SET input_reserved=input_reserved+$2,output_reserved=output_reserved+$3 WHERE day=$1',
+        [r.day, extraInput, extraOutput],
+      );
 
       await tx.query(
         'UPDATE reservations SET input_left=input_left-$2,output_left=output_left-$3 WHERE id=$1',
-        [matchId, INPUT_PER_REQUEST, OUTPUT_PER_REQUEST],
+        [matchId, bound.input, bound.output],
       );
 
       await tx.query(
         'UPDATE daily_usage SET input_reserved=input_reserved-$2,output_reserved=output_reserved-$3,input_used=input_used+$2,output_used=output_used+$3 WHERE day=$1',
-        [r.day, INPUT_PER_REQUEST, OUTPUT_PER_REQUEST],
+        [r.day, bound.input, bound.output],
       );
 
       await tx.query(
         'INSERT INTO ai_requests(id,match_id,day,input_tokens,output_tokens,metadata) VALUES($1,$2,$3,$4,$5,$6::jsonb)',
-        [id, matchId, r.day, INPUT_PER_REQUEST, OUTPUT_PER_REQUEST, JSON.stringify(metadata)],
+        [id, matchId, r.day, bound.input, bound.output, JSON.stringify(metadata)],
       );
     });
 
