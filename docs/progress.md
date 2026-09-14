@@ -390,3 +390,7 @@ Validation: all 201 unit/integration tests, typecheck and build pass. Browser re
 ## Production release: bot identification
 
 GitHub Actions run 34899228657 deployed commit ac8d1a0 successfully. Production now includes either-role friend invitations, direct bot opinions, the bot-identification objective and focused guessing controls. CI formatting, all 201 tests, typecheck, build and Fly health checks passed. The public HTTPS health endpoint returns 200, and the served client asset contains the updated lobby, verdict and result copy. No production games or score records were created during release verification.
+
+## Stable homepage score loading
+
+The score card renders immediately with a loading placeholder instead of appearing after lobby data arrives. Reserved number width and text height keep its layout stable; incoming results fade in and meter colors transition, with reduced-motion support. Typecheck, production build and a local browser regression pass. The browser check verifies identical card position and height before/after loading at 390px and 1280px widths without creating games or making model calls. Not deployed.

@@ -249,7 +249,7 @@ function App() {
                   {lobby.availability.message}
                 </p>
               ) : null}
-              {lobby?.score ? <LiveScore score={lobby.score} connected={connected} /> : null}
+              <LiveScore score={lobby?.score} connected={connected} />
               <ArcadeStage />
             </section>
             {instructionsOpen ? <HowToPlay onClose={() => setInstructionsOpen(false)} /> : null}

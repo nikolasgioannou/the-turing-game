@@ -758,3 +758,37 @@ test('either role creates a friend invitation with complementary seats', async (
     await friendContext.close();
   }
 });
+
+test('live score reserves its layout while loading', async ({ page }) => {
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await page.route('**/api/session', async (route) => {
+      await gate;
+      await route.continue();
+    });
+
+    await page.goto('/');
+
+    const score = page.getByRole('region', { name: 'Live game score' });
+
+    await expect(score).toHaveAttribute('aria-busy', 'true');
+
+    const loading = await score.boundingBox();
+
+    release();
+    await expect(score).toHaveAttribute('aria-busy', 'false');
+
+    const loaded = await score.boundingBox();
+
+    expect(loaded?.height).toBe(loading?.height);
+    expect(loaded?.y).toBe(loading?.y);
+    await page.screenshot({ path: `work/score-loaded-${width}.png` });
+    await page.unroute('**/api/session');
+  }
+});
