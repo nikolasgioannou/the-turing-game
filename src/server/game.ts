@@ -507,7 +507,7 @@ export class Game {
 
       await this.persist(m);
     } else if (c.type === 'verdict') {
-      if (role !== 'judge' || m.phase !== 'verdict')
+      if (role !== 'judge' || !['chat', 'verdict'].includes(m.phase))
         throw new ActionError('The verdict is not available yet.');
 
       m.choice = c.choice;

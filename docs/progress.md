@@ -516,3 +516,15 @@ produced "nope" and an ambiguous-game draft produced "depends on the game", but 
 acknowledged an unseen refusal or copied a short uncertainty phrase. Scheduling is deterministic;
 semantic imitation by this model is not solved or claimed reliable. Conservative routing can miss
 ambiguous peer-directed remarks. Further model-quality work should use actual gameplay feedback.
+
+## Early judge verdicts
+
+The judge can open the verdict form during live chat using Make a guess, return to chat without
+submitting, or submit to end the match immediately. The opening still completes before guessing is
+available. Final verdict and optional reason persist together; early completion locks all messaging
+and audience votes, cancels pending AI output and releases unused capacity through the existing
+finish path. The normal deadline-driven verdict flow is unchanged.
+
+Validation: 58 unit tests, typecheck and build pass. A real-model browser journey verifies opening
+availability, returning to chat, choosing a contestant and immediate shared reveal. Server coverage
+checks authorization, durable verdict/reason, vote/message locking and late AI suppression.

@@ -665,3 +665,34 @@ test('shared questions wait for stable draft evidence and discard revised genera
   expect(m.messages.some((message) => message.text.includes('stale'))).toBe(false);
   expect(m.aiDueAt).toBeNull();
 });
+
+test('early judge verdict finishes atomically and rejects late AI output and votes', async () => {
+  const { h, j, m } = await opening();
+
+  await expect(game.handle(j.p, { type: 'verdict', choice: 'A' })).rejects.toThrow();
+  await complete('pizza');
+
+  const spectator = await peer();
+
+  await game.handle(spectator.p, { type: 'watch', id: m.id });
+  await game.handle(spectator.p, { type: 'vote', choice: 'A' });
+  await game.handle(h.p, { type: 'message', text: 'why did you say that?' });
+  clock = m.aiDueAt! + 1;
+  await game.tick();
+  expect(game.controllers.has(m.id)).toBe(true);
+  await expect(game.handle(h.p, { type: 'verdict', choice: 'A' })).rejects.toThrow();
+  await expect(game.handle(spectator.p, { type: 'verdict', choice: 'A' })).rejects.toThrow();
+
+  const count = m.messages.length;
+
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'Ready to guess' });
+  expect(m.phase).toBe('complete');
+  expect(m.deadline).toBeNull();
+  expect(game.view(m).result?.humanWon).toBe(true);
+  expect(game.view(m).result?.reason).toBe('Ready to guess');
+  expect((await store.load<Match>(m.id))?.phase).toBe('complete');
+  await expect(game.handle(spectator.p, { type: 'vote', choice: 'B' })).rejects.toThrow();
+  await expect(game.handle(h.p, { type: 'message', text: 'late' })).rejects.toThrow();
+  await complete('late AI');
+  expect(m.messages).toHaveLength(count);
+});

@@ -28,8 +28,9 @@ seats belong to a connected browser session.
    local AI context (disclosed beside the composer); it is never shown to other players or saved in
    transcripts. Judge drafts are not transmitted.
 5. At the deadline, chat locks, pending AI work is cancelled and late output is discarded. The judge
-   then chooses A or B as human, with optional reasoning. No early verdict. Identities and audience
-   totals are revealed only after verdict and reasoning commit together.
+   then chooses A or B as human, with optional reasoning. The judge may also submit a verdict during
+   live chat, ending it immediately. Identities and audience totals are revealed only after verdict
+   and reasoning commit together.
 6. Permanent public replay shows the transcript and result. Historical five-round replays remain
    readable; unrevealed historical answers remain private.
 

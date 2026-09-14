@@ -649,6 +649,7 @@ function Room({
 }) {
   const [choice, setChoice] = useState<Label | null>(null),
     [reason, setReason] = useState(''),
+    [guessing, setGuessing] = useState(false),
     [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -702,7 +703,7 @@ function Room({
         (!done && room.phase !== 'waiting'
           ? 'active-chat flex h-full min-h-0 flex-col pt-3.5'
           : 'pt-7 pb-[calc(48px+env(safe-area-inset-bottom,0px))]') +
-        (room.phase === 'verdict' ? ' verdict-chat' : '')
+        (room.phase === 'verdict' || guessing ? ' verdict-chat' : '')
       }
     >
       <RoomToolbar>
@@ -823,7 +824,7 @@ function Room({
         >
           {(isJudge && room.phase === 'ready') ||
           (isHuman && room.phase === 'opening') ||
-          ((isJudge || isHuman) && room.phase === 'chat') ? (
+          ((isHuman || (isJudge && !guessing)) && room.phase === 'chat') ? (
             <Composer
               key={room.phase === 'opening' ? 'opening' : 'chat'}
               label={
@@ -852,7 +853,7 @@ function Room({
               }
               disabled={!connected}
             />
-          ) : isJudge && room.phase === 'verdict' ? (
+          ) : isJudge && (room.phase === 'verdict' || (room.phase === 'chat' && guessing)) ? (
             <form
               className="verdict-form [&_h2]:mb-2 [&_h2]:text-base [&_h2]:font-medium [&_label]:mb-1.5 [&_label]:block [&_label]:text-[13px] [&_textarea]:block [&_textarea]:h-16 [&_textarea]:min-h-16 [&_textarea]:w-full [&_textarea]:resize-none [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:text-base [&_textarea]:leading-[1.6]"
               onSubmit={(e) => {
@@ -861,7 +862,19 @@ function Room({
                 if (choice) send({ type: 'verdict', choice, reason });
               }}
             >
-              <h2>Who is human?</h2>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2>Who is human?</h2>
+                {room.phase === 'chat' ? (
+                  <Button variant="ghost" size="text" onClick={() => setGuessing(false)}>
+                    Back to chat
+                  </Button>
+                ) : null}
+              </div>
+              {room.phase === 'chat' ? (
+                <p className="mb-3 text-xs text-muted">
+                  Submitting ends the chat and reveals both contestants.
+                </p>
+              ) : null}
               <div className="choice-row flex flex-wrap gap-2.5 group-[.verdict-chat]/room:mb-3.5">
                 {(['A', 'B'] as Label[]).map((label) => (
                   <ChoiceButton
@@ -906,6 +919,17 @@ function Room({
                 : status}
             </p>
           )}
+          {isJudge && room.phase === 'chat' && !guessing ? (
+            <Button
+              className="mt-2"
+              variant="secondary"
+              size="compact"
+              disabled={!connected}
+              onClick={() => setGuessing(true)}
+            >
+              Make a guess
+            </Button>
+          ) : null}
           {room.role === 'spectator' ? (
             <div className="spectator-vote mt-2 flex items-center justify-between gap-5 border-t border-[#414d37] pt-2.5 max-[700px]:flex-col max-[700px]:items-start [&_h2]:mb-2 [&_h2]:text-[17px] [&_h2]:font-medium [&_p]:m-0 [&_p]:text-sm [&_p]:leading-[1.6] [&_p]:text-[#a3b098]">
               <div>

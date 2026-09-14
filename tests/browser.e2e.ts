@@ -251,3 +251,25 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
   await humanContext.close();
   await judgeContext.close();
 });
+
+test('judge can return to chat or submit an early guess', async ({ browser }) => {
+  const { h, j, humanContext, judgeContext } = await participants(browser);
+
+  await expect(j.getByRole('button', { name: 'Make a guess' })).toHaveCount(0);
+  await j.getByLabel('Ask the opening question').fill('favorite food?');
+  await j.getByRole('button', { name: 'Ask both contestants' }).click();
+  await h.getByLabel('Write your opening reply').fill('pasta');
+  await h.getByRole('button', { name: 'Submit opening reply' }).click();
+  await j.getByRole('button', { name: 'Make a guess' }).click();
+  await expect(j.getByRole('button', { name: 'Submit verdict & reveal' })).toBeDisabled();
+  await j.getByRole('button', { name: 'Back to chat' }).click();
+  await expect(j.getByLabel('Message the group')).toBeVisible();
+  await j.getByRole('button', { name: 'Make a guess' }).click();
+  await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
+  await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
+  await expect(j.getByRole('heading', { name: /was human/ })).toBeVisible();
+  await expect(h.getByRole('heading', { name: /was human/ })).toBeVisible();
+  await expect(h.getByLabel('Message the group')).toHaveCount(0);
+  await humanContext.close();
+  await judgeContext.close();
+});
