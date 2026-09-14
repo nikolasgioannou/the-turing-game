@@ -62,7 +62,17 @@ export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
   controllers = new Map<string, AbortController>();
-  private pendingReplies = new Map<string, { lines: string[]; due: number; sender: Label }>();
+  private pendingReplies = new Map<
+    string,
+    {
+      lines: string[];
+      due: number;
+      sender: Label;
+      opening: boolean;
+      text: string;
+      charsPerSecond: number;
+    }
+  >();
   private serial: Promise<unknown> = Promise.resolve();
   constructor(
     public store: Store,
@@ -78,10 +88,22 @@ export class Game {
   }
   async connect(peer: Peer) {
     this.peers.set(peer.id, peer);
+    // Seats belong to the authenticated browser session, not a transient socket.
+    const match = [...this.rooms.values()].find(
+      (m) => !ended(m.phase) && this.role(m, peer) !== 'spectator',
+    );
+    if (match) {
+      peer.roomId = match.id;
+      peer.send({ type: 'room', data: this.view(match, peer) });
+    }
     await this.lobby(peer);
   }
   role(m: Match, p: Peer): Role | 'spectator' {
-    return m.humanPeer === p.id ? 'human' : m.judgePeer === p.id ? 'judge' : 'spectator';
+    return m.humanSession === p.session
+      ? 'human'
+      : m.judgeSession === p.session
+        ? 'judge'
+        : 'spectator';
   }
   count(m: Match) {
     return new Set(
@@ -158,7 +180,7 @@ export class Game {
     for (const p of peer ? [peer] : this.peers.values())
       p.send({
         type: 'lobby',
-        data: { rooms, availability, queued: p.queue ?? null, mock: this.ai.mock },
+        data: { rooms, availability, queued: p.queue ?? null },
       });
   }
   broadcast(m: Match) {
@@ -171,15 +193,18 @@ export class Game {
     await this.lobby();
   }
   activeSession(p: Peer) {
-    return [...this.peers.values()].some(
-      (other) =>
-        other.id !== p.id &&
-        other.session === p.session &&
-        (other.queue ||
-          (other.roomId &&
-            this.rooms.has(other.roomId) &&
-            !ended(this.rooms.get(other.roomId)!.phase) &&
-            this.role(this.rooms.get(other.roomId)!, other) !== 'spectator')),
+    return (
+      [...this.rooms.values()].some((m) => !ended(m.phase) && this.role(m, p) !== 'spectator') ||
+      [...this.peers.values()].some(
+        (other) =>
+          other.id !== p.id &&
+          other.session === p.session &&
+          (other.queue ||
+            (other.roomId &&
+              this.rooms.has(other.roomId) &&
+              !ended(this.rooms.get(other.roomId)!.phase) &&
+              this.role(this.rooms.get(other.roomId)!, other) !== 'spectator')),
+      )
     );
   }
   async available() {
@@ -290,7 +315,12 @@ export class Game {
       }
       case 'home':
       case 'watch': {
-        if (m && !ended(m.phase) && this.role(m, p) !== 'spectator')
+        if (
+          m &&
+          !ended(m.phase) &&
+          this.role(m, p) !== 'spectator' &&
+          !(c.type === 'watch' && c.id === m.id)
+        )
           throw new ActionError('Leave your match before opening another page.');
         p.queue = undefined;
         if (c.type === 'home') {
@@ -391,11 +421,47 @@ export class Game {
   private scheduleSilence(m: Match) {
     m.aiDueAt = this.attention(m).silenceUsed ? null : this.now() + 8000 + Math.random() * 4000;
   }
-  private queueReplyLines(m: Match, sender: Label, lines: string[]) {
-    if (!lines.length) return;
-    const delay = Math.min(3500, Math.max(650, 400 + characters(lines[0]!) * 45));
-    this.pendingReplies.set(m.id, { lines, sender, due: this.now() + delay });
-    m.aiDueAt = null;
+  private async deliverReply(m: Match) {
+    const pending = this.pendingReplies.get(m.id);
+    if (!pending || this.now() < pending.due) return;
+    if (
+      (!pending.opening && (m.phase !== 'chat' || this.now() >= m.deadline!)) ||
+      (pending.opening && m.phase !== 'opening_ai')
+    ) {
+      this.pendingReplies.delete(m.id);
+      return;
+    }
+    const text = pending.lines.shift()!;
+    const sentAt = this.now();
+    if (pending.opening) {
+      const pair: ChatMessage[] = [
+        { id: crypto.randomUUID(), sender: m.humanLabel, text: m.openingHuman!, sentAt },
+        { id: crypto.randomUUID(), sender: pending.sender, text, sentAt },
+      ];
+      if (Math.random() < 0.5) pair.reverse();
+      m.messages.push(...pair);
+      m.openingHuman = null;
+      m.phase = 'chat';
+      m.startedAt = sentAt;
+      m.deadline = sentAt + LIMITS.chatMs;
+      this.attention(m).seenHumanIds = this.humanMessages(m).map((message) => message.id);
+      pending.opening = false;
+    } else {
+      m.messages.push({ id: crypto.randomUUID(), sender: pending.sender, text, sentAt });
+    }
+    this.attention(m).lastContribution = pending.text;
+    if (pending.lines.length) {
+      pending.due =
+        sentAt +
+        250 +
+        Math.random() * 450 +
+        (characters(pending.lines[0]!) / pending.charsPerSecond) * 1000;
+      m.aiDueAt = null;
+    } else {
+      this.pendingReplies.delete(m.id);
+      this.scheduleSilence(m);
+    }
+    await this.persist(m);
   }
   async generate(m: Match) {
     const opening = m.phase === 'opening_ai';
@@ -455,6 +521,9 @@ export class Game {
     const controller = new AbortController();
     this.controllers.set(m.id, controller);
     const timer = setTimeout(() => controller.abort(), 30_000);
+    const invokedAt = this.now();
+    const thinkingMs = 800 + Math.random() * 1600;
+    const charsPerSecond = 5 + Math.random() * 4;
     // Generation runs outside the serialized command queue, allowing disconnects and other games.
     void this.ai
       .complete(input, controller.signal)
@@ -470,28 +539,21 @@ export class Game {
             .split(/\r\n|[\n\r]/u)
             .map((line) => line.trim())
             .filter(Boolean);
-          const firstLine = lines.shift() ?? '';
+          const firstLine = lines[0] ?? '';
           if (opening && m.phase === 'opening_ai') {
             if (result.text === '[WAIT]') {
               await this.finish(m, 'failed', 'The AI did not answer. This match was not counted.');
               return;
             }
-            const sentAt = this.now();
-            const pair: ChatMessage[] = [
-              { id: crypto.randomUUID(), sender: m.humanLabel, text: m.openingHuman!, sentAt },
-              { id: crypto.randomUUID(), sender: input.label, text: firstLine, sentAt },
-            ];
-            if (Math.random() < 0.5) pair.reverse();
-            m.messages.push(...pair);
-            m.openingHuman = null;
-            m.phase = 'chat';
-            m.startedAt = sentAt;
-            m.deadline = sentAt + LIMITS.chatMs;
-            attention.seenHumanIds = this.humanMessages(m).map((message) => message.id);
-            attention.lastContribution = result.text;
-            this.scheduleSilence(m);
-            this.queueReplyLines(m, input.label, lines);
-            await this.persist(m);
+            this.pendingReplies.set(m.id, {
+              lines,
+              sender: input.label,
+              opening: true,
+              text: result.text,
+              charsPerSecond,
+              due: invokedAt + thinkingMs + (characters(firstLine) / charsPerSecond) * 1000,
+            });
+            await this.deliverReply(m);
             return;
           }
           if (m.phase !== 'chat') return;
@@ -514,15 +576,16 @@ export class Game {
             attention.silenceUsed = true;
             m.aiDueAt = null;
           } else {
-            attention.lastContribution = result.text;
-            m.messages.push({
-              id: crypto.randomUUID(),
+            this.pendingReplies.set(m.id, {
+              lines,
               sender: input.label,
-              text: firstLine,
-              sentAt: this.now(),
+              opening: false,
+              text: result.text,
+              charsPerSecond,
+              due: invokedAt + thinkingMs + (characters(firstLine) / charsPerSecond) * 1000,
             });
-            this.scheduleSilence(m);
-            this.queueReplyLines(m, input.label, lines);
+            m.aiDueAt = null;
+            await this.deliverReply(m);
           }
           await this.persist(m);
         }),
@@ -577,9 +640,8 @@ export class Game {
   async disconnect(p: Peer) {
     this.peers.delete(p.id);
     const m = p.roomId ? this.rooms.get(p.roomId) : undefined;
-    if (m && !ended(m.phase) && this.role(m, p) !== 'spectator')
-      await this.finish(m, 'abandoned', 'A player disconnected. This match was not counted.');
-    else if (m) this.broadcast(m);
+    // Transport loss never changes match state, deadlines or pending AI work.
+    if (m) this.broadcast(m);
     await this.lobby();
   }
   async expire(m: Match) {
@@ -604,20 +666,7 @@ export class Game {
   async tick() {
     for (const m of this.rooms.values()) {
       if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline) await this.expire(m);
-      const pending = this.pendingReplies.get(m.id);
-      if (m.phase === 'chat' && pending && this.now() >= pending.due) {
-        const text = pending.lines.shift()!;
-        m.messages.push({
-          id: crypto.randomUUID(),
-          sender: pending.sender,
-          text,
-          sentAt: this.now(),
-        });
-        this.pendingReplies.delete(m.id);
-        this.scheduleSilence(m);
-        this.queueReplyLines(m, pending.sender, pending.lines);
-        await this.persist(m);
-      }
+      await this.deliverReply(m);
       if (m.phase === 'chat' && m.aiDueAt !== null && this.now() >= m.aiDueAt)
         await this.generate(m);
       if (ended(m.phase) && ![...this.peers.values()].some((p) => p.roomId === m.id))

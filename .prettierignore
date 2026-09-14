@@ -10,3 +10,8 @@ skills-lock.json
 .env*
 
 .devtools/
+
+.venv/
+models/
+test-results/
+playwright-report/

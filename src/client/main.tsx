@@ -1,3 +1,4 @@
+import { FeedbackLab } from './lab';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -28,10 +29,11 @@ function App() {
     [startOpen, setStartOpen] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
+  const cancelledInvite = useRef<string | null>(null);
   const send = (command: Command) => {
     setError(null);
     if (ws.current?.readyState !== WebSocket.OPEN) {
-      setError('Connection lost. Return to the lobby to start again.');
+      setError('Connection lost. Reconnecting to your match…');
       return;
     }
     ws.current.send(JSON.stringify(command));
@@ -40,6 +42,13 @@ function App() {
     let stopped = false;
     let socket: WebSocket | undefined;
     let heartbeat: ReturnType<typeof setInterval>;
+    let retry: ReturnType<typeof setTimeout>;
+    let attempts = 0;
+    function reconnect() {
+      if (stopped) return;
+      clearTimeout(retry);
+      retry = setTimeout(() => void start(), Math.min(1000 * 2 ** attempts++, 10000));
+    }
     async function start() {
       try {
         const response = await fetch('/api/session');
@@ -50,21 +59,30 @@ function App() {
         );
         ws.current = socket;
         socket.onopen = () => {
+          if (stopped) return;
+          attempts = 0;
           setConnected(true);
-          heartbeat = setInterval(() => socket?.send(JSON.stringify({ type: 'ping' })), 15_000);
-          if (initial.current) {
-            socket!.send(JSON.stringify(initial.current));
+          setError(null);
+          heartbeat = setInterval(() => {
+            if (socket?.readyState === WebSocket.OPEN)
+              socket.send(JSON.stringify({ type: 'ping' }));
+          }, 15_000);
+          const restore = initial.current ?? pathCommand();
+          if (restore) {
+            socket!.send(JSON.stringify(restore));
             initial.current = null;
           }
         };
         socket.onmessage = (e) => {
+          if (stopped) return;
           const event: Event = JSON.parse(e.data);
           if (event.type === 'lobby') {
             setLobby(event.data);
             setJoining(false);
           } else if (event.type === 'room') {
+            if (event.data.id === cancelledInvite.current) return;
             setRoom(event.data);
-            setStartOpen(false);
+            setStartOpen(event.data.phase === 'waiting' && event.data.role !== 'spectator');
             setJoining(false);
             if (location.pathname !== `/match/${event.data.id}`)
               history.replaceState(null, '', `/match/${event.data.id}`);
@@ -75,22 +93,27 @@ function App() {
           }
         };
         socket.onclose = () => {
-          setConnected(false);
-          setStartOpen(false);
           clearInterval(heartbeat);
-          if (!stopped) setError('Connection lost. If you were playing, the match has ended.');
+          if (stopped) return;
+          setConnected(false);
+          setError('Connection lost. Reconnecting to your match…');
+          reconnect();
         };
         socket.onerror = () => {
-          setError('Unable to connect. Please try again.');
+          socket?.close();
         };
       } catch {
-        setError('Unable to reach the game. Please try again.');
+        if (stopped) return;
+        setConnected(false);
+        setError('Unable to reach the game. Retrying…');
+        reconnect();
       }
     }
     void start();
     return () => {
       stopped = true;
       clearInterval(heartbeat);
+      clearTimeout(retry);
       socket?.close();
     };
   }, []);
@@ -107,13 +130,23 @@ function App() {
     setInviteRole(false);
     send({ type: invite ? 'create' : 'queue', role });
   };
+  const waitingInvite = room?.phase === 'waiting' && room.role !== 'spectator';
+  const cancelInvite = (close = false) => {
+    if (room) cancelledInvite.current = room.id;
+    send({ type: 'leave' });
+    setRoom(null);
+    setStartOpen(!close);
+    setInviteRole(true);
+    setJoining(false);
+    history.replaceState(null, '', '/');
+  };
   return (
     <div className="app-shell">
       {error ? (
         <div role="alert" className="error-banner">
           {error}
           {!connected ? (
-            <button onClick={() => location.assign('/')}>Return to lobby</button>
+            <button onClick={() => location.reload()}>Retry now</button>
           ) : (
             <button aria-label="Dismiss error" onClick={() => setError(null)}>
               ×
@@ -122,19 +155,19 @@ function App() {
         </div>
       ) : null}
       <main>
-        {room ? (
+        {room && !waitingInvite ? (
           <Room room={room} send={send} home={home} connected={connected} />
         ) : (
           <>
             <section className="compact-lobby arcade-lobby">
               <div className="cabinet-top">
                 <span>HUMAN VS MACHINE</span>
-                <span>60 SECOND SHOWDOWN</span>
+                <span>90 SECOND SHOWDOWN</span>
               </div>
               <h1 className="arcade-logo">
                 <span>THE</span>TURING GAME
               </h1>
-              <p className="arcade-tagline">One human. One AI. Sixty seconds.</p>
+              <p className="arcade-tagline">One human. One AI. Ninety seconds.</p>
               <div className="lobby-actions">
                 <button
                   className="button primary"
@@ -153,17 +186,26 @@ function App() {
                 </p>
               ) : null}
               <ArcadeStage />
+              <a href="/lab" className="text-button">
+                Help improve the AI →
+              </a>
             </section>
             {startOpen ? (
               <StartDialog
                 close={() => {
+                  if (waitingInvite) {
+                    cancelInvite(true);
+                    return;
+                  }
                   if (joining || lobby?.queued) send({ type: 'cancel' });
                   setJoining(false);
                   setStartOpen(false);
                   setInviteRole(false);
                 }}
               >
-                {joining || lobby?.queued ? (
+                {waitingInvite && room ? (
+                  <InviteWaiting room={room} cancel={() => cancelInvite()} />
+                ) : joining || lobby?.queued ? (
                   <>
                     <p className="eyebrow">MATCHMAKING</p>
                     <h2>Finding an opponent</h2>
@@ -232,6 +274,46 @@ function App() {
           </>
         )}
       </main>
+    </div>
+  );
+}
+function InviteWaiting({ room, cancel }: { room: RoomView; cancel: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const link = `${location.origin}/#invite=${room.inviteToken}`;
+  return (
+    <div className="invite-waiting">
+      <p className="eyebrow">INVITE A FRIEND</p>
+      <h2>Invite your opponent</h2>
+      <p className="muted">
+        Share this link with your {room.openRole === 'judge' ? 'judge' : 'human opponent'}.
+      </p>
+      <input
+        aria-label="Invitation link"
+        readOnly
+        value={link}
+        onFocus={(e) => e.currentTarget.select()}
+      />
+      <div className="invite-actions">
+        <button
+          className="button primary"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(link);
+              setCopied(true);
+            } catch {
+              setCopied(false);
+            }
+          }}
+        >
+          {copied ? 'Copied' : 'Copy invitation'}
+        </button>
+        <button className="button secondary" onClick={cancel}>
+          Cancel
+        </button>
+      </div>
+      <p className="muted" role="status">
+        Waiting for your opponent to join…
+      </p>
     </div>
   );
 }
@@ -501,7 +583,7 @@ function Room({
     room.phase === 'ready'
       ? 'The judge sends the opening question.'
       : room.phase === 'opening' || room.phase === 'opening_ai'
-        ? 'Opening replies will appear together. Then the minute starts.'
+        ? 'Opening replies will appear together. Then the 90-second chat starts.'
         : room.phase === 'chat'
           ? 'Chat is live.'
           : room.phase === 'verdict'
@@ -512,7 +594,13 @@ function Room({
                 ? 'The verdict is in'
                 : 'Match ended';
   return (
-    <div className={'room-page ' + (!done && room.phase !== 'waiting' ? 'active-chat' : '')}>
+    <div
+      className={
+        'room-page ' +
+        (!done && room.phase !== 'waiting' ? 'active-chat' : '') +
+        (room.phase === 'verdict' ? ' verdict-chat' : '')
+      }
+    >
       <div className="room-topline">
         <button className="text-button" onClick={home}>
           {!done && room.role !== 'spectator' ? 'Leave match' : '← Lobby'}
@@ -555,7 +643,7 @@ function Room({
         <div className="waiting-panel">
           <p>
             Share this invitation with your {room.openRole === 'judge' ? 'judge' : 'human opponent'}
-            . Both opening replies appear together, then the one-minute chat starts.
+            . Both opening replies appear together, then the 90-second chat starts.
           </p>
           {room.inviteToken ? (
             <>
@@ -626,11 +714,6 @@ function Room({
                   {message.sender === 'judge' ? 'J' : message.sender}
                 </span>
                 <span>{message.sender === 'judge' ? 'Judge' : `Contestant ${message.sender}`}</span>
-                {room.result && message.sender !== 'judge' ? (
-                  <span className="identity">
-                    {room.result.humanLabel === message.sender ? 'HUMAN' : 'AI'}
-                  </span>
-                ) : null}
               </div>
               <p>{message.text}</p>
             </article>
@@ -749,10 +832,12 @@ function Room({
         </div>
       ) : (
         <p className="public-note">
-          {room.role !== 'spectator' ? 'Leaving or disconnecting ends your match.' : ''}
+          {room.role !== 'spectator' ? 'Leaving ends your match. Refreshing keeps your seat.' : ''}
         </p>
       )}
     </div>
   );
 }
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  location.pathname === '/lab' ? <FeedbackLab /> : <App />,
+);

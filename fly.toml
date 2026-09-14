@@ -13,9 +13,6 @@ kill_timeout = 20
 [env]
   NODE_ENV = "production"
   PORT = "3000"
-  AI_MODE = "live"
-  AI_BASE_URL = "https://openrouter.ai/api/v1"
-  AI_MODEL = "sao10k/l3.3-euryale-70b"
   DAILY_INPUT_TOKEN_CAP = "1000000"
   DAILY_OUTPUT_TOKEN_CAP = "100000"
   APP_ORIGIN = "https://the-turing-game.fly.dev"

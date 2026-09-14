@@ -25,7 +25,6 @@ let store: Store,
   rejectAI: (e: Error) => void,
   lastInput: AIInput;
 const ai: AI = {
-  mock: true,
   model: 'test',
   complete(input) {
     lastInput = input;
@@ -62,10 +61,14 @@ async function pair() {
   await game.handle(j.p, { type: 'queue', role: 'judge' });
   return { h, j, m: game.rooms.get(h.p.roomId!)! };
 }
-async function complete(text = 'AI ANSWER') {
+async function complete(text = 'AI ANSWER', deliver = true) {
   resolveAI({ text, usage: { input: 100, output: 25 }, provider: 'test', model: 'test' });
   await new Promise((r) => setTimeout(r, 10));
   await game.run(async () => {});
+  if (deliver) {
+    for (const pending of game['pendingReplies'].values()) clock = Math.max(clock, pending.due);
+    await game.tick();
+  }
 }
 async function opening() {
   const pairState = await pair();
@@ -74,7 +77,7 @@ async function opening() {
   return pairState;
 }
 describe('paired opening and group chat', () => {
-  test('opening is hidden, pair reveals atomically, minute begins only after reveal', async () => {
+  test('opening is hidden, pair reveals atomically, 90-second clock begins only after reveal', async () => {
     const { h, j, m } = await pair();
     const s = await peer();
     await game.handle(s.p, { type: 'watch', id: m.id });
@@ -106,7 +109,7 @@ describe('paired opening and group chat', () => {
     ).toEqual(['AI ANSWER', 'SECRET HUMAN ANSWER']);
     expect(new Set(view.messages.slice(1).map((x) => x.sentAt)).size).toBe(1);
     expect(m.startedAt).toBe(clock);
-    expect(m.deadline).toBe(clock + 60_000);
+    expect(m.deadline).toBe(clock + 90_000);
     expect(m.phase).toBe('chat');
   });
   test('all participants can chat immediately while one AI request is pending', async () => {
@@ -135,7 +138,7 @@ describe('paired opening and group chat', () => {
     expect(game.view(m).messages.at(-1)?.text).toBe('yeah im listening');
     expect(m.deadline).toBe(deadline);
   });
-  test('at 60 seconds messages and audience lock; verdict and reason commit together', async () => {
+  test('at 90 seconds messages and audience lock; verdict and reason commit together', async () => {
     const { h, j, m } = await opening();
     const s = await peer();
     await game.handle(s.p, { type: 'watch', id: m.id });
@@ -232,9 +235,9 @@ describe('paired opening and group chat', () => {
   });
 });
 describe('failure handling', () => {
-  test('disconnect abandons and late opening completion cannot reveal', async () => {
+  test('explicit leave abandons and late opening completion cannot reveal', async () => {
     const { h, m } = await opening();
-    await game.disconnect(h.p);
+    await game.handle(h.p, { type: 'leave' });
     await complete();
     expect(m.phase).toBe('abandoned');
     expect(game.view(m).messages).toHaveLength(1);
@@ -321,7 +324,7 @@ test('multiline replies arrive separately with length-based delays and stop at d
   clock += 650;
   await game.tick();
   expect(m.messages).toHaveLength(3);
-  clock += 1500;
+  clock += 6000;
   await game.tick();
   expect(m.messages.at(-1)?.text).toBe('this is a longer follow up');
   expect(m.aiRequests).toBe(requests);
@@ -331,13 +334,13 @@ test('multiline replies arrive separately with length-based delays and stop at d
   expect(m.messages.some((x) => x.text === 'last bit')).toBe(false);
 });
 
-test('disconnect cancels pending reply lines', async () => {
+test('disconnect preserves pending reply lines', async () => {
   const { m, h } = await opening();
   await complete('hey\nmore');
   await game.disconnect(h.p);
   clock += 5000;
   await game.tick();
-  expect(m.messages.some((x) => x.text === 'more')).toBe(false);
+  expect(m.messages.some((x) => x.text === 'more')).toBe(true);
 });
 
 test('message bursts debounce with a maximum wait and explain new input', async () => {
@@ -403,4 +406,62 @@ test('a multiline silence follow up is one contribution and cannot poll again', 
   expect(m.messages.at(-1)?.text).toBe('about that');
   expect(m.aiRequests).toBe(2);
   expect(m.aiDueAt).toBeNull();
+});
+
+test('publication waits for thinking plus typing measured from invocation', async () => {
+  const { m } = await opening();
+  const start = clock;
+  await complete('a moderately long opening response', false);
+  expect(m.messages).toHaveLength(1);
+  expect(m.phase).toBe('opening_ai');
+  const due = game['pendingReplies'].get(m.id)!.due;
+  expect(due - start).toBeGreaterThan(4000);
+  clock = due - 1;
+  await game.tick();
+  expect(m.messages).toHaveLength(1);
+  clock = due;
+  await game.tick();
+  expect(m.messages).toHaveLength(3);
+  expect(m.startedAt).toBe(due);
+});
+
+test('slow generation consumes the publication delay instead of adding it twice', async () => {
+  const { m } = await opening();
+  clock += 20000;
+  await complete('hey', false);
+  expect(m.phase).toBe('chat');
+  expect(m.messages).toHaveLength(3);
+  expect(game['pendingReplies'].has(m.id)).toBe(false);
+});
+
+test('refresh restores the session seat and private opening without changing the clock', async () => {
+  const { h, j, m } = await opening();
+  await game.disconnect(h.p);
+  const restored = await peer(h.p.session);
+  expect(restored.p.roomId).toBe(m.id);
+  expect(game.view(m, restored.p).ownOpening).toBe('pasta lol');
+  expect(game.view(m, j.p).ownOpening).toBeNull();
+  expect(game.view(m, (await peer()).p).ownOpening).toBeNull();
+  await complete('hey');
+  const deadline = m.deadline;
+  const requests = m.aiRequests;
+  // New socket may arrive before the old socket closes; either order is safe.
+  const judge = await peer(j.p.session);
+  await game.disconnect(j.p);
+  await game.handle(judge.p, { type: 'watch', id: m.id });
+  await game.handle(judge.p, { type: 'message', text: 'still here' });
+  expect(game.role(m, judge.p)).toBe('judge');
+  expect(m.messages.at(-1)?.sender).toBe('judge');
+  expect(m.deadline).toBe(deadline);
+  expect(m.aiRequests).toBe(requests);
+  await expect(game.handle(restored.p, { type: 'create', role: 'human' })).rejects.toThrow();
+  await game.disconnect(restored.p);
+  await game.disconnect(judge.p);
+  clock = deadline!;
+  await game.tick();
+  expect(m.phase).toBe('verdict');
+  const returnJudge = await peer(j.p.session);
+  expect(game.view(m, returnJudge.p).phase).toBe('verdict');
+  await game.handle(returnJudge.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+  expect(m.phase).toBe('complete');
 });

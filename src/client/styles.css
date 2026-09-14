@@ -110,9 +110,7 @@ button:not(:disabled):hover {
 .connection.online:before {
   background: #77def2;
 }
-.mock-badge {
-  color: #77def2;
-}
+
 .intro {
   padding: 62px 0 34px;
 }
@@ -804,10 +802,7 @@ footer span:first-child {
   .section-heading > .muted {
     font-size: 12px;
   }
-  .mock-badge {
-    max-width: 80px;
-    line-height: 1.5;
-  }
+
   footer span:last-child {
     display: none;
   }
@@ -1022,10 +1017,10 @@ footer span:first-child {
   line-height: 24px;
   background: #171d33;
 }
-.active-chat .composer-bottom {
+.active-chat .composer .composer-bottom {
   display: contents;
 }
-.active-chat .composer-bottom .button {
+.active-chat .composer .composer-bottom .button {
   grid-column: 2;
   grid-row: 1;
   width: auto;
@@ -1074,7 +1069,7 @@ footer span:first-child {
   .active-chat .chat-message {
     max-width: 88%;
   }
-  .active-chat .composer-bottom .button {
+  .active-chat .composer .composer-bottom .button {
     max-width: 132px;
     font-size: 12px;
   }

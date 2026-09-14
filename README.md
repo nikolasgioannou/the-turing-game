@@ -1,6 +1,7 @@
 # The Turing Game
 
-A human and an AI compete to convince a human judge. A paired opening, then one minute of free group chat. Public spectators can guess, and completed games have permanent replay links.
+A human and an AI compete to convince a human judge. A paired opening, then one minute of free group
+chat. Public spectators can guess, and completed games have permanent replay links.
 
 ## Local development
 
@@ -12,9 +13,19 @@ cp .env.example .env # only when .env does not already exist
 bun run dev
 ```
 
-Start the model with `bun run ai:local` in another terminal, then open http://localhost:3000. `bun run dev` builds and starts one game server with real local inference. For Wi-Fi access, set `DEV_APP_ORIGIN` to your Mac’s LAN URL on port 3000. Use separate browsers/profiles/devices for the two human roles. Two tabs in the same browser session cannot take both seats. Development uses project-local PGlite (PostgreSQL WASM) and the real local model. Mock responses are only used by automated tests. A refresh/disconnect forfeits a playing seat by design. Spectators can reopen a match link.
+Start the model with `bun run ai:local` in another terminal, then open http://localhost:3000.
+`bun run dev` builds and starts one game server with real local inference. For Wi-Fi access, set
+`DEV_APP_ORIGIN` to your Mac’s LAN URL on port 3000. Use separate browsers/profiles/devices for the
+two human roles. Two tabs in the same browser session cannot take both seats. Development uses
+project-local PGlite (PostgreSQL WASM) and the real local model. Browser end-to-end tests also use
+the real local model; start it before running them. Refreshes restore your seat and dropped
+connections retry automatically; the game clock continues while offline. Explicitly leaving still
+ends the match. Spectators can reopen a match link.
 
-To use live AI, put `AI_API_KEY` in `.env` and set `AI_MODE=live`. Keep `APP_ORIGIN` equal to the exact browser origin. Never put secrets in a `VITE_` variable. To use an existing PostgreSQL database locally, set `DATABASE_URL`; otherwise PGlite stores data in `data/postgres`.
+Inference is local-only. `LOCAL_AI_URL` defaults to `http://127.0.0.1:8080/v1`; `LOCAL_AI_MODEL` can
+select another local model. No API key is required. Keep `APP_ORIGIN` equal to the exact browser
+origin. Never put secrets in a `VITE_` variable. To use an existing PostgreSQL database locally, set
+`DATABASE_URL`; otherwise PGlite stores data in `data/postgres`.
 
 ```sh
 bun run check           # TypeScript, engine/SQL tests, production build
@@ -28,9 +39,12 @@ Browser tests use installed Chrome on this Mac. Elsewhere, install the test brow
 PLAYWRIGHT_BROWSERS_PATH="$PWD/.cache/ms-playwright" bun run playwright install chromium
 ```
 
-Do not use `--with-deps` without permission: that can install system packages. Browser profiles and caches are temporary/project-local. No live API calls happen in automated tests.
+Do not use `--with-deps` without permission: that can install system packages. Browser profiles and
+caches are temporary/project-local. No live API calls happen in automated tests.
 
-A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.env`; use `PGLITE_PATH=./work/live-ai-postgres` to isolate its usage ledger. It prints the test prompts, responses and token usage, never credentials.
+A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.env`; use
+`PGLITE_PATH=./work/live-ai-postgres` to isolate its usage ledger. It prints the test prompts,
+responses and token usage, never credentials.
 
 ## Documentation
 
@@ -42,18 +56,30 @@ A manual `bun scripts/smoke-ai.ts` performs three small live requests using `.en
 
 ## What ships
 
-Role matchmaking, invite-only seats with public spectating, hidden A/B identities, a simultaneous opening and timed group chat, spectator guesses, optional judge reasoning, saved transcripts/replays, independent token budgets and provider-failure states. No accounts, spectator chat, model-training pipeline or multi-machine room coordination.
+Role matchmaking, invite-only seats with public spectating, hidden A/B identities, a simultaneous
+opening and timed group chat, spectator guesses, optional judge reasoning, saved
+transcripts/replays, independent token budgets and provider-failure states. No accounts, spectator
+chat, model-training pipeline or multi-machine room coordination.
 
 ## AI SDK DevTools
 
-Local model calls use Vercel AI SDK `generateText`. To inspect prompts, the current human answer, revealed history, raw provider payloads, output, token usage and latency:
+Local model calls use Vercel AI SDK `generateText`. To inspect prompts, the current human answer,
+revealed history, raw provider payloads, output, token usage and latency:
 
 1. Set `AI_DEVTOOLS=true` in your project `.env` and restart the game server.
 2. Run `bun run devtools` from this project.
-3. Open http://localhost:4983 on your Mac and select a run, then expand its step. Live game generations and manual smoke checks are grouped by match ID.
+3. Open http://localhost:4983 on your Mac and select a run, then expand its step. Live game
+   generations and manual smoke checks are grouped by match ID.
 
-The Wi-Fi game can remain at http://192.168.1.233:3000. Only the DevTools viewer is restricted to localhost; other players cannot inspect hidden inputs through it. Set `AI_SDK_DEVTOOLS_PORT` consistently on both the game and viewer if changing its default port.
+The Wi-Fi game can remain at http://192.168.1.233:3000. Only the DevTools viewer is restricted to
+localhost; other players cannot inspect hidden inputs through it. Set `AI_SDK_DEVTOOLS_PORT`
+consistently on both the game and viewer if changing its default port.
 
-Traces start when enabled; older games are not backfilled. `.devtools/generations.json` stays inside this project and is excluded from git and Docker. Disable `AI_DEVTOOLS` in production; the app rejects production startup with tracing enabled. The DevTools package is development-only and imported only for enabled local calls. The game still enforces its own durable token ledger and makes no automatic SDK retries.
+Traces start when enabled; older games are not backfilled. `.devtools/generations.json` stays inside
+this project and is excluded from git and Docker. Disable `AI_DEVTOOLS` in production; the app
+rejects production startup with tracing enabled. The DevTools package is development-only and
+imported only for enabled local calls. The game still enforces its own durable token ledger and
+makes no automatic SDK retries.
 
-For the downloaded Mac model, run `bun run ai:local` and then `bun run start:local`. See docs/local-ai.md for Wi-Fi configuration and setup.
+For the downloaded Mac model, run `bun run ai:local` and then `bun run start:local`. See
+docs/local-ai.md for Wi-Fi configuration and setup.

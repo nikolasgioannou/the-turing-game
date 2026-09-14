@@ -14,7 +14,7 @@ async function participants(browser: Browser) {
   return { h, j, humanContext, judgeContext };
 }
 test('full multiplayer match, spectator vote and public replay', async ({ browser }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
   const { h, j, humanContext, judgeContext } = await participants(browser);
   const spectatorContext = await browser.newContext();
   const s = await spectatorContext.newPage();
@@ -39,7 +39,7 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await h.screenshot({ path: 'work/chat-mobile.png', fullPage: true });
   expect(await h.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(j.getByRole('button', { name: 'Submit verdict & reveal' })).toBeVisible({
-    timeout: 65_000,
+    timeout: 95_000,
   });
   await expect(h.getByLabel('Message the group')).toHaveCount(0);
   await j.getByRole('button', { name: `Contestant ${humanLabel}`, exact: true }).click();
@@ -62,9 +62,18 @@ test('full multiplayer match, spectator vote and public replay', async ({ browse
   await humanContext.close();
   await judgeContext.close();
 });
-test('invite room, public visibility, and disconnect ends the match', async ({ browser }) => {
+test('invite and chat survive refreshes and dropped sockets', async ({ browser }) => {
   const hc = await browser.newContext(),
     jc = await browser.newContext();
+  await hc.addInitScript(() => {
+    const Native = window.WebSocket;
+    window.WebSocket = class extends Native {
+      constructor(url: string | URL, protocols?: string | string[]) {
+        super(url, protocols);
+        (window as any).gameSocket = this;
+      }
+    };
+  });
   const h = await hc.newPage(),
     j = await jc.newPage();
   await h.goto('/');
@@ -74,8 +83,36 @@ test('invite room, public visibility, and disconnect ends the match', async ({ b
   const invite = await h.getByLabel('Invitation link').inputValue();
   await j.goto(invite);
   await expect(j.getByLabel('Ask the opening question')).toBeVisible();
+  const matchUrl = j.url();
+  const label = await h.getByText(/YOU ARE CONTESTANT/).textContent();
+  await h.reload();
+  await j.reload();
+  await expect(j.getByLabel('Ask the opening question')).toBeEnabled();
+  await expect(h.getByText(/YOU ARE CONTESTANT/)).toHaveText(label!);
+  await j.getByLabel('Ask the opening question').fill('hi');
+  await j.getByRole('button', { name: /Ask both contestants/ }).click();
+  await h.getByLabel('Write your opening reply').fill('hey');
+  await h.getByRole('button', { name: /Submit opening reply/ }).click();
+  await expect(h.getByLabel('Message the group')).toBeEnabled({ timeout: 30000 });
+  await h.evaluate(() => (window as any).gameSocket.close());
+  await expect(h.getByRole('alert')).toContainText('Reconnecting');
+  await expect(h.getByRole('alert')).toHaveCount(0);
+  await expect(h.getByLabel('Message the group')).toBeEnabled();
+  await h.getByLabel('Message the group').fill('back after reconnect');
+  await h.getByLabel('Message the group').press('Enter');
+  await expect(j.getByText('back after reconnect', { exact: true })).toBeVisible();
+  await h.close();
+  const restored = await hc.newPage();
+  await restored.goto(matchUrl);
+  await expect(restored.getByText(/YOU ARE CONTESTANT/)).toHaveText(label!);
+  await expect(restored.getByText('back after reconnect', { exact: true })).toBeVisible();
+  await expect(j.getByText(/A player disconnected/)).toHaveCount(0);
+  restored.on('dialog', (d) => d.accept());
+  await restored.getByRole('button', { name: 'Leave match' }).click();
+  await expect(
+    j.getByText('A player left. This match was not counted.', { exact: true }),
+  ).toBeVisible();
   await hc.close();
-  await expect(j.getByRole('status').filter({ hasText: 'A player disconnected' })).toBeVisible();
   await jc.close();
 });
 test('mobile lobby has usable controls and no horizontal overflow', async ({ browser }) => {
@@ -136,4 +173,31 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
   await h.screenshot({ path: 'work/arcade-chat-mobile.png', fullPage: true });
   await humanContext.close();
   await judgeContext.close();
+});
+
+test('feedback lab generates real blind replies and persists ratings', async ({ page }) => {
+  await page.goto('/lab');
+  await page.getByRole('button', { name: 'Start comparing', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'A sounds more human' })).toBeVisible({
+    timeout: 65000,
+  });
+  const first = await page.locator('.lab-candidate').allTextContents();
+  expect(first).toHaveLength(2);
+  await page.reload();
+  await expect(page.locator('.lab-candidate')).toHaveCount(2);
+  expect(await page.locator('.lab-candidate').allTextContents()).toEqual(first);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Both bad', exact: true }).click();
+  await page.getByRole('button', { name: 'Too polished', exact: true }).click();
+  await page.getByLabel('What would you say instead?').fill('my preferred reply');
+  await page.screenshot({ path: 'work/lab-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'Save feedback', exact: true }).click();
+  await expect(page.getByText('1 / 16 rated', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('1 / 16 rated', { exact: true })).toBeVisible();
+  const exported = await (await page.request.get('/api/lab/export')).json();
+  expect(exported.comparisons[0].rating.choice).toBe('both_bad');
+  expect(exported.comparisons[0].rating.rewrite).toBe('my preferred reply');
+  expect(exported.comparisons[0].payload.candidates).toHaveLength(2);
 });

@@ -5,7 +5,8 @@ export default defineConfig({
   testMatch: '*.e2e.ts',
   fullyParallel: false,
   workers: 1,
-  timeout: 30_000,
+  timeout: 60_000,
+  expect: { timeout: 20_000 },
   use: {
     baseURL: 'http://localhost:3100',
     headless: true,
@@ -16,13 +17,12 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'bun src/server/index.ts',
+    command: 'bun scripts/local-ai.ts game',
     url: 'http://localhost:3100/api/health',
     reuseExistingServer: false,
     env: {
       PORT: '3100',
       APP_ORIGIN: 'http://localhost:3100',
-      AI_MODE: 'mock',
       PGLITE_PATH: 'memory://',
       DATABASE_URL: '',
     },

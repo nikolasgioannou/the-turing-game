@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const LIMITS = {
-  chatMs: 60_000,
+  chatMs: 90_000,
   aiRequests: 10,
   messagesPerPerson: 30,
   question: 300,
@@ -98,7 +98,6 @@ export type Lobby = {
   }[];
   availability: { available: boolean; message: string | null; resetsAt: number };
   queued: Role | null;
-  mock: boolean;
 };
 export type Event =
   | { type: 'lobby'; data: Lobby }

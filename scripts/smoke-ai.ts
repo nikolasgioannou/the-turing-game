@@ -1,8 +1,6 @@
 import { AIError, createAI, PROMPT_VERSION } from '../src/server/ai';
 import { database } from '../src/server/database';
 import { Store } from '../src/server/store';
-if (!process.env.AI_API_KEY) throw new Error('Set AI_API_KEY in .env first.');
-process.env.AI_MODE = 'live';
 const ai = createAI();
 const db = await database();
 const store = new Store(db);

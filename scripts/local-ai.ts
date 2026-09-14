@@ -1,8 +1,9 @@
 import { resolve } from 'node:path';
+import { localModelConfig } from '../src/server/local-model';
 
 // Keep inference, model weights and every runtime cache inside this checkout.
 const root = resolve(import.meta.dir, '..');
-const model = resolve(root, 'models/huihui-qwen3.6-35b-4bit');
+const { model, baseURL } = localModelConfig();
 const env = {
   ...process.env,
   HF_HOME: resolve(root, '.cache/huggingface'),
@@ -44,10 +45,8 @@ const child = Bun.spawn(cmd, {
   env: game
     ? {
         ...env,
-        AI_MODE: 'live',
-        AI_BASE_URL: 'http://127.0.0.1:8080/v1',
-        AI_MODEL: model,
-        AI_API_KEY: 'local-development',
+        LOCAL_AI_URL: baseURL,
+        LOCAL_AI_MODEL: model,
       }
     : env,
   stdout: 'inherit',
