@@ -26,7 +26,7 @@ implemented. App restarts end active matches as technical failures.
 2. Create the approved app and Managed Postgres cluster; attach its database so Fly provides
    `DATABASE_URL`. Use Fly's current `fly mpg --help` and official create/attach docs; never
    provision legacy unmanaged Fly Postgres by mistake.
-3. Set OPENROUTER_API_KEY as a Fly secret. The container includes Python 3 and timezone data for the
+3. Set OPENROUTER_API_KEY as a Fly secret. The container runs Bun for the application and TypeScript
    bot worker; model inference uses OpenRouter only.
 4. Run local checks and `fly config validate`. Use a remote builder if Docker is not installed
    locally. No global Docker install is necessary.

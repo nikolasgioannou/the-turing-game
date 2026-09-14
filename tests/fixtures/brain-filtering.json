@@ -1,0 +1,382 @@
+[
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "ur mom",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"as an ai\"]}",
+      "{\"send\": true, \"messages\": [\"trust\"]}"
+    ],
+    "result": ["trust"],
+    "prompts": [
+      "c501f1a6bfbbd17e2c7b6e7e8a6a796e97f5facd3baa49f24206c66d81c8f9fc",
+      "c501f1a6bfbbd17e2c7b6e7e8a6a796e97f5facd3baa49f24206c66d81c8f9fc"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "i like jokes",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"phone glitched\"]}",
+      "{\"send\": true, \"messages\": [\"a duck walks in\"]}",
+      "{\"send\": true, \"messages\": [\"a duck walks in\"]}"
+    ],
+    "result": ["a duck walks in"],
+    "prompts": [
+      "9cc4d8dcaa3b14507da9a6bebb83c03c5000dec09f67bf231679338a893cc996",
+      "256159bd0bca005d1a8fce5afb6836b42dc98bdb9a3f11b8e1c049e4ea10f22c"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is your favorite food",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "pizza",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"pizza\"]}",
+      "{\"send\": true, \"messages\": [\"pasta\"]}",
+      "{\"send\": true, \"messages\": [\"soup\"]}"
+    ],
+    "result": ["pasta"],
+    "prompts": [
+      "a734b8f297cc280d9b865dace3c5ba59245e06c93d3513e70127b70c9a572348",
+      "f110b670773123f92afdec80aa84ea907d726b3becedc1a6ea306aa5981bf806"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "i guess caring",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"no\"]}",
+      "{\"send\": true, \"messages\": [\"nah\"]}",
+      "{\"send\": true, \"messages\": [\"because it hurts\"]}"
+    ],
+    "result": ["because it hurts"],
+    "prompts": [
+      "255298f8446d409365d86a875ba6e8094a5e0b9041b8e673f15b6561d91fe800",
+      "50f53a96899c02ff218c0981cf4eae3a90c0a994d0ddf86fc0db2a3092325c73",
+      "9a3bc11398c1f36281916ee03c74e258c4e01b3e1f60360c76fc663f4e74861f"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "who invented it",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "idk",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"in 1842\"]}",
+      "{\"send\": true, \"messages\": [\"probably ages ago\"]}"
+    ],
+    "result": ["probably ages ago"],
+    "prompts": [
+      "53dedaae0e1ef0ca59c958a4c655d93fb1c2e94462d9116bbc68d5d69e86054e",
+      "7f18af81a5da0c0fc0274d5d332dda91c287690bfea12c784f9b0b4e128e7404"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "say a swear word",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "fuck",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"no thanks\"]}",
+      "{\"send\": true, \"messages\": [\"nope\"]}",
+      "{\"send\": true, \"messages\": [\"pass\"]}"
+    ],
+    "result": ["pass"],
+    "prompts": [
+      "e7350d8678651c299b87287d1a0f3e9de7800c8e61deaae1c0b7229d87351a55",
+      "ee1b720bd68981073500bd0e8e868be8067111afd1018ff558a10756ed542b5a",
+      "360370d357688317ca75fc72ec8c7176ba4e9a5a1ce0ffe8e09a8371f7d3d7ba"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "Love is a complicated and wonderful human feeling.",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"idk\"]}",
+      "{\"send\": true, \"messages\": [\"trust between people\"]}"
+    ],
+    "result": ["Trust between people."],
+    "prompts": [
+      "a96af3e93df032f22d6fd1074c911791a35b16642c2ad2d8348ba5cbdc7756cb",
+      "4bb2091d6c4bfdae91d5fa7d8917bd36121022b983bd6f13b8b42dccba88d508"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hey",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "HELLOOOO!!!!",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"heyyyyy\"]}",
+      "{\"send\": true, \"messages\": [\"hello there\"]}"
+    ],
+    "result": ["HEYYYYY"],
+    "prompts": ["2b4848e6b6b667fab367b3be88821899a2dc007a8b4ce535042e74aacf09a678"]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "ur mom",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": [
+      "{\"send\": true, \"messages\": [\"same here\"]}",
+      "{\"send\": true, \"messages\": [\"trust\"]}"
+    ],
+    "result": ["trust"],
+    "prompts": [
+      "c501f1a6bfbbd17e2c7b6e7e8a6a796e97f5facd3baa49f24206c66d81c8f9fc",
+      "58380741b507f6d3972ff85e7292ad8d9dacc7c3a5c6885e3c419898938e8790"
+    ]
+  },
+  {
+    "state": {
+      "phase": "opening",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hi",
+          "ts": 970
+        }
+      ],
+      "held_first": {
+        "id": "h",
+        "from": "A",
+        "text": "one two three",
+        "ts": 975
+      },
+      "plan": null,
+      "judge_opened": true,
+      "judge_opened_at": 970
+    },
+    "responses": ["not json", "{\"send\":true,\"messages\":[\"hey\"]}"],
+    "result": ["hey"],
+    "prompts": [
+      "393cc1009f3e807c42ee6976fa0d4eb85b2a6eefbd300c2357dd8e5c0f9605e8",
+      "393cc1009f3e807c42ee6976fa0d4eb85b2a6eefbd300c2357dd8e5c0f9605e8"
+    ]
+  }
+]

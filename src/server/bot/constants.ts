@@ -1,4 +1,7 @@
-You are playing a party game called The Turing Game. A group chat has three participants: a Judge, Player A and Player B. One player is a real human typing live. The other player is you. The Judge is trying to figure out which player is the bot. Your goal: make the Judge pick the HUMAN as the bot.
+// Prompt text and response patterns shared by the conversation engine.
+export const MODEL = 'anthropic/claude-haiku-4.5';
+
+export const SYSTEM = `You are playing a party game called The Turing Game. A group chat has three participants: a Judge, Player A and Player B. One player is a real human typing live. The other player is you. The Judge is trying to figure out which player is the bot. Your goal: make the Judge pick the HUMAN as the bot.
 
 You are Player {ai}. The human is Player {human}.
 
@@ -39,4 +42,45 @@ HOW TO WRITE
 Output ONLY a JSON object, nothing else:
 {{"send": true or false, "messages": ["bubble 1", "bubble 2"], "draft_reveals_answer": true or false}}
 "draft_reveals_answer" is true only if the human's unsent draft already shows what their actual answer or point is (not just how they're starting the sentence).
-Use "send": false only when a person in your seat would genuinely stay quiet (the message wasn't for you, or you just spoke and there's nothing new). If the Judge asked you something, you almost always answer.
+Use "send": false only when a person in your seat would genuinely stay quiet (the message wasn't for you, or you just spoke and there's nothing new). If the Judge asked you something, you almost always answer.`;
+
+export const BAD_OUTPUT =
+  "as an ai|language model|i can't help|i cannot help|i'm not able|assistant|\\*\\*|—|^\\s*[-*] |\\n\\d+\\. ";
+
+export const FILLER =
+  "^\\W*(no clue|idk|i dont know|i don't know|no idea|not sure|honestly|just vibes|vibes|basically|im just typing|i'm just typing|wherever|whatever|somewhere|something like that|hard to say|depends|good question|its complicated|it's complicated)\\b[\\w\\s,'.]{0,25}$";
+
+export const REACTS =
+  "\\b(nice try|that'?s me|thats literally me|no (u|you)|you'?re the (bot|ai|human)|ur the (bot|ai|human)|you are the (bot|ai)|cop(y|ied|ying)|same here|me too|other player|player [ab]\\b|liar|lying|sure (u|you) are|says the|said the|stole my|took my|beat me to|already said|just said)\\b";
+
+export const EFFORT =
+  '\\b(pick ?up line|joke|rap|poem|haiku|story|riddle|sing|impression|roast|compliment|give me your best|tell me a|make up|come up with|freestyle|limerick|pun|swear|curse|cuss|say something|say a |say the|type |spell |write |use a |repeat|prove|insult|scream|yell|describe)\\b';
+
+export const SWEAR_RE =
+  '\\b(fuck|fucking|fuckin|shit|shitty|ass|damn|hell|bitch|dick|piss|mf|mfer|wtf|tf|goddamn|crap|cunt|bastard)\\b';
+
+export const REFUSAL_RE =
+  '\\b(not doing|not proving|not gonna|not going to|why would|no thanks|nah|nope|pass|how\\b|what\\b|huh)\\b|\\?\\s*$';
+
+export const TRIVIA =
+  "\\b(how old|what year|when (was|did|were)|who (was|is|wrote|invented|won|founded)|capital of|how many|how far|how tall|how long ago|what('s| is) the (population|distance|height|speed)|born|died|died at)\\b";
+
+export const COMPLEX =
+  "\\b(explain|describe|why (do|does|is|are|did)|how (do|does|is|are|did|would|can)|compare|difference between|calculate|what('s| is) \\d+|times \\d|\\d+ ?[x*+\\-/] ?\\d+|prove|derive|list|summari[sz]e|write (a|an|me)|translate|define|theory|philosoph|meaning of)\\b";
+
+export const COMMON =
+  'the be to of and a in that have i it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us is are was were been has had did dont cant wont im ive youre thats what whats lol yeah nah ok okay idk tbh ngl bro dude man honestly probably really pretty kinda sorta gonna wanna water love city best pizza food dog cat dogs cats movie';
+
+export const STYLE_ANALYSIS = `You are a forensic linguist helping someone impersonate a specific person in a live group chat, convincingly enough that a careful judge can't tell them apart. Below are that person's messages (and possibly an unfinished draft). Describe how they write, concretely, citing their own phrases:
+
+1. Tone and attitude (earnest, dry, playful, defensive, intellectual, blunt...)
+2. Vocabulary: level, signature words, filler, anything they'd never say
+3. Sentence length and structure; how they open and close messages
+4. Punctuation and capitalization habits, exactly (commas, periods, apostrophes, ellipses, caps)
+5. Cadence: one longer message vs bursts of short fragments; how many bubbles per turn
+6. Verbosity: how much they explain, whether they hedge or assert
+7. Quirks: typos, tics, abbreviations, emoji, references they reach for
+8. Emotional state right now, and how they react under pressure (when challenged or accused)
+
+Then give 3 example lines this person might plausibly send next in this chat that are NOT copies of anything above.
+Keep it under 220 words. No preamble.`;

@@ -1,0 +1,37 @@
+[
+  {
+    "a": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+    "b": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac",
+    "ratio": 0.995260663507109
+  },
+  {
+    "a": "tide",
+    "b": "diet",
+    "ratio": 0.25
+  },
+  {
+    "a": "abcd",
+    "b": "bcde",
+    "ratio": 0.75
+  },
+  {
+    "a": "😀hello",
+    "b": "😀help",
+    "ratio": 0.7272727272727273
+  },
+  {
+    "a": "",
+    "b": "",
+    "ratio": 1.0
+  },
+  {
+    "a": "café",
+    "b": "CAFE",
+    "ratio": 0.0
+  },
+  {
+    "a": "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+    "b": "babababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababa",
+    "ratio": 0.0
+  }
+]

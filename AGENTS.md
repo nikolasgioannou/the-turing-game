@@ -8,8 +8,8 @@ boundaries, and docs/progress.md when resuming work.
 This repository is the canonical implementation. Describe bot behavior directly as part of this
 project in documentation, comments and metadata.
 
-- Use Bun/TypeScript for the app, React/Tailwind for UI, Fly for deployment. The bot runs Python
-  conversation logic in a standard-library worker; OpenRouter handles inference.
+- Use Bun/TypeScript for the app, React/Tailwind for UI, Fly for deployment. The bot runs TypeScript
+  conversation logic in an isolated Bun worker; OpenRouter handles inference.
 - Use the committed bun.lock. All dependencies, skills, downloaded tools, browser binaries and
   caches must remain under this project. No global installs/config changes without explicit
   permission.

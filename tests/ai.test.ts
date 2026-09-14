@@ -117,19 +117,7 @@ test('missing API key fails clearly before spawning a worker', () => {
   }
 });
 
-test('behavior integrity and deterministic behavior checks', async () => {
-  const child = Bun.spawn(['python3', 'tests/brain_test.py'], {
-    stdout: 'pipe',
-    stderr: 'pipe',
-    env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' },
-  });
-  const stdout = await new Response(child.stdout).text(),
-    stderr = await new Response(child.stderr).text();
-
-  expect({ code: await child.exited, stdout, stderr }).toMatchObject({ code: 0 });
-}, 15000);
-
-test('real Python worker bridges opening and live replies, then cancels on closure', async () => {
+test('real TypeScript worker bridges opening and live replies, then cancels on closure', async () => {
   const saved = process.env.OPENROUTER_API_KEY;
 
   process.env.OPENROUTER_API_KEY = 'test-key-never-sent';

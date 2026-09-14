@@ -1,21 +1,22 @@
 # Conversation engine
 
-`brain.py` owns prompts, style analysis, response planning, normalization and delivery pacing.
-`system.txt` mirrors SYSTEM for recording the prompt in match metadata. `behavior-manifest.json`
-records AST hashes for class members and a hash of the system prompt, ignoring code formatting.
-Tests detect unintended behavior changes. Update these checks deliberately when changing behavior.
+`brain.ts` owns prompts, style analysis, response planning, normalization and delivery pacing.
+`constants.ts` owns the system prompt and response patterns. Deterministic fixtures check planning,
+style adaptation, filtering and exact request-prompt hashes. Update these checks deliberately when
+changing behavior.
 
 ## Runtime and transport
 
-- Each match has an isolated standard-library Python worker. Bun owns sessions, matchmaking, public
-  views, persistence, scoring, admission limits and provider credentials.
+- Each match has an isolated Bun/TypeScript worker. Bun owns sessions, matchmaking, public views,
+  persistence, scoring, admission limits and provider credentials.
 - The model is `anthropic/claude-haiku-4.5` through OpenRouter, routed to Anthropic with provider
   fallbacks disabled. Thinking is disabled; no temperature override is applied. Chat calls allow 400
   output tokens and style analysis 500.
 - Chat requests have a six-second timeout, one transient retry and a second hedged call after 2.5
   seconds. Style analysis has a 20-second timeout. Every actual call is accounted separately.
-- `worker.py` communicates through private JSON lines. `transport.py` supplies the response shape
-  the engine expects. Credentials and HTTPS requests remain in Bun; Python runs no local inference.
+- `worker.ts` communicates through private JSON lines. Credentials and HTTPS requests remain in the
+  parent server. Workers disable dotenv loading and receive only an explicit environment; no local
+  inference runs.
 - Retry handling honors retry-after-ms, retry-after and x-should-retry with jittered backoff.
   Successful accounting does not delay response delivery. Reservations are required before dispatch.
 
@@ -41,6 +42,6 @@ use the engine's retry/fallback behavior.
 
 ## Validation
 
-Run `bun test` for behavior integrity, deterministic scheduling, the Python worker with controlled
-HTTP transport, and game/store/adapter regressions. `bun run test:e2e` requires an OpenRouter key
-and makes paid model calls. Model output and network latency are stochastic.
+Run `bun test` for behavior integrity, deterministic scheduling, the TypeScript worker with
+controlled HTTP transport, and game/store/adapter regressions. `bun run test:e2e` requires an
+OpenRouter key and makes paid model calls. Model output and network latency are stochastic.

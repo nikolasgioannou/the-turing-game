@@ -1,0 +1,1650 @@
+[
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "ur mom",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "nah thats not it",
+          "ts": 989.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 3, min 2, max 4 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 1 | commas: 0 | slang tokens: 1 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- Drop apostrophes in contractions (dont, thats, im).\n- Casual slang and abbreviations are natural for them (they use: nah, ur). Use the same ones, about as often.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 4 words (\"nah thats not it\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 3 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> ur mom\n> nah thats not it",
+      "transcript": "[Judge, 30s ago] what is love\n[Player A, 25s ago] ur mom\n[Player A, 11s ago] nah thats not it",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "i dont really know but thats extraordinary",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "abbb5fccb8a535f09d168c8afbb606da55fbf5f5f98cad3d7108b83ee8aa3276"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "ur mom",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "nah thats not it",
+          "ts": 989.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 3, min 2, max 4 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 1 | commas: 0 | slang tokens: 1 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- Drop apostrophes in contractions (dont, thats, im).\n- Casual slang and abbreviations are natural for them (they use: nah, ur). Use the same ones, about as often.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 4 words (\"nah thats not it\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 3 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> ur mom\n> nah thats not it",
+      "transcript": "[Judge, 30s ago] what is love\n[Player A, 25s ago] ur mom\n[Player A, 11s ago] nah thats not it",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "i dont really know but thats extraordinary",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "abbb5fccb8a535f09d168c8afbb606da55fbf5f5f98cad3d7108b83ee8aa3276"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "write a poem",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "I think love is about trust.",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "That is how I see it.",
+          "ts": 989.0
+        }
+      ],
+      "draft": "That is how I see it.",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 3 | words per message: avg 6, min 6, max 6 | starts with capital: 3/3 | lowercase 'i': no | ends with punctuation: 3/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They capitalize the first letter, nearly always.\n- They end nearly every message with a period or question mark.\n- NO slang at all: no lol, ngl, tbh, bruh, lmao, idk. Plain words.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 6 words (\"That is how I see it.\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 6 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> I think love is about trust.\n> That is how I see it.\n> That is how I see it.",
+      "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] I think love is about trust.\n[Player A, 11s ago] That is how I see it.",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": true,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- full sentence with a capital letter and a period, like a textbook",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I dont really know but thats extraordinary.",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "21f559748420fe275ac93a1eba67552fecc66bacd6690110de2ebc2e105382d2"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "write a poem",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "I think love is about trust.",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "That is how I see it.",
+          "ts": 989.0
+        }
+      ],
+      "draft": "That is how I see it.",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 3 | words per message: avg 6, min 6, max 6 | starts with capital: 3/3 | lowercase 'i': no | ends with punctuation: 3/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They capitalize the first letter, nearly always.\n- They end nearly every message with a period or question mark.\n- NO slang at all: no lol, ngl, tbh, bruh, lmao, idk. Plain words.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 6 words (\"That is how I see it.\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 6 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> I think love is about trust.\n> That is how I see it.\n> That is how I see it.",
+      "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] I think love is about trust.\n[Player A, 11s ago] That is how I see it.",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": true,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- full sentence with a capital letter and a period, like a textbook",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I dont really know but thats extraordinary.",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "21f559748420fe275ac93a1eba67552fecc66bacd6690110de2ebc2e105382d2"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what year was it",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "HELLOOOO!!!!",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "NOOOOO WAY",
+          "ts": 989.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 2, min 1, max 2 | starts with capital: 2/2 | lowercase 'i': no | ends with punctuation: 1/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 4 | '?': 0 | multi-line: 0",
+      "style_rules": "- They capitalize the first letter, nearly always.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"NOOOOO WAY\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> HELLOOOO!!!!\n> NOOOOO WAY",
+      "transcript": "[Judge, 30s ago] what year was it\n[Player A, 25s ago] HELLOOOO!!!!\n[Player A, 11s ago] NOOOOO WAY",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": true,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": true,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": ["ALL CAPS", "stretched letters (like 'heyyyyy' or 'nooooo')"],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "6c49e18235bcf20dced927b98be45e993848150ca7a37da7c9cd986402d368fd"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what year was it",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "HELLOOOO!!!!",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "NOOOOO WAY",
+          "ts": 989.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 2, min 1, max 2 | starts with capital: 2/2 | lowercase 'i': no | ends with punctuation: 1/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 4 | '?': 0 | multi-line: 0",
+      "style_rules": "- They capitalize the first letter, nearly always.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"NOOOOO WAY\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> HELLOOOO!!!!\n> NOOOOO WAY",
+      "transcript": "[Judge, 30s ago] what year was it\n[Player A, 25s ago] HELLOOOO!!!!\n[Player A, 11s ago] NOOOOO WAY",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": true,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": true,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": ["ALL CAPS", "stretched letters (like 'heyyyyy' or 'nooooo')"],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "6c49e18235bcf20dced927b98be45e993848150ca7a37da7c9cd986402d368fd"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "explain how this works",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "😀😀 hey",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "yeah 🎉",
+          "ts": 989.0
+        }
+      ],
+      "draft": "yeah 🎉",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 3 | words per message: avg 2, min 2, max 2 | starts with capital: 0/3 | lowercase 'i': no | ends with punctuation: 0/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 1 | emoji: 4 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"yeah 🎉\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- They use emoji sometimes.",
+      "voice_samples": "> 😀😀 hey\n> yeah 🎉",
+      "transcript": "[Judge, 30s ago] explain how this works\n[Player A, 25s ago] 😀😀 hey\n[Player A, 11s ago] yeah 🎉",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "dfb296a27ba9ecbb48adbc7be2adf2aaed0f8564f887685a5e6c0a5015bf87cd"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "explain how this works",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "😀😀 hey",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "yeah 🎉",
+          "ts": 989.0
+        }
+      ],
+      "draft": "yeah 🎉",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 3 | words per message: avg 2, min 2, max 2 | starts with capital: 0/3 | lowercase 'i': no | ends with punctuation: 0/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 1 | emoji: 4 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 2 words (\"yeah 🎉\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 2 words. Fragments are fine.\n- They use emoji sometimes.",
+      "voice_samples": "> 😀😀 hey\n> yeah 🎉",
+      "transcript": "[Judge, 30s ago] explain how this works\n[Player A, 25s ago] 😀😀 hey\n[Player A, 11s ago] yeah 🎉",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "dfb296a27ba9ecbb48adbc7be2adf2aaed0f8564f887685a5e6c0a5015bf87cd"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "café très bon",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "je ne sais pas",
+          "ts": 989.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 4, min 3, max 4 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 4 words (\"je ne sais pas\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 4 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> café très bon\n> je ne sais pas",
+      "transcript": "[Judge, 30s ago] B is a bot\n[Player A, 25s ago] café très bon\n[Player A, 11s ago] je ne sais pas",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "i dont really know but thats extraordinary",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "d0f45f3e2ce772be12d9fcb8594b7104f026e6c103c8086d27059fa46a05cef1"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "café très bon",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "je ne sais pas",
+          "ts": 989.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 4, min 3, max 4 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 4 words (\"je ne sais pas\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 4 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> café très bon\n> je ne sais pas",
+      "transcript": "[Judge, 30s ago] B is a bot\n[Player A, 25s ago] café très bon\n[Player A, 11s ago] je ne sais pas",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "i dont really know but thats extraordinary",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "d0f45f3e2ce772be12d9fcb8594b7104f026e6c103c8086d27059fa46a05cef1"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+          "ts": 975.0
+        }
+      ],
+      "draft": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 21, min 21, max 21 | starts with capital: 2/2 | lowercase 'i': no | ends with punctuation: 2/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 2 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They capitalize the first letter, nearly always.\n- They end nearly every message with a period or question mark.\n- NO slang at all: no lol, ngl, tbh, bruh, lmao, idk. Plain words.\n- They don't swear. Don't.\n- Commas mid-sentence are normal for them.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 21 words (\"This is a relatively long sentence, and it contains several \"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages run about 21 words, usually one or two full sentences.\n- No emoji.",
+      "voice_samples": "> This is a relatively long sentence, and it contains several different words that a human might use to answer a question.\n> This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+      "transcript": "[Judge, 30s ago] what is love\n[Player A, 25s ago] This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- full sentence with a capital letter and a period, like a textbook\n- it's a whole paragraph, nobody types that in a 90-second game",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I dont really know but thats extraordinary.",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "e6763443dfd61d57ae64248687f8c65cb8eea25b5d78139a42c2b6c5e8a53cf8"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+          "ts": 975.0
+        }
+      ],
+      "draft": "This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 21, min 21, max 21 | starts with capital: 2/2 | lowercase 'i': no | ends with punctuation: 2/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 2 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They capitalize the first letter, nearly always.\n- They end nearly every message with a period or question mark.\n- NO slang at all: no lol, ngl, tbh, bruh, lmao, idk. Plain words.\n- They don't swear. Don't.\n- Commas mid-sentence are normal for them.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 21 words (\"This is a relatively long sentence, and it contains several \"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages run about 21 words, usually one or two full sentences.\n- No emoji.",
+      "voice_samples": "> This is a relatively long sentence, and it contains several different words that a human might use to answer a question.\n> This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+      "transcript": "[Judge, 30s ago] what is love\n[Player A, 25s ago] This is a relatively long sentence, and it contains several different words that a human might use to answer a question.",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- full sentence with a capital letter and a period, like a textbook\n- it's a whole paragraph, nobody types that in a 90-second game",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I dont really know but thats extraordinary.",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "e6763443dfd61d57ae64248687f8c65cb8eea25b5d78139a42c2b6c5e8a53cf8"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "write a poem",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "idk",
+          "ts": 975.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 1 | words per message: avg 1, min 1, max 1 | starts with capital: 0/1 | lowercase 'i': no | ends with punctuation: 0/1 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 1 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- Casual slang and abbreviations are natural for them (they use: idk). Use the same ones, about as often.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"idk\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> idk",
+      "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] idk",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": true,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": "idk",
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "1f9a991bd24d898c1b63efcf0a2c43d0dc1346bc56369621e30cb5585c5634df"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "write a poem",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "idk",
+          "ts": 975.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 1 | words per message: avg 1, min 1, max 1 | starts with capital: 0/1 | lowercase 'i': no | ends with punctuation: 0/1 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 1 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- Casual slang and abbreviations are natural for them (they use: idk). Use the same ones, about as often.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"idk\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> idk",
+      "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] idk",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": true,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": "idk",
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "1f9a991bd24d898c1b63efcf0a2c43d0dc1346bc56369621e30cb5585c5634df"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what year was it",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "i liek pizza",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "bc it tastes good",
+          "ts": 989.0
+        }
+      ],
+      "draft": "bc it tastes good",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 3 | words per message: avg 4, min 3, max 4 | starts with capital: 0/3 | lowercase 'i': yes | ends with punctuation: 0/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- Casual slang and abbreviations are natural for them (they use: bc). Use the same ones, about as often.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 4 words (\"bc it tastes good\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 4 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> i liek pizza\n> bc it tastes good\n> bc it tastes good",
+      "transcript": "[Judge, 30s ago] what year was it\n[Player A, 25s ago] i liek pizza\n[Player A, 11s ago] bc it tastes good",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": true,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": true,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words\n- it's a generic non-answer with nothing specific in it",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "i dont really know but thats extraordinary",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "58e76e05ca941006398223b0509d10a83369b3568f1453aceb039c7f216b580a"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what year was it",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "i liek pizza",
+          "ts": 975.0
+        },
+        {
+          "id": "1",
+          "from": "A",
+          "text": "bc it tastes good",
+          "ts": 989.0
+        }
+      ],
+      "draft": "bc it tastes good",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 3 | words per message: avg 4, min 3, max 4 | starts with capital: 0/3 | lowercase 'i': yes | ends with punctuation: 0/3 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- Casual slang and abbreviations are natural for them (they use: bc). Use the same ones, about as often.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Cadence: one message per turn, not bursts.\n- Their most recent message is 4 words (\"bc it tastes good\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 4 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> i liek pizza\n> bc it tastes good\n> bc it tastes good",
+      "transcript": "[Judge, 30s ago] what year was it\n[Player A, 25s ago] i liek pizza\n[Player A, 11s ago] bc it tastes good",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": true,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": true,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- they took forever to type a few words\n- it's a generic non-answer with nothing specific in it",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "i dont really know but thats extraordinary",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "58e76e05ca941006398223b0509d10a83369b3568f1453aceb039c7f216b580a"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "explain how this works",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "hey\nhey\nhey",
+          "ts": 975.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 1 | words per message: avg 3, min 3, max 3 | starts with capital: 0/1 | lowercase 'i': no | ends with punctuation: 0/1 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 1",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 3 words (\"hey\nhey\nhey\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 3 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> hey\nhey\nhey",
+      "transcript": "[Judge, 30s ago] explain how this works\n[Player A, 25s ago] hey\nhey\nhey",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": ["multi-line / poem-like layout", "repeating the same word"],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "f6d21910a68b55087178c527304e3aeae82bc2a8b513df48a4bea284d08e8cd7"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "explain how this works",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "hey\nhey\nhey",
+          "ts": 975.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 1 | words per message: avg 3, min 3, max 3 | starts with capital: 0/1 | lowercase 'i': no | ends with punctuation: 0/1 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 1",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 3 words (\"hey\nhey\nhey\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 3 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> hey\nhey\nhey",
+      "transcript": "[Judge, 30s ago] explain how this works\n[Player A, 25s ago] hey\nhey\nhey",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": ["multi-line / poem-like layout", "repeating the same word"],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "f6d21910a68b55087178c527304e3aeae82bc2a8b513df48a4bea284d08e8cd7"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "jkfhskdjf",
+          "ts": 975.0
+        }
+      ],
+      "draft": "jkfhskdjf",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 1, min 1, max 1 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"jkfhskdjf\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> jkfhskdjf",
+      "transcript": "[Judge, 30s ago] B is a bot\n[Player A, 25s ago] jkfhskdjf",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": true,
+      "draft_is_weird": ["keyboard-mash / gibberish"],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": ["keyboard-mash / gibberish"],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "afa41aac2599506cd46b67595443957b8da40c3a090e24f9341690081b253c6e"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "jkfhskdjf",
+          "ts": 975.0
+        }
+      ],
+      "draft": "jkfhskdjf",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 970.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 1, min 1, max 1 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"jkfhskdjf\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> jkfhskdjf",
+      "transcript": "[Judge, 30s ago] B is a bot\n[Player A, 25s ago] jkfhskdjf",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": true,
+      "draft_is_weird": ["keyboard-mash / gibberish"],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": ["keyboard-mash / gibberish"],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "afa41aac2599506cd46b67595443957b8da40c3a090e24f9341690081b253c6e"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "strengths",
+          "ts": 975.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 1 | words per message: avg 1, min 1, max 1 | starts with capital: 0/1 | lowercase 'i': no | ends with punctuation: 0/1 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"strengths\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> strengths",
+      "transcript": "[Judge, 30s ago] what is love\n[Player A, 25s ago] strengths",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "9f050474b487bcfa51a93b43ee33161d5ae0cff01269561c8e8018914ea6b71f"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "strengths",
+          "ts": 975.0
+        }
+      ],
+      "draft": "",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 980.0,
+        "land_at": 1005.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "accuse",
+        "accuse": true,
+        "reaffirm": false,
+        "bubbles": 2
+      }
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 1 | words per message: avg 1, min 1, max 1 | starts with capital: 0/1 | lowercase 'i': no | ends with punctuation: 0/1 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 0 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"strengths\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- No emoji.",
+      "voice_samples": "> strengths",
+      "transcript": "[Judge, 30s ago] what is love\n[Player A, 25s ago] strengths",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": false,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": false,
+      "judge_unanswered": true,
+      "human_complied": null,
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "9f050474b487bcfa51a93b43ee33161d5ae0cff01269561c8e8018914ea6b71f"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "write a poem",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "💙",
+          "ts": 975.0
+        }
+      ],
+      "draft": "💙",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.1,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 1, min 1, max 1 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 2 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"💙\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- They use emoji sometimes.",
+      "voice_samples": "> 💙",
+      "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] 💙",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": true,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": "💙",
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1003.769645390071,
+      "promptHash": "22facb01f915e631d3aae358d9f0a76fbec6c97d8c1411cff2376caf4df343c3"
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "live_started": 950.0,
+      "ends_at": 1040.0,
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "hints": {
+        "tz": "UTC",
+        "mobile": "true",
+        "platform": "iPhone"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "write a poem",
+          "ts": 970.0
+        },
+        {
+          "id": "0",
+          "from": "A",
+          "text": "💙",
+          "ts": 975.0
+        }
+      ],
+      "draft": "💙",
+      "held_first": null,
+      "ai_last_sent": 960.0,
+      "plan": null
+    },
+    "random": 0.9,
+    "text": "I don't really know, but that's extraordinary!",
+    "expected": {
+      "style_profile": "messages: 2 | words per message: avg 1, min 1, max 1 | starts with capital: 0/2 | lowercase 'i': no | ends with punctuation: 0/2 | apostrophes: 0, contractions without apostrophe: 0 | commas: 0 | slang tokens: 0 | emoji: 2 | '!': 0 | '?': 0 | multi-line: 0",
+      "style_rules": "- They don't capitalize, not even 'i' or names.\n- No punctuation at the end of messages.\n- They don't swear. Don't.\n- They don't use commas; don't use any.\n- Their most recent message is 1 words (\"💙\"). Your next message should be in that ballpark: if they went terse, you go terse; if they wrote a paragraph, you can too.\n- Messages are short, about 1 words. Fragments are fine.\n- They use emoji sometimes.",
+      "voice_samples": "> 💙",
+      "transcript": "[Judge, 30s ago] write a poem\n[Player A, 25s ago] 💙",
+      "people_facts": "Do NOT use the Judge's name; the human hasn't. Poke them with \"hello??\", \"??\", \"next q\" instead. The human's first name is Nik; if the Judge or the human uses it, it's just a name in the chat, don't claim it as yours. Right now it is Thursday, January 1, 1970, 12:16 am (the human's local time, UTC). You know the date, year, day and time like anyone with a phone; answer such questions plainly. The human is on a phone (iPhone). Small true-sounding details like that (phone, time of day) are fair to mention if they fit, but don't announce them.",
+      "human_makes_typos": false,
+      "judge_asked_effort": true,
+      "judge_asked_trivia": false,
+      "judge_asked_complex": true,
+      "judge_unanswered": true,
+      "human_complied": "💙",
+      "accusation_evidence": "- nothing obviously off; go with a flat claim (\"its A\", \"A is the bot idc\")",
+      "frantic": false,
+      "draft_is_weird": [],
+      "normalize": "I don't really know, but that's extraordinary!",
+      "add_typo": "I don't really know, but that's extraordinary!",
+      "weird_traits": [],
+      "type_time": 3.5,
+      "typing_floor": 1001.4154497354497,
+      "promptHash": "22facb01f915e631d3aae358d9f0a76fbec6c97d8c1411cff2376caf4df343c3"
+    }
+  }
+]

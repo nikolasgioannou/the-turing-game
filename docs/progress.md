@@ -713,3 +713,24 @@ journeys pass across the full run and focused follow-ups, using real OpenRouter 
 The initial run exposed a test synchronization race with the closing name dialog; waiting for its
 removal fixed the four affected journeys. Desktop/mobile chat, lobby and replay screenshots were
 reviewed. Restarted the idle local app with the existing ngrok origin and database.
+
+## TypeScript conversation engine
+
+Moved the conversation engine, style analysis, response filtering, prompt construction, pacing and
+worker transport to TypeScript. Each match runs in an isolated Bun subprocess; credentials and
+OpenRouter accounting stay in the parent server. Worker dotenv loading is disabled. Stop/expiry
+aborts timers and in-flight generation, including losing hedged requests.
+
+Prompts are defined once in `constants.ts` and used for both inference and match metadata. Added
+Unicode-aware text helpers, matching-block similarity and deterministic clock/random/sleep hooks.
+Removed the former runtime, transport, source manifest and tests, plus runtime selection settings
+and container packages. Bun is now the only application runtime. Prompt version is `turing-v2`.
+
+Validation: 187 unit/integration checks pass, including 24 style/prompt fixtures, 108 planning
+fixtures, 10 response-filtering/retry fixtures, cancellation, hedging and the real TypeScript
+worker. Typecheck and production build pass. Fixture data is synthetic; no player conversations or
+drafts were added. All 17 real-OpenRouter browser journeys pass, including the full timed match,
+public replay, refresh and independent live replies. Restarted the idle app on its existing origin;
+public health passes. The authenticated tunnel check was blocked by automatic approval review
+because it would send session material through ngrok; local authenticated gameplay and anonymous
+public health were verified instead.

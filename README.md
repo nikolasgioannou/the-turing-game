@@ -5,8 +5,8 @@ matches have permanent replay links.
 
 ## Development
 
-Use the project's Bun version and an existing Python 3.9+ runtime. Python runs the bot's
-conversation logic; inference runs exclusively through OpenRouter. No Python packages are required.
+Use the project's Bun version. The application and conversation engine are TypeScript; inference
+runs exclusively through OpenRouter.
 
 ```sh
 bun install --frozen-lockfile
@@ -21,8 +21,7 @@ seat; the game clock continues while disconnected. Development uses PGlite in `d
 
 `bun run build && bun run start` serves a production build. Set `DATABASE_URL` to use PostgreSQL;
 otherwise development storage uses `PGLITE_PATH`. Production requires `DATABASE_URL` and
-`APP_ORIGIN`. Never put credentials in client code or `VITE_` variables. `BOT_PYTHON` optionally
-selects an existing Python runtime.
+`APP_ORIGIN`. Never put credentials in client code or `VITE_` variables.
 
 ## Bot behavior
 

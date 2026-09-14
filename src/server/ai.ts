@@ -1,10 +1,10 @@
 import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
+import { SYSTEM } from './bot/constants';
 import type { Label } from '../shared/protocol';
 import type { Allowance } from './store';
 
-export const PROMPT_VERSION = 'turing-v1';
-export const SYSTEM_PROMPT = readFileSync(new URL('./bot/system.txt', import.meta.url), 'utf8');
+export const PROMPT_VERSION = 'turing-v2';
+export const SYSTEM_PROMPT = SYSTEM;
 export const MODEL = 'anthropic/claude-haiku-4.5';
 
 export type BotState = {
@@ -195,20 +195,18 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
       if (!process.env.OPENROUTER_API_KEY)
         throw new AIError('Set OPENROUTER_API_KEY in .env and restart the server.');
 
-      const python = process.env.BOT_PYTHON ?? Bun.which('python3');
-
-      if (!python) throw new AIError('Python 3.9+ is required for the bot.');
-
-      const child = Bun.spawn([python, '-u', resolve(import.meta.dir, 'bot/worker.py')], {
-        stdin: 'pipe',
-        stdout: 'pipe',
-        stderr: 'ignore',
-        env: {
-          PATH: process.env.PATH,
-          PYTHONDONTWRITEBYTECODE: '1',
-          TURING_NEVER_NAME: process.env.TURING_NEVER_NAME,
+      const child = Bun.spawn(
+        [process.execPath, '--no-env-file', resolve(import.meta.dir, 'bot/worker.ts')],
+        {
+          stdin: 'pipe',
+          stdout: 'pipe',
+          stderr: 'ignore',
+          env: {
+            PATH: process.env.PATH,
+            TURING_NEVER_NAME: process.env.TURING_NEVER_NAME,
+          },
         },
-      });
+      );
       let stopped = false;
       const requests = new Map<string, AbortController>();
       const write = (value: unknown) => {
@@ -233,6 +231,8 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
               if (stopped) continue;
 
               if (event.type === 'state') hooks.state(event);
+
+              if (event.type === 'failed') hooks.failed(new AIError('Bot worker failed'));
 
               if (event.type === 'cancel') requests.get(event.id)?.abort();
 

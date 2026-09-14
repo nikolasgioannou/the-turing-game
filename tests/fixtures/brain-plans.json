@@ -1,0 +1,6122 @@
+[
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 2
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 2
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.42,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": true,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1007.48,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "beat": true,
+        "bubbles": 2
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 2
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.42,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": true,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 2
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1004.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "bubbles": 2
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.42,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": true,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1007.48,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.42,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": true,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1004.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.42,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": true,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1007.48,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.42,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": true,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 996.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "blind": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1004.0,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "borrow",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.1,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 997.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.9,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.9,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1006.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 997.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.9,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.9,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1006.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 1000.0,
+      "pending_accuse": 995.0,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 997.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.9,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 995.9,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1009.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1006.4,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.5,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 998.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 996.38,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 996.38,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1008.8,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 0.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 998.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 996.38,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 996.38,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1008.8,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 953.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "what is love",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 998.75,
+        "msgs": null,
+        "basis": "quick",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "blind": true,
+        "judge_accused": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "B is a bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 996.38,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "tell me a joke",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "ur the bot",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "human",
+        "stim_ts": 995.0,
+        "land_at": 996.38,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "hint": "aimed",
+        "bubbles": 1,
+        "accuse": false,
+        "instant": true
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 1025.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1011.32,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "beat": true,
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "nice weather",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "judge",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": {
+        "stim_from": "judge",
+        "stim_ts": 995.0,
+        "land_at": 1008.8,
+        "msgs": null,
+        "basis": "",
+        "gen_at": 0.0,
+        "type_secs": 0.0,
+        "mode": "inspired",
+        "bubbles": 1
+      },
+      "plan_done_ts": 0.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 0
+    }
+  },
+  {
+    "state": {
+      "phase": "live",
+      "names": {
+        "judge": "Marc",
+        "player": "Nik"
+      },
+      "messages": [
+        {
+          "id": "j",
+          "from": "judge",
+          "text": "hello",
+          "ts": 950.0
+        },
+        {
+          "id": "h",
+          "from": "A",
+          "text": "hi there",
+          "ts": 951.0
+        },
+        {
+          "id": "0",
+          "from": "B",
+          "text": "hello there",
+          "ts": 952.0
+        },
+        {
+          "id": "1",
+          "from": "B",
+          "text": "hello there",
+          "ts": 953.0
+        },
+        {
+          "id": "2",
+          "from": "B",
+          "text": "hello there",
+          "ts": 954.0
+        },
+        {
+          "id": "new",
+          "from": "A",
+          "text": "WHATTTTT!!!!",
+          "ts": 995.0
+        }
+      ],
+      "ai_last_sent": 955.0,
+      "plan": null,
+      "human_latency": 12
+    },
+    "random": 0.9,
+    "expected": {
+      "plan": null,
+      "plan_done_ts": 995.0,
+      "last_accused": 0.0,
+      "pending_accuse": null,
+      "spat_until": 0.0,
+      "accuse_chances": 1
+    }
+  }
+]

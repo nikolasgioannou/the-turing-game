@@ -11,14 +11,14 @@ project-local PGlite in development. Shared Zod schemas validate public socket c
 - `server/store.ts`: snapshots, request ledger, daily capacity and reservations.
 - `server/game.ts`: sessions, matchmaking, deadlines, scoring and public serialization.
 - `server/ai.ts`: private worker lifecycle and OpenRouter transport/accounting.
-- `server/bot`: Python conversation engine, private transport and behavior-integrity manifest.
+- `server/bot`: TypeScript conversation engine, private transport and behavior fixtures.
 - `client/ui`: shared controls and layouts with static Tailwind classes.
 
-One Python standard-library worker per match runs the conversation scheduling loop. JSON lines carry
-game input and private drafts into it, and public transcript updates/provider requests out. Bun
-routes requests to OpenRouter and returns the text in the response shape expected by the bot. No
-direct Anthropic SDK or local inference dependency is needed. Worker diagnostics are suppressed;
-prompts, drafts and style cards are not written to application logs.
+One isolated Bun worker per match runs the conversation scheduling loop. JSON lines carry game input
+and private drafts into it, and public transcript updates/provider requests out. Bun routes requests
+to OpenRouter and returns the text in the response shape expected by the bot. No direct Anthropic
+SDK or local inference dependency is needed. Worker diagnostics are suppressed; prompts, drafts and
+style cards are not written to application logs.
 
 The bot owns all AI decisions, including its 400 ms loop, live draft planning, opening attack,
 2.5-second request hedge, style-card refreshes, reply retries and paced bubbles. There is no second
@@ -64,13 +64,13 @@ as technical failures, never wins.
 ## Deployment and UI
 
 A single Fly machine is the authority; multi-machine room ownership is not implemented. Production
-uses PostgreSQL and requires APP_ORIGIN. The container supplies Python and timezone data; the bot
-has no third-party Python dependencies. Fly deployment remains separately gated.
+uses PostgreSQL and requires APP_ORIGIN. The container runs Bun only, including the conversation
+engine and timezone handling. Fly deployment remains separately gated.
 
 Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global effects. Components
 own utility classes. VS Code uses Tailwind language mode. `bun run format` runs Prettier and the
-syntax-aware blank-line pass; Python behavior is verified by AST hashes. Only transcript history
-scrolls during active chat.
+syntax-aware blank-line pass; bot behavior is verified by deterministic fixtures and prompt hashes.
+Only transcript history scrolls during active chat.
 
 Score aggregates are cached in the game authority until a terminal match save; unchanged lobby ticks
 do not scan transcript history. Names/device context do not spawn workers. Context updates after
