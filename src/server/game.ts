@@ -188,7 +188,8 @@ export class Game {
 
   // Provider failures that mean every further request would be billed for nothing.
   static readonly CREDENTIAL_FAILURE = /openrouter_(401|402|403)/;
-  static readonly MATCHES_PER_IP_PER_HOUR = 6;
+  // Generous enough for a room of friends behind one router; tight enough to stop a script.
+  static readonly MATCHES_PER_IP_PER_HOUR = Number(process.env.MATCHES_PER_IP_PER_HOUR ?? 30);
   static readonly BREAKER_FAILURES = 3;
   static readonly BREAKER_WINDOW_MS = 10 * 60_000;
   static readonly BREAKER_PAUSE_MS = 10 * 60_000;
@@ -202,7 +203,7 @@ export class Game {
     const now = this.now();
 
     for (const p of creators) {
-      if (!p.ip) continue;
+      if (!p.ip || p.ip === '127.0.0.1' || p.ip === '::1') continue; // local development and tests
 
       const recent = (this.matchStarts.get(p.ip) ?? []).filter((t) => now - t < 60 * 60_000);
 
@@ -214,7 +215,7 @@ export class Game {
       this.matchStarts.set(p.ip, recent);
     }
 
-    for (const p of creators) if (p.ip) this.matchStarts.get(p.ip)!.push(now);
+    for (const p of creators) this.matchStarts.get(p.ip ?? '')?.push(now);
   }
 
   // Stop admitting matches when the provider is rejecting us; every retry would be wasted spend.

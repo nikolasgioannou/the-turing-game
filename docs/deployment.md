@@ -47,7 +47,7 @@ Four independent limits bound provider spend. All are enforced server-side insid
 | Daily input tokens | `DAILY_INPUT_TOKEN_CAP=1000000` | admission, every request |
 | Daily output tokens | `DAILY_OUTPUT_TOKEN_CAP=100000` | admission, every request |
 | Daily money, at the pinned model's list price | `DAILY_USD_CAP=2` | admission, every request |
-| Matches per network per hour | 6 (`Game.MATCHES_PER_IP_PER_HOUR`) | match creation |
+| Matches per network per hour | `MATCHES_PER_IP_PER_HOUR=30` (loopback exempt) | match creation |
 
 Cost estimate at list price for `anthropic/claude-haiku-4.5` ($1 per million input, $5 per million output): the default token caps allow at most **$1.50 per UTC day** (about **$46 per month**), roughly 13 admitted matches per day. Hedged and retried attempts count separately, so exhaustion arrives earlier under bad latency; nothing lets spend exceed the caps. `DAILY_USD_CAP` is a money limit computed from the same counters and is the one to lower if the token caps are ever misconfigured; set it below $1.50 to make money the binding limit.
 

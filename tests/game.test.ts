@@ -829,6 +829,8 @@ describe('spending guardrails', () => {
   });
 
   test('one network cannot create more than the hourly match limit', async () => {
+    store.caps = { input: 1e9, output: 1e8 }; // plenty of daily capacity; this test is about the per-IP limit
+
     const creators: Peer[] = [];
 
     for (let i = 0; i < Game.MATCHES_PER_IP_PER_HOUR; i++) {
@@ -856,6 +858,14 @@ describe('spending guardrails', () => {
     clock += 60 * 60_000 + 1;
     await game.handle(extra.p, { type: 'create', role: 'judge' });
     expect(extra.p.roomId).toBeDefined();
+
+    // Loopback (local development and browser tests) is never limited.
+    for (let i = 0; i < Game.MATCHES_PER_IP_PER_HOUR + 1; i++) {
+      const local = await peer();
+
+      local.p.ip = '127.0.0.1';
+      await game.handle(local.p, { type: 'create', role: 'judge' });
+    }
   });
 
   test('the operator kill switch refuses new matches without touching the database', async () => {
