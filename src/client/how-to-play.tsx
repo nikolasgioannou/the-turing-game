@@ -28,11 +28,7 @@ export function HowToPlay({ onClose }: { onClose: () => void }) {
           revealed.
         </li>
       </ol>
-      <p className="text-muted">
-        The AI can use opening answers and live drafts from the human contestant to adapt its style.
-        Unsent drafts stay private. Sent conversations and results are saved for replay.
-      </p>
-      <Button className="mt-2 w-full" onClick={onClose}>
+      <Button className="mt-6 w-full" onClick={onClose}>
         Got it
       </Button>
     </Dialog>
