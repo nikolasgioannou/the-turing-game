@@ -356,3 +356,9 @@ Added a workflow_dispatch-only production workflow, restricted to main, with pin
 Production verification completed: a real OpenRouter game passed opening replies, refresh recovery, early verdict and identity reveal, with a third browser receiving the live outcome update. The first smoke attempt needed to wait for the name dialog to close before filling the remounted composer; the corrected journey passed without application changes. One completed smoke-test game remains in the production aggregate.
 
 GitHub run 34884381483 successfully ran all 189 tests, formatting, typecheck, build, Fly deployment and public health check. The deployment restarted the same single app machine. The completed outcome and usage counters persisted; outstanding reservations were released to zero and the provider circuit remains clear. Production is live at https://the-turing-game.fly.dev. Pushes remain non-deploying; use the manual Actions workflow for future releases.
+
+## Custom-domain connection fix
+
+The Spaceship DNS records and Fly certificate were active, but WebSocket requests from theturinggame.ai received 403 because APP_ORIGIN still named the Fly hostname. Set the canonical production origin to https://theturinggame.ai, updated the deployment workflow URL/health check, and redirected production page requests from alternate hosts to the canonical origin. Origin validation remains strict.
+
+GitHub deployment 34885428661 passed all 189 tests and deployed successfully. A real game on the custom domain verified AI opening replies, refresh recovery, verdict/reveal and a separate homepage connection without browser errors. The old Fly homepage returns a 308 redirect to the custom domain, and an untrusted WebSocket origin still returns 403.
