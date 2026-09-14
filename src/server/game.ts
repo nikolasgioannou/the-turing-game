@@ -176,7 +176,10 @@ export class Game {
   }
 
   async lobby(peer?: Peer) {
-    const capacity = await this.store.availability(this.now());
+    const [capacity, score] = await Promise.all([
+      this.store.availability(this.now()),
+      this.store.score(),
+    ]);
     const unavailable = this.ai.unavailable?.();
     const availability = unavailable
       ? { ...capacity, available: false, message: unavailable }
@@ -194,7 +197,7 @@ export class Game {
     for (const p of peer ? [peer] : this.peers.values())
       p.send({
         type: 'lobby',
-        data: { rooms, availability, queued: p.queue ?? null },
+        data: { rooms, availability, score, queued: p.queue ?? null },
       });
   }
 

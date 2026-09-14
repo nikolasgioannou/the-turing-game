@@ -84,6 +84,23 @@ export class Store {
     };
   }
 
+  async score() {
+    // Count persisted verdicts, never unfinished/failed matches or audience guesses.
+    // Old matches asked for the human, so preserve their original scoring direction.
+    const [row] = await this.db.query<{ completed: string; ai_wins: string }>(`
+      SELECT count(*) AS completed,
+        count(*) FILTER (WHERE CASE WHEN payload->>'guessTarget' = 'ai'
+          THEN payload->>'choice' = payload->>'humanLabel'
+          ELSE payload->>'choice' <> payload->>'humanLabel' END) AS ai_wins
+      FROM matches
+      WHERE payload->>'phase' = 'complete'
+        AND payload->>'choice' IN ('A', 'B')
+        AND payload->>'humanLabel' IN ('A', 'B')
+    `);
+
+    return { completed: Number(row?.completed ?? 0), aiWins: Number(row?.ai_wins ?? 0) };
+  }
+
   async reserve(id: string, now = Date.now()) {
     const day = new Date(now).toISOString().slice(0, 10);
 

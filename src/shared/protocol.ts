@@ -117,6 +117,7 @@ export type RoomView = {
 };
 
 export type Lobby = {
+  score: { completed: number; aiWins: number };
   rooms: {
     id: string;
     phase: 'ready' | 'opening' | 'opening_ai' | 'chat' | 'verdict';

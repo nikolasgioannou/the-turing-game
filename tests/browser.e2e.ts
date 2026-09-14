@@ -368,3 +368,33 @@ test('composer preserves focus and drafts while sending is blocked', async ({ br
   await humanContext.close();
   await judgeContext.close();
 });
+
+test('home page shows creator links and a live score on desktop and mobile', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('link', { name: 'Marc', exact: true })).toHaveAttribute(
+    'href',
+    'https://x.com/marcbaghadjian',
+  );
+
+  await expect(page.getByRole('link', { name: 'Nik', exact: true })).toHaveAttribute(
+    'href',
+    'https://x.com/NikolasIoannou_',
+  );
+
+  await expect(page.getByText(/No completed games yet\.|AI fooled the judge in/)).toBeVisible();
+
+  for (const viewport of [
+    { width: 1440, height: 1100 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect(page.getByRole('link', { name: 'Marc', exact: true })).toBeVisible();
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+
+    await page.screenshot({ path: `work/home-details-${viewport.width}.png`, fullPage: true });
+  }
+});

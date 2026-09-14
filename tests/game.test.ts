@@ -408,3 +408,46 @@ test('opening submission racing an early attack is retained until the worker pub
   expect(m.openingHuman).toBeNull();
   expect(m.messages.filter((x) => x.text === 'in flight')).toHaveLength(1);
 });
+
+test('homepage score counts completed outcomes once and preserves historical scoring', async () => {
+  expect(await store.score()).toEqual({ completed: 0, aiWins: 0 });
+
+  let id = 0;
+
+  for (const humanLabel of ['A', 'B']) {
+    for (const choice of ['A', 'B']) {
+      for (const guessTarget of ['ai', undefined]) {
+        await store.save(`score-${id++}`, { phase: 'complete', humanLabel, choice, guessTarget });
+      }
+    }
+  }
+
+  for (const phase of ['chat', 'verdict', 'failed', 'abandoned']) {
+    await store.save(phase, { phase, humanLabel: 'A', choice: 'A', guessTarget: 'ai' });
+  }
+
+  await store.save('invalid', { phase: 'complete', humanLabel: 'A', choice: null });
+  expect(await store.score()).toEqual({ completed: 8, aiWins: 4 });
+
+  await store.save('score-0', {
+    phase: 'complete',
+    humanLabel: 'A',
+    choice: 'A',
+    guessTarget: 'ai',
+  });
+
+  expect(await store.score()).toEqual({ completed: 8, aiWins: 4 });
+});
+
+test('verdict broadcasts the updated aggregate to people on the homepage', async () => {
+  const visitor = await peer();
+  const { j, m } = await opening();
+  const lastScore = () =>
+    visitor.events.filter((event) => event.type === 'lobby').at(-1)?.data.score;
+
+  expect(lastScore()).toEqual({ completed: 0, aiWins: 0 });
+  await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: '' });
+  expect(lastScore()).toEqual({ completed: 1, aiWins: 1 });
+  await game.tick();
+  expect(lastScore()).toEqual({ completed: 1, aiWins: 1 });
+});

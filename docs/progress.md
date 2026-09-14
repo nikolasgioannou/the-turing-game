@@ -632,3 +632,15 @@ no active matches, and restarted the Wi-Fi app with the new environment. The rea
 journey passed: opening, a live follow-up answered while the human textbox remained empty, and an
 early verdict with the result visible. The isolated test used an in-memory database; existing Wi-Fi
 game history was unchanged. App remains at http://192.168.1.192:3000.
+
+## Homepage creator credits and live results
+
+Added linked credits for Marc and Nik and a minimal live score: “AI fooled the judge in X of Y
+games.” Totals come from persisted, completed verdicts, exclude invalid/incomplete/failed outcomes,
+and honor historical human-guess scoring. Re-saving a match cannot double count it. Lobby socket
+updates carry only aggregate counts and update immediately after a verdict. Empty databases show “No
+completed games yet”; disconnected clients label the retained number “Last score.”
+
+Validation: typecheck, 29 unit/worker tests and build pass. Added aggregate and live-broadcast
+regressions, plus a passing desktop/mobile browser check for creator links, score and overflow. Both
+layouts were visually inspected. The idle Wi-Fi app was restarted to serve the new score.

@@ -50,3 +50,11 @@ Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, a
 standard-library Python worker preserves the reference brain. OpenRouter is the sole inference
 route. Fly deployment is still paused pending owner details. Keep dependencies project-local and
 create conventional commits at completed milestones.
+
+## Homepage credits and live score
+
+The homepage credits Marc and Nik with links to their X profiles. A live line reports how many
+completed games the AI fooled the judge in, alongside total completed games. This counts match
+outcomes, not unique people. Failed, abandoned and unfinished matches do not count. Legacy matches
+retain their original scoring direction. Existing lobby broadcasts refresh the database aggregate
+when verdicts are saved and on the regular server tick; no player details are exposed.
