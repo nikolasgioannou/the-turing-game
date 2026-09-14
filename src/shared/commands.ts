@@ -11,6 +11,7 @@ const text = (max: number) =>
         characters(s) > 0 && characters(s) <= max && new TextEncoder().encode(s).length <= max * 4,
       'Check the character limit.',
     );
+
 export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('queue'), role: z.enum(['human', 'judge']) }),
   z.object({ type: z.literal('cancel') }),

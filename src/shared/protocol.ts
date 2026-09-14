@@ -7,8 +7,11 @@ export const LIMITS = {
   reason: 1000,
   actionMs: 90_000,
 } as const;
+
 const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+
 export const characters = (text: string) => [...segmenter.segment(text)].length;
+
 export const shorten = (text: string, max: number) =>
   [...segmenter.segment(text)]
     .slice(0, max)
