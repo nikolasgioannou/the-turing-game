@@ -545,3 +545,17 @@ messages, and deadline/verdict cancellation is unchanged. No prompt changes or c
 Validation: 59 tests, typecheck and production build pass. A regression follows the reported
 sequence with new judge/human messages during generation and typing, verifies both answers arrive,
 and checks that internal reply targeting is absent from public views.
+
+## Restore independent live answers
+
+Removed the requirement that shared judge questions receive human draft/submitted evidence before
+invoking the AI. Live questions now schedule independent generation after 1.2 seconds. A stable
+current draft or submitted reply can inform the call, but continuous draft changes cannot postpone
+independent generation beyond four seconds from the question. Existing thinking/typing publication
+delay remains. Prompt v24 explicitly treats missing current opponent input as optional context, not
+a reason to remain silent. Opening pairing and no idle follow-up behavior are unchanged.
+
+Validation: 60 unit tests, typecheck and build pass; regression verifies first response with no
+human input, no repeat calls after answering, and fallback after draft revisions. A real-model
+browser journey also passed: the AI answered the live meaning-of-life question while the human
+composer stayed empty, followed by a successful early verdict.

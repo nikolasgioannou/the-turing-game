@@ -20,8 +20,9 @@ test('routing distinguishes direct addresses from ordinary mentions', () => {
   ).toBeNull();
 
   expect(
-    conversationOpportunity([message('judge', 'does vitamin B help')], 'A', undefined, 2000),
-  ).toBeNull();
+    conversationOpportunity([message('judge', 'does vitamin B help')], 'A', undefined, 2000)
+      ?.evidence,
+  ).toBe('question');
 
   expect(
     conversationOpportunity(

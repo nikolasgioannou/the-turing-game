@@ -100,10 +100,11 @@ dependency is lazy-loaded and local files are excluded from both git and the Doc
 Opening model history is system, judge, hidden human sample, then AI output. Later calls use public
 history with native assistant roles and explicit reply target/evidence. `conversation.ts` determines
 eligibility from the latest judge turn, human evidence and whether the AI already answered. Shared
-questions wait for a stable draft or submitted answer. Explicit AI addresses can proceed
-independently. Only clear peer-directed input can prompt a reply after the AI has answered; there
-are no idle calls. This is conservative routing rather than a semantic classifier, so ambiguous peer
-remarks may be skipped.
+questions schedule independent generation after 1.2 seconds. Stable drafts or submitted answers can
+provide current evidence, but draft waiting expires four seconds after the judge question. Explicit
+AI addresses can proceed independently. Only clear peer-directed input can prompt a reply after the
+AI has answered; there are no idle calls. This is conservative routing rather than a semantic
+classifier, so ambiguous peer remarks may be skipped.
 
 Generation snapshots public message IDs and private draft revision. Changes discard unpublished
 draft-based work while settling measured usage. Answers based on submitted messages survive

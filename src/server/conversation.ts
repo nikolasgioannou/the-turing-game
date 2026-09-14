@@ -13,7 +13,7 @@ export type TypingDraft = {
 export type Opportunity = {
   key: string;
   target: 'judge' | 'opponent';
-  evidence: 'draft' | 'sent' | 'direct';
+  evidence: 'draft' | 'sent' | 'direct' | 'question';
   readyAt: number;
   draft?: TypingDraft;
 };
@@ -57,6 +57,7 @@ export function conversationOpportunity(
       return { key: judge.id, target: 'judge', evidence: 'sent', readyAt: response.sentAt + 650 };
 
     if (
+      now < judge.sentAt + 4000 &&
       draft &&
       draft.expires > now &&
       draft.judgeId === judge.id &&
@@ -66,7 +67,7 @@ export function conversationOpportunity(
         key: judge.id,
         target: 'judge',
         evidence: 'draft',
-        readyAt: draft.changedAt + 800,
+        readyAt: Math.min(draft.changedAt + 800, judge.sentAt + 4000),
         draft,
       };
     }
@@ -75,7 +76,7 @@ export function conversationOpportunity(
     if (addresses(judge.text, ai))
       return { key: judge.id, target: 'judge', evidence: 'direct', readyAt: judge.sentAt + 1200 };
 
-    return null;
+    return { key: judge.id, target: 'judge', evidence: 'question', readyAt: judge.sentAt + 1200 };
   }
 
   // A parallel answer to the judge is not a message to the AI. Only a clear

@@ -430,7 +430,7 @@ test('message bursts use the latest human evidence and explain new input', async
 
   clock += 1000;
   await game.handle(j.p, { type: 'message', text: 'two' });
-  expect(m.aiDueAt).toBeNull();
+  expect(m.aiDueAt).toBe(clock + 1200);
 
   for (let i = 0; i < 3; i++) {
     clock += 1000;
@@ -630,7 +630,7 @@ describe('private contestant drafts', () => {
   });
 });
 
-test('shared questions wait for stable draft evidence and discard revised generations', async () => {
+test('draft revisions cancel stale work but eventually fall back to an independent answer', async () => {
   const { h, j, m } = await opening();
 
   await complete('pizza');
@@ -638,10 +638,10 @@ test('shared questions wait for stable draft evidence and discard revised genera
 
   const requests = m.aiRequests;
 
-  clock += 5000;
+  clock += 100;
   await game.generate(m);
   expect(m.aiRequests).toBe(requests);
-  expect(m.aiDueAt).toBeNull();
+  expect(m.aiDueAt).not.toBeNull();
   await game.handle(h.p, { type: 'draft', text: 'wont tell you that' });
   clock += 799;
   await game.generate(m);
@@ -663,7 +663,9 @@ test('shared questions wait for stable draft evidence and discard revised genera
   clock += 5000;
   await game.tick();
   expect(m.messages.some((message) => message.text.includes('stale'))).toBe(false);
-  expect(m.aiDueAt).toBeNull();
+  expect(lastInput.invocation?.evidence).toBe('question');
+  await complete('not sharing that');
+  expect(m.messages.at(-1)?.text).toBe('not sharing that');
 });
 
 test('early judge verdict finishes atomically and rejects late AI output and votes', async () => {
@@ -730,4 +732,22 @@ test('submitted-turn replies survive new questions during generation and typing'
   expect(m.messages.at(-1)?.replyTo).toBe(nextQuestion);
   expect(m.aiDueAt).toBeNull();
   expect(game.view(m).messages.every((message) => message.replyTo === undefined)).toBe(true);
+});
+
+test('AI answers a live judge question first without human typing and does not loop', async () => {
+  const { j, m } = await opening();
+
+  await complete('hey');
+  await game.handle(j.p, { type: 'message', text: 'whats the meaning of life' });
+  clock += 1201;
+  await game.tick();
+  expect(m.aiRequests).toBe(2);
+  expect(lastInput.invocation?.evidence).toBe('question');
+  expect(lastInput.opponentDraft).toBeUndefined();
+  await complete('enjoying it i guess');
+  expect(m.messages.at(-1)?.text).toBe('enjoying it i guess');
+  clock += 10000;
+  await game.tick();
+  expect(m.aiRequests).toBe(2);
+  expect(m.aiDueAt).toBeNull();
 });

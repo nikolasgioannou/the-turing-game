@@ -275,3 +275,29 @@ test('judge can return to chat or submit an early guess', async ({ browser }) =>
   await humanContext.close();
   await judgeContext.close();
 });
+
+test('AI answers a shared live question before the human types', async ({ browser }) => {
+  const { h, j, humanContext, judgeContext } = await participants(browser);
+  const humanLabel = (await h.getByText(/YOU ARE CONTESTANT/).textContent())!.trim().slice(-1);
+  const aiLabel = humanLabel === 'A' ? 'B' : 'A';
+
+  await j.getByLabel('Ask the opening question').fill('what is your name');
+  await j.getByRole('button', { name: 'Ask both contestants' }).click();
+  await h.getByLabel('Write your opening reply').fill('nik');
+  await h.getByRole('button', { name: 'Submit opening reply' }).click();
+  await expect(j.getByLabel('Message the group')).toBeVisible();
+  await j.getByLabel('Message the group').fill('whats the meaning of life');
+  await j.getByRole('button', { name: 'Send', exact: true }).click();
+
+  await expect(
+    j.getByLabel('Group chat').getByText(`Contestant ${aiLabel}`, { exact: true }),
+  ).toHaveCount(2, { timeout: 25000 });
+
+  await expect(h.getByLabel('Message the group')).toHaveValue('');
+  await j.getByRole('button', { name: 'Make a guess' }).click();
+  await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
+  await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
+  await expect(j.getByRole('heading', { name: /Contestant A wins/ })).toBeVisible();
+  await humanContext.close();
+  await judgeContext.close();
+});
