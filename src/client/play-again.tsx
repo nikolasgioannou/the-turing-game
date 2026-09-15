@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Command, QueuePreference, RoomView } from '../shared/protocol';
-import { Button, Dialog, RoleButton } from './ui';
+import { Banner, Button, Dialog, RoleButton } from './ui';
 
 export function PlayAgain({
   room,
@@ -29,7 +29,14 @@ export function PlayAgain({
 
   return (
     <section className="mt-7 mb-8 space-y-4" aria-label="Play again">
-      {friend ? (
+      {canRematch && rematch?.other && !rematch.own ? (
+        <Banner tone="info" role="status">
+          <div>
+            <strong className="block text-sm">Your friend wants a rematch!</strong>
+            <p className="mt-1 text-sm text-ink">Join below, or change your role.</p>
+          </div>
+        </Banner>
+      ) : friend ? (
         <p className="text-sm text-muted" role="status">
           {!canRematch
             ? 'Your friend has left. Send a new invitation to play again.'
