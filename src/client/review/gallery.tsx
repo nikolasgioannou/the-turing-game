@@ -31,14 +31,10 @@ export function ReviewGallery() {
     <div className="flex h-dvh flex-col overflow-hidden bg-canvas text-ink">
       <header className="shrink-0 border-b border-line px-5 py-4">
         <h1 className="font-arcade text-lg text-accent">UI review</h1>
-        <p className="mt-2 text-xs text-muted">
-          {reviewExamples.length} fixed states · Real components · Sample data · No game server or
-          model calls
-        </p>
       </header>
       <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,30%)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[270px_minmax(0,1fr)] lg:grid-rows-1">
         <aside className="flex min-h-0 flex-col overflow-hidden border-b border-line p-4 lg:border-r">
-          <label htmlFor="state-search" className="mb-2 block text-xs">
+          <label htmlFor="state-search" className="sr-only">
             Find a state
           </label>
           <input
@@ -115,14 +111,7 @@ export function ReviewGallery() {
               {copied ? 'Link copied' : 'Copy state link'}
             </button>
           </div>
-          <h2 className="text-base font-bold">{selected.title}</h2>
-          <p className="my-2 text-xs text-muted">
-            {selected.id} · {selected.description}
-          </p>
-          <p className="mb-4 text-xs text-muted">
-            Controls are interactive; server actions do not advance the sample. Use Reset state to
-            restore it. Export every screen with <code>bun run review:capture</code>.
-          </p>
+          <h2 className="mb-3 text-base font-bold">{selected.title}</h2>
           <div className="overflow-auto border border-line bg-black/30 p-3">
             <iframe
               key={`${selected.id}-${revision}`}
