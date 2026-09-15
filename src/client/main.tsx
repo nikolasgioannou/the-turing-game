@@ -830,31 +830,6 @@ function Room({
     (room.phase === 'chat' ||
       (isJudge && ['ready', 'opening', 'opening_ai'].includes(room.phase)) ||
       (isHuman && ['opening', 'opening_ai'].includes(room.phase)));
-  const status = !connected
-    ? 'Reconnecting — your draft stays here.'
-    : room.contextReady === false
-      ? 'Waiting for both players to enter their names.'
-      : room.phase === 'ready'
-        ? isJudge
-          ? 'Ask a question to start.'
-          : 'Waiting for the judge to ask a question.'
-        : room.phase === 'opening'
-          ? isHuman
-            ? 'Your turn — answer the opening question.'
-            : null
-          : room.phase === 'opening_ai'
-            ? 'Opening replies are being prepared. You can keep chatting.'
-            : room.phase === 'verdict'
-              ? isJudge
-                ? 'Choose who is the bot to finish the match.'
-                : 'Waiting for the judge to choose.'
-              : guessing
-                ? 'Choose who is the bot, or go back to chat.'
-                : room.phase === 'chat'
-                  ? isJudge
-                    ? 'Ask questions or make a guess anytime.'
-                    : 'Chat with the group. Avoid being mistaken for AI.'
-                  : 'Waiting for your opponent.';
 
   return (
     <div
@@ -1003,9 +978,11 @@ function Room({
                 {isJudge ? 'Find the bot' : 'Blend in. Stay human.'}
               </h2>
               <p className="mb-3">
-                {isJudge
-                  ? 'Ask both contestants a question. One is human, one is AI.'
-                  : 'The judge will ask a question. Send your answer when it arrives.'}
+                {room.contextReady === false
+                  ? 'Waiting for both players to enter their names.'
+                  : isJudge
+                    ? 'Ask both contestants a question. One is human, one is AI.'
+                    : 'The judge will ask a question. Send your answer when it arrives.'}
               </p>
               <p>
                 Both opening replies appear together, then the 90-second chat starts. The judge can
@@ -1037,19 +1014,6 @@ function Room({
           className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"
         >
-          {status && !showVerdict ? (
-            <p
-              className={
-                room.phase === 'chat' && canSend
-                  ? 'sr-only'
-                  : 'mb-2 text-xs leading-normal text-muted'
-              }
-              role="status"
-            >
-              {room.judgeName && isHuman ? `Judge: ${room.judgeName}. ` : ''}
-              {status}
-            </p>
-          ) : null}
           {isJudge || isHuman ? (
             <div hidden={showVerdict}>
               <Composer
