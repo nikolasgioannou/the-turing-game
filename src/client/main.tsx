@@ -1,3 +1,4 @@
+import { WaitingForJudge } from './waiting-for-judge';
 import { copyText } from './clipboard';
 import { Music } from './music';
 import { CreatorCredits, LiveScore } from './home-details';
@@ -687,10 +688,13 @@ function Room({
   const [choice, setChoice] = useState<Label | null>(null),
     [reason, setReason] = useState(''),
     [guessing, setGuessing] = useState(false),
-    [copied, setCopied] = useState(false);
+    [copied, setCopied] = useState(false),
+    [waitingDismissed, setWaitingDismissed] = useState(false);
 
   useEffect(() => {
     if (ended(room.phase)) window.scrollTo({ top: 0 });
+
+    if (room.phase !== 'verdict') setWaitingDismissed(false);
   }, [room.phase]);
 
   const done = ended(room.phase),
@@ -783,6 +787,9 @@ function Room({
         (room.phase === 'verdict' || guessing ? ' verdict-chat' : '')
       }
     >
+      {isHuman && room.phase === 'verdict' && !waitingDismissed ? (
+        <WaitingForJudge onClose={() => setWaitingDismissed(true)} />
+      ) : null}
       {needsName ? (
         <Dialog label="Your first name" onClose={home}>
           <h2 className="mb-4 font-arcade text-lg text-ink">{isJudge ? 'Judge' : 'Player'}</h2>

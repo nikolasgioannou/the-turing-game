@@ -428,3 +428,7 @@ Validation: typecheck, build and all unit/integration tests pass; a five-lane ru
 ## AI judge for simulated matches
 
 The simulator's scripted judge previously selected the bot by construction, so every lane reported the bot as caught. Simulated verdicts now come from an independent model call that reads the transcript with A/B labels only, never the mapping, and returns the bot label with the strongest tell; the dashboard shows who judged and why. The judge call takes its own capacity reservation because the match's reservation is released when the chat closes; if the call fails the lane falls back to a coin flip and says so. Validation: typecheck and build pass; a local lane produced a reasoned verdict that selected the human, with the reasoning shown. Deployed with this change.
+
+## Player verdict waiting dialog
+
+When chat ends and the judge is choosing, the human player now sees a waiting dialog using the shared dialog and button components. It explains that results appear automatically and offers View conversation. The dialog unmounts when the match completes or fails. Typecheck and production build pass; no live model calls were needed. Not deployed.
