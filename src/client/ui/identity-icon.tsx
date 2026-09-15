@@ -9,21 +9,6 @@ function HumanFace() {
   );
 }
 
-function JudgeFace() {
-  return (
-    <>
-      <path
-        fill="currentColor"
-        d="M4 0h8v1h2v2h1v7h-3V4H4v6H1V3h1V1h2zM4 4h8v5h-1v2H5V9H4zM5 12h6v1h3v3H2v-3h3z"
-      />
-      <path
-        fill="var(--color-canvas)"
-        d="M5 5h2v2H5zm4 0h2v2H9zM6 9h4v1H6zM5 12h6l-3 3zM1 4h2v1H1zm12 0h2v1h-2zM1 7h2v1H1zm12 0h2v1h-2z"
-      />
-    </>
-  );
-}
-
 export function IdentityIcon({
   kind,
   className = '',
@@ -62,11 +47,9 @@ export function IdentityIcon({
             <HumanFace />
           </g>
           <g clipPath={`url(#${id}-judge)`} className="text-player-b">
-            <JudgeFace />
+            <HumanFace />
           </g>
         </>
-      ) : kind === 'judge' ? (
-        <JudgeFace />
       ) : (
         <HumanFace />
       )}

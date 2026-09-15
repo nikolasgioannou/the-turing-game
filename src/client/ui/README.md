@@ -54,3 +54,5 @@ Run `bun run format` and `bun run format:check`. The workspace VS Code configura
 `RoleButton` pairs its text with a pixel identity icon: human for tone `a`, judge for `b`, and a split orange-human/cyan-judge portrait for `neutral`. These icons appear in public, friend and replay role pickers. `IdentityIcon` also supports `judge` and `either` for reuse; decorative icons stay hidden from screen readers.
 
 Use `IdentityIcon` for every standalone human, bot, judge or either-role portrait; do not add separate SVG paths or emoji at call sites. The robot has a rectangular head, antenna, side terminals and grille mouth. Judge chat messages use the same judge portrait as role selection. Anonymous live contestants retain A/B badges until identity reveal.
+
+Human and judge share the same human silhouette; the surrounding role color distinguishes them. Either role uses that silhouette split orange/cyan. Only the bot has a different portrait.
