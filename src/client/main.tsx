@@ -841,10 +841,7 @@ function Room({
         <MatchToolbar
           identity={
             isHuman ? (
-              <span
-                aria-label="Your contestant"
-                className={room.ownLabel === 'A' ? 'text-player-a' : 'text-player-b'}
-              >
+              <span aria-label="Your contestant" className="sr-only">
                 Contestant {room.ownLabel}
               </span>
             ) : null

@@ -710,7 +710,7 @@ for (const fixedRole of ['human', 'judge'] as const) {
       const human = fixedRole === 'human' ? fixed : flexible;
       const judge = fixedRole === 'judge' ? fixed : flexible;
 
-      await expect(human.getByLabel('Your contestant')).toBeVisible();
+      await expect(human.getByLabel('Your contestant')).toHaveClass('sr-only');
       await expect(judge.getByLabel('Your contestant')).toHaveCount(0);
       await judge.getByLabel('Message the group').fill('hello');
       await expect(judge.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
@@ -750,7 +750,7 @@ test('either role creates a friend invitation with complementary seats', async (
     const human = hostIsHuman ? host : friend;
     const judge = hostIsHuman ? friend : host;
 
-    await expect(human.getByLabel('Your contestant')).toBeVisible();
+    await expect(human.getByLabel('Your contestant')).toHaveClass('sr-only');
     await expect(judge.getByLabel('Your contestant')).toHaveCount(0);
     await judge.getByLabel('Message the group').fill('hello');
     await expect(judge.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
