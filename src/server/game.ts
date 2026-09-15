@@ -35,6 +35,8 @@ export type Match = {
   humanSession?: string;
   judgeSession?: string;
   inviteToken?: string;
+  simulated?: boolean;
+  trace?: (text: string) => void;
   messages: ChatMessage[];
   startedAt: number | null;
   openingHuman: string | null;
@@ -152,7 +154,9 @@ export class Game {
   }
 
   async persist(m: Match) {
-    if (m.phase === 'complete') await this.store.saveOutcome(m.id, m.choice === m.humanLabel);
+    // Simulated matches never touch the public score.
+    if (m.phase === 'complete' && !m.simulated)
+      await this.store.saveOutcome(m.id, m.choice === m.humanLabel);
 
     if (ended(m.phase)) this.score = undefined;
 
@@ -249,9 +253,10 @@ export class Game {
     await this.lobby();
   }
 
-  async newMatch(creators: Peer[] = []) {
+  async newMatch(creators: Peer[] = [], simulated = false) {
     await this.available();
-    this.admitCreators(creators);
+
+    if (!simulated) this.admitCreators(creators);
 
     const id = crypto.randomUUID();
 
@@ -272,6 +277,7 @@ export class Game {
       choice: null,
       reason: '',
       message: null,
+      ...(simulated ? { simulated: true } : {}),
     };
 
     this.rooms.set(id, m);
@@ -539,53 +545,59 @@ export class Game {
     if (existing) return existing;
 
     try {
-      const bot = this.ai.start(m.id, m.humanLabel, {
-        state: (state) => {
-          void this.run(() => this.receiveBot(m, state));
-        },
-        reserve: (bound) =>
-          this.run(async () => {
-            if (
-              !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase) ||
-              (m.deadline !== null && this.now() >= m.deadline)
-            )
-              throw new AIError('match_closed');
+      const bot = this.ai.start(
+        m.id,
+        m.humanLabel,
+        {
+          state: (state) => {
+            void this.run(() => this.receiveBot(m, state));
+          },
+          reserve: (bound) =>
+            this.run(async () => {
+              if (
+                !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase) ||
+                (m.deadline !== null && this.now() >= m.deadline)
+              )
+                throw new AIError('match_closed');
 
-            try {
-              const id = await this.store.beginRequest(
-                m.id,
-                { model: this.ai.model, promptVersion: PROMPT_VERSION, request: ++m.aiRequests },
-                bound,
+              try {
+                const id = await this.store.beginRequest(
+                  m.id,
+                  { model: this.ai.model, promptVersion: PROMPT_VERSION, request: ++m.aiRequests },
+                  bound,
+                );
+
+                return id;
+              } catch {
+                await this.finish(
+                  m,
+                  'failed',
+                  'AI capacity was exhausted. This match was not counted.',
+                );
+
+                throw new AIError('capacity');
+              }
+            }),
+          settle: (id, usage, metadata) =>
+            this.run(() => this.store.settleRequest(id, usage, metadata)),
+          failed: (error) => {
+            void this.run(async () => {
+              if (ended(m.phase) || m.phase === 'verdict') return;
+
+              await this.finish(m, 'failed', 'The AI is unavailable. This match was not counted.');
+
+              console.error(
+                'Bot unavailable:',
+                error instanceof AIError ? error.code : 'worker_error',
               );
 
-              return id;
-            } catch {
-              await this.finish(
-                m,
-                'failed',
-                'AI capacity was exhausted. This match was not counted.',
-              );
-
-              throw new AIError('capacity');
-            }
-          }),
-        settle: (id, usage, metadata) =>
-          this.run(() => this.store.settleRequest(id, usage, metadata)),
-        failed: (error) => {
-          void this.run(async () => {
-            if (ended(m.phase) || m.phase === 'verdict') return;
-
-            await this.finish(m, 'failed', 'The AI is unavailable. This match was not counted.');
-
-            console.error(
-              'Bot unavailable:',
-              error instanceof AIError ? error.code : 'worker_error',
-            );
-
-            await this.providerFailed(error);
-          });
+              await this.providerFailed(error);
+            });
+          },
+          ...(m.trace ? { trace: m.trace } : {}),
         },
-      });
+        m.simulated ? { trace: true } : undefined,
+      );
 
       this.bots.set(m.id, bot);
 

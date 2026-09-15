@@ -5,7 +5,7 @@ import { normalizeName } from '../../shared/protocol';
 
 type Command =
   | BotCommand
-  | { type: 'start'; id: string; humanLabel: Label }
+  | { type: 'start'; id: string; humanLabel: Label; trace?: boolean }
   | { type: 'result'; id: string; text?: string; error?: string }
   | { type: 'stop' };
 
@@ -61,6 +61,7 @@ async function handle(command: Command) {
       complete,
       broadcast: emit,
       neverName: process.env.TURING_NEVER_NAME,
+      ...(command.trace ? { trace: (text: string) => emit({ type: 'trace', text }) } : {}),
       failed: () => {
         emit({ type: 'failed' });
         process.exitCode = 1;

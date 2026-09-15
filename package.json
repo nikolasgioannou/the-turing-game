@@ -16,7 +16,6 @@
     "test:e2e": "bun scripts/e2e.ts",
     "format": "bun scripts/format.ts",
     "format:check": "bun scripts/format.ts --check",
-    "sim": "bun scripts/sim.ts",
     "sim:extract": "bun scripts/sim/extract.ts"
   },
   "dependencies": {

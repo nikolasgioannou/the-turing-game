@@ -30,7 +30,7 @@ This repository is the canonical implementation. Describe bot behavior directly 
 - Verdict and optional reasoning commit together before identity reveal.
 - Persist only match IDs and win/loss outcomes for the homepage score, plus provider usage accounting. Transcripts and judge reasoning stay in memory; do not restore public spectating or saved-game access. Abandoned/failed matches are not wins.
 - Usage limits are provider-independent, durable, atomic and include in-flight reservations.
-- Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production.
+- Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production. The only exception is the operator simulator (`SIM_KEY`): its matches are invisible to players, never counted in the score, key-gated, and bounded by `SIM_DAILY_MATCHES` on top of the normal caps.
 
 ## Validation
 

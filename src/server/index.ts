@@ -4,6 +4,7 @@ import { database } from './database';
 import { Store } from './store';
 import { createAI } from './ai';
 import { ActionError, Game, type Peer } from './game';
+import { Simulator } from './sim/simulator';
 
 const production = process.env.NODE_ENV === 'production';
 
@@ -41,6 +42,17 @@ await store.init();
 await store.recover();
 
 const game = new Game(store, createAI());
+// Operator simulator: only mounted when SIM_KEY is configured; every route requires the key.
+const simKey = process.env.SIM_KEY?.trim() || null;
+const simulator = simKey ? new Simulator(game, store, Number(process.env.SIM_LANES ?? 5)) : null;
+
+if (simulator) await simulator.loadScenarios();
+
+const simPage = simulator
+  ? await Bun.file(resolve(import.meta.dir, 'sim/dashboard.html')).text()
+  : '';
+const simAuthorized = (req: Request, url: URL) =>
+  !!simKey && (req.headers.get('x-sim-key') === simKey || url.searchParams.get('key') === simKey);
 const headers = {
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
@@ -68,11 +80,89 @@ const root = resolve('dist');
 const server = Bun.serve<SocketData>({
   hostname: production ? '0.0.0.0' : '127.0.0.1',
   port,
-  maxRequestBodySize: 16_384,
+  maxRequestBodySize: 262_144, // scenario imports for the simulator are the only sizable body
   async fetch(req, server) {
     const url = new URL(req.url);
 
     if (url.pathname === '/api/health') return json({ ok: true });
+
+    if (simulator && (url.pathname === '/sim' || url.pathname.startsWith('/api/sim/'))) {
+      if (url.pathname === '/sim')
+        return new Response(simPage, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+        });
+
+      if (!simAuthorized(req, url)) return json({ error: 'Unauthorized' }, 401);
+
+      if (url.pathname === '/api/sim/scenarios' && req.method === 'GET')
+        return json(simulator.scenarios.map((s) => ({ name: s.name, turns: s.turns.length })));
+
+      if (url.pathname === '/api/sim/scenarios' && req.method === 'POST') {
+        const body = (await req.json().catch(() => null)) as unknown;
+
+        if (!Array.isArray(body)) return json({ error: 'Expected a JSON array of scenarios' }, 400);
+
+        await simulator.importScenarios(body);
+
+        return json({ ok: true, scenarios: simulator.scenarios.length });
+      }
+
+      if (url.pathname === '/api/sim/scenarios' && req.method === 'DELETE') {
+        await simulator.deleteScenario(url.searchParams.get('name') ?? '');
+
+        return json({ ok: true });
+      }
+
+      if (url.pathname === '/api/sim/lanes' && req.method === 'POST') {
+        simulator.setLanes(Number(url.searchParams.get('count')));
+
+        return json({ ok: true, lanes: simulator.lanes.length });
+      }
+
+      if (url.pathname === '/api/sim/rerun' && req.method === 'POST') {
+        const lane = Number(url.searchParams.get('lane'));
+
+        void simulator.run(lane, url.searchParams.get('scenario') ?? undefined);
+
+        return json({ ok: true });
+      }
+
+      if (url.pathname === '/api/sim/rerun-all' && req.method === 'POST') {
+        simulator.rerunAll();
+
+        return json({ ok: true });
+      }
+
+      if (url.pathname === '/api/sim/events') {
+        let send: ((states: unknown) => void) | null = null;
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            send = (states) => {
+              try {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ states, now: Date.now() })}\n\n`),
+                );
+              } catch {
+                if (send) simulator.listeners.delete(send);
+              }
+            };
+
+            simulator.listeners.add(send);
+            send(simulator.lanes);
+          },
+          cancel() {
+            if (send) simulator.listeners.delete(send);
+          },
+        });
+
+        return new Response(stream, {
+          headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' },
+        });
+      }
+
+      return json({ error: 'Not found' }, 404);
+    }
 
     if (url.pathname === '/api/session' && req.method === 'GET') {
       const id = session(req) ?? crypto.randomUUID();

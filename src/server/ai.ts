@@ -36,12 +36,13 @@ export interface BotHooks {
   reserve(bound: Allowance): Promise<string>;
   settle(id: string, usage: Allowance | null, metadata: Record<string, unknown>): Promise<void>;
   failed(error: Error): void;
+  trace?(text: string): void;
 }
 
 export interface AI {
   model: string;
   unavailable?(): string | null;
-  start(id: string, humanLabel: Label, hooks: BotHooks): BotSession;
+  start(id: string, humanLabel: Label, hooks: BotHooks, options?: { trace?: boolean }): BotSession;
 }
 
 export class AIError extends Error {
@@ -193,7 +194,7 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
         : process.env.OPENROUTER_API_KEY
           ? null
           : 'Set OPENROUTER_API_KEY in .env and restart the server.',
-    start(id, humanLabel, hooks) {
+    start(id, humanLabel, hooks, session = {}) {
       if (process.env.AI_DISABLED === '1')
         throw new AIError('The AI is temporarily disabled by the operator. Try again later.');
 
@@ -239,6 +240,8 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
 
               if (event.type === 'failed') hooks.failed(new AIError('Bot worker failed'));
 
+              if (event.type === 'trace') hooks.trace?.(String(event.text));
+
               if (event.type === 'cancel') requests.get(event.id)?.abort();
 
               if (event.type === 'request') {
@@ -275,7 +278,7 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
         }
       })();
 
-      write({ type: 'start', id, humanLabel });
+      write({ type: 'start', id, humanLabel, ...(session.trace ? { trace: true } : {}) });
 
       return {
         send: write,

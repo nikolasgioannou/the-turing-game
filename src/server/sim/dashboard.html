@@ -202,6 +202,24 @@
       .result b.lose {
         color: var(--red);
       }
+      .tracebox {
+        border-top: 1px solid var(--line);
+        font-size: 11px;
+      }
+      .tracebox summary {
+        padding: 6px 12px;
+        color: var(--ai);
+        cursor: pointer;
+        letter-spacing: 1px;
+      }
+      .trace {
+        max-height: 220px;
+        overflow-y: auto;
+        padding: 0 12px 8px;
+        color: #c9b2d9;
+        white-space: pre-wrap;
+        font-size: 11px;
+      }
       .log {
         max-height: 110px;
         overflow-y: auto;
@@ -238,17 +256,124 @@
       </div>
       <span style="flex: 1"></span>
       <span id="summary" class="legend"></span>
-      <button class="primary" onclick="fetch('/rerun-all', { method: 'POST' })">Rerun all</button>
+      <select id="lanecount" onchange="setLanes(this.value)">
+        <option>3</option>
+        <option selected>5</option>
+        <option>8</option>
+        <option>10</option>
+      </select>
+      <button class="primary" onclick="api('/api/sim/rerun-all', { method: 'POST' })">
+        Rerun all
+      </button>
+      <button
+        onclick="
+          document.getElementById('importbox').hidden = !document.getElementById('importbox').hidden
+        "
+      >
+        Scenarios
+      </button>
     </header>
+    <div
+      id="importbox"
+      hidden
+      style="padding: 12px 18px; border-bottom: 1px solid var(--line); background: var(--panel)"
+    >
+      <div style="color: var(--muted); font-size: 12px; margin-bottom: 6px">
+        Paste scenarios as JSON:
+        <code
+          >[{"name":"…","reason":"…","turns":[{"role":"judge","text":"…","after":1},{"role":"human","text":"…","after":8}]}]</code
+        >. <code>after</code> is seconds since the previous turn. Build them from saved transcripts
+        with <code>bun run sim:extract &lt;dir&gt;</code> and paste the file here.
+      </div>
+      <textarea
+        id="import"
+        style="
+          width: 100%;
+          min-height: 90px;
+          background: var(--bg);
+          color: var(--text);
+          border: 1px solid var(--line);
+          padding: 8px;
+          font: inherit;
+          font-size: 12px;
+        "
+      ></textarea>
+      <div style="margin-top: 6px">
+        <button onclick="importScenarios()">Import</button>
+        <button onclick="deleteScenario()">Delete selected</button>
+        <select id="delsel"></select>
+      </div>
+    </div>
     <div class="grid" id="grid"></div>
     <script>
+      let key = '';
+      try {
+        key = localStorage.getItem('sim_key') || '';
+      } catch (e) {}
+      if (!key) {
+        key = prompt('Simulator key (SIM_KEY on the server)') || '';
+        try {
+          localStorage.setItem('sim_key', key);
+        } catch (e) {}
+      }
+      const api = (path, init = {}) =>
+        fetch(path, { ...init, headers: { ...(init.headers || {}), 'x-sim-key': key } }).then(
+          (r) => {
+            if (r.status === 401) {
+              try {
+                localStorage.removeItem('sim_key');
+              } catch (e) {}
+              location.reload();
+            }
+            return r;
+          },
+        );
       let scenarios = [];
-      fetch('/scenarios')
-        .then((r) => r.json())
-        .then((s) => {
-          scenarios = s;
+      const loadScenarios = () =>
+        api('/api/sim/scenarios')
+          .then((r) => r.json())
+          .then((s) => {
+            scenarios = s;
+            document.getElementById('delsel').innerHTML = s
+              .map((x) => `<option>${esc(x.name)}</option>`)
+              .join('');
+          });
+      async function importScenarios() {
+        const text = document.getElementById('import').value.trim();
+        if (!text) return;
+        let list;
+        try {
+          list = JSON.parse(text);
+        } catch (e) {
+          alert('Not valid JSON');
+          return;
+        }
+        const r = await api('/api/sim/scenarios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Array.isArray(list) ? list : [list]),
         });
-      const es = new EventSource('/events');
+        if (r.ok) {
+          document.getElementById('import').value = '';
+          await loadScenarios();
+          alert('Imported');
+        }
+      }
+      async function deleteScenario() {
+        const name = document.getElementById('delsel').value;
+        if (!name) return;
+        await api('/api/sim/scenarios?name=' + encodeURIComponent(name), { method: 'DELETE' });
+        await loadScenarios();
+      }
+      async function setLanes(n) {
+        await api('/api/sim/lanes?count=' + n, { method: 'POST' });
+      }
+      const es = new EventSource('/api/sim/events?key=' + encodeURIComponent(key));
+      loadScenarios();
+      es.onerror = () => {
+        document.getElementById('summary').textContent =
+          'disconnected (wrong key or server restarting)…';
+      };
       const esc = (s) =>
         String(s).replace(
           /[&<>"]/g,
@@ -325,15 +450,18 @@
           const huMsgs = st.messages.filter((m) => m.sender === st.humanLabel).length;
           el.innerHTML = `
       <div class="lanehead"><b>LANE ${i + 1}</b><span class="phase ${st.phase} status-${st.status}">${st.status === 'error' ? 'ERROR' : st.phase || st.status}</span>${left !== null ? `<span class="clock">${left}s</span>` : ''}
-        <span style="flex:1"></span><select id="sel${i}">${opts}</select><button onclick="fetch('/rerun?lane=${i}&scenario='+encodeURIComponent(document.getElementById('sel${i}').value),{method:'POST'})">Rerun</button></div>
+        <span style="flex:1"></span><select id="sel${i}">${opts}</select><button onclick="api('/api/sim/rerun?lane=${i}&scenario='+encodeURIComponent(document.getElementById('sel${i}').value),{method:'POST'})">Rerun</button></div>
       <div class="msgs" id="msgs${i}">${rows}</div>
       ${st.note ? `<div class="note">${esc(st.note)}</div>` : ''}
       ${result}
       <div class="stats"><span>run <b>${st.run}</b></span><span>human <b>${huMsgs}</b></span><span>AI <b>${aiMsgs}</b></span><span>scenario <b>${esc(st.scenario)}</b></span></div>
+      <details class="tracebox"><summary>bot trace (${st.trace.length})</summary><div class="trace">${st.trace.map(esc).join('\n')}</div></details>
       <div class="log">${st.log.map(esc).join('\n')}</div>`;
           const box = document.getElementById('msgs' + i);
           box.scrollTop = box.scrollHeight;
         });
+        const lc = document.getElementById('lanecount');
+        if (lc && !lc.matches(':focus')) lc.value = String(states.length);
         document.getElementById('summary').innerHTML =
           `<span>AI first: <b>${aiFirst}/${aiTotal}</b> replies</span><span>fooled judge: <b>${aiWins}/${done}</b> finished</span>`;
       };

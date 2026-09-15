@@ -54,6 +54,8 @@ export type EngineOptions = {
   random?: () => number;
   sleep?: (seconds: number, signal: AbortSignal) => Promise<void>;
   neverName?: string;
+  // Decision trace for simulated matches only; it includes model output and draft text.
+  trace?: (text: string) => void;
 };
 
 export class Game {
@@ -116,6 +118,10 @@ export class Game {
         .map((x) => x.trim().toLowerCase())
         .filter(Boolean),
     );
+  }
+
+  trace(text: string) {
+    this.options.trace?.(text);
   }
 
   uniform(a: number, b: number) {
@@ -1992,6 +1998,7 @@ export class Game {
 
     for (let attempt = 0; attempt < 3; attempt++) {
       let text: string;
+      const started = this.now();
 
       try {
         text = await this.hedged_create({
@@ -2001,13 +2008,22 @@ export class Game {
         });
       } catch {
         this.lifetime.signal.throwIfAborted();
+        this.trace(`${trigger}: request failed`);
 
         return [];
       }
 
+      this.trace(
+        `${trigger}${this.plan ? '/' + this.plan.stim_from + (this.plan.blind ? '/blind' : '') : ''}${force ? '/forced' : ''} attempt ${attempt + 1} ${(this.now() - started).toFixed(1)}s -> ${text.replace(/\s+/g, ' ').slice(0, 220)}`,
+      );
+
       const msgs = this.parse(text);
 
-      if (msgs === null) continue;
+      if (msgs === null) {
+        this.trace('rejected: unparseable');
+
+        continue;
+      }
 
       let clean = msgs.filter((m) => m && !this.test(C.BAD_OUTPUT, m));
 
@@ -2024,11 +2040,16 @@ export class Game {
       if (this.plan?.judge_accused) cap = Math.min(cap, 10);
 
       if (attempt < 2 && clean.some((c) => words(c).length > cap + 2) && !weird.length) {
-        prompt += format(
-          "\n\nToo long. The human's recent messages average %d words; yours must be at most %d. Cut it down.",
-          recentH.length ? Math.trunc(recentH.reduce((a, b) => a + b, 0) / recentH.length) : 12,
-          cap,
-        );
+        {
+          const why = format(
+            "\n\nToo long. The human's recent messages average %d words; yours must be at most %d. Cut it down.",
+            recentH.length ? Math.trunc(recentH.reduce((a, b) => a + b, 0) / recentH.length) : 12,
+            cap,
+          );
+
+          prompt += why;
+          this.trace('retry: ' + why.trim().slice(0, 140));
+        }
 
         continue;
       }
@@ -2063,8 +2084,14 @@ export class Game {
         this.judge_asked_complex() &&
         clean.some((c) => words(c).length > Math.max(14, Math.trunc(refLen * 1.3)))
       ) {
-        prompt +=
-          "\n\nToo long and too thorough for this person in a 90-second chat. Don't answer it: one short dodge or push-back.";
+        {
+          const why =
+            "\n\nToo long and too thorough for this person in a 90-second chat. Don't answer it: one short dodge or push-back.";
+
+          prompt += why;
+
+          this.trace('retry: ' + why.trim().slice(0, 140));
+        }
 
         continue;
       }
@@ -2076,10 +2103,16 @@ export class Game {
           );
 
         if ((bad.length || !clean.length) && attempt < 2) {
-          prompt += format(
-            '\n\nThe human already did what the Judge asked. Do it too: %s. No question, no refusal.',
-            needs ? 'use an actual swear word' : 'actually do the thing',
-          );
+          {
+            const why = format(
+              '\n\nThe human already did what the Judge asked. Do it too: %s. No question, no refusal.',
+              needs ? 'use an actual swear word' : 'actually do the thing',
+            );
+
+            prompt += why;
+
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2101,8 +2134,13 @@ export class Game {
         );
 
         if (precise) {
-          prompt +=
-            "\n\nThat's too precise for a person who doesn't know. No exact numbers or dates; be vague or wrong, like the human.";
+          {
+            const why =
+              "\n\nThat's too precise for a person who doesn't know. No exact numbers or dates; be vague or wrong, like the human.";
+
+            prompt += why;
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2125,8 +2163,14 @@ export class Game {
 
         if (faked.length) {
           if (attempt < 2) {
-            prompt +=
-              "\n\nNo fake malfunctions (gibberish, 'phone glitched', 'wifi lagging', 'brb'). That's a machine performing humanity. Say something a person would actually say, or send false.";
+            {
+              const why =
+                "\n\nNo fake malfunctions (gibberish, 'phone glitched', 'wifi lagging', 'brb'). That's a machine performing humanity. Say something a person would actually say, or send false.";
+
+              prompt += why;
+
+              this.trace('retry: ' + why.trim().slice(0, 140));
+            }
 
             continue;
           }
@@ -2138,8 +2182,14 @@ export class Game {
       // The human just replied with only an emoji: a worded reply next to it is the tell.
       if (this.humanEmojiOnly() && clean.length && !clean.every((c) => this.emojiOnly(c))) {
         if (attempt < 2) {
-          prompt +=
-            '\n\nThe human answered with just an emoji. Yours must be just an emoji too (a different one that fits), no words.';
+          {
+            const why =
+              '\n\nThe human answered with just an emoji. Yours must be just an emoji too (a different one that fits), no words.';
+
+            prompt += why;
+
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2155,15 +2205,27 @@ export class Game {
         attempt < 2 &&
         clean.some((m) => /^\W*(just |flat |hard )?(no|nope|pass|nah|no thanks)\W*$/i.test(m))
       ) {
-        prompt +=
-          "\n\nA bare 'no'/'just no'/'pass' is a tell. Say WHY in a few blunt words, the way this person would (e.g. 'thats gross and dangerous').";
+        {
+          const why =
+            "\n\nA bare 'no'/'just no'/'pass' is a tell. Say WHY in a few blunt words, the way this person would (e.g. 'thats gross and dangerous').";
+
+          prompt += why;
+
+          this.trace('retry: ' + why.trim().slice(0, 140));
+        }
 
         continue;
       }
 
       if (attempt === 0 && clean.length && clean.every((m) => this.test(C.FILLER, m))) {
-        prompt +=
-          "\n\nThat was hedging filler (no clue / vibes / idk / wherever). Commit to a specific, concrete answer or take, in the human's style.";
+        {
+          const why =
+            "\n\nThat was hedging filler (no clue / vibes / idk / wherever). Commit to a specific, concrete answer or take, in the human's style.";
+
+          prompt += why;
+
+          this.trace('retry: ' + why.trim().slice(0, 140));
+        }
 
         continue;
       }
@@ -2187,8 +2249,13 @@ export class Game {
         const exact = clean.some((c) => /\b([5-9]|[1-9]\d+)\s*(sec|secs|seconds)\b/i.test(c));
 
         if (quoted || exact) {
-          prompt +=
-            "\n\nToo precise; that reads like a log, not a person. No exact seconds (say forever / instantly / like a minute), and don't quote their message back, paraphrase or just point.";
+          {
+            const why =
+              "\n\nToo precise; that reads like a log, not a person. No exact seconds (say forever / instantly / like a minute), and don't quote their message back, paraphrase or just point.";
+
+            prompt += why;
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2196,8 +2263,14 @@ export class Game {
 
       if (['predraft', 'sent'].includes(trigger) && clean.some((c) => this.reacts_to_unsent(c))) {
         if (attempt === 0) {
-          prompt +=
-            "\n\nYou reacted to the human's UNSENT draft. From the Judge's view it hasn't been said. Answer the Judge only, as if you never saw it.";
+          {
+            const why =
+              "\n\nYou reacted to the human's UNSENT draft. From the Judge's view it hasn't been said. Answer the Judge only, as if you never saw it.";
+
+            prompt += why;
+
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2219,8 +2292,14 @@ export class Game {
 
       if (clean.some((c) => mine.some((prev) => this.similar(c, prev) >= 0.75))) {
         if (attempt === 0) {
-          prompt +=
-            '\n\nYou already said something very close to that earlier in this chat. Say something new.';
+          {
+            const why =
+              '\n\nYou already said something very close to that earlier in this chat. Say something new.';
+
+            prompt += why;
+
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2234,11 +2313,16 @@ export class Game {
         const lw = words(ref.at(-1)!).length;
 
         if (lw <= 4 && clean.some((c) => words(c).length > lw + 4)) {
-          prompt += format(
-            "\n\nThe human's latest message was %d words. Yours is far longer; that contrast is a tell. Answer in about %d words.",
-            lw,
-            lw + 1,
-          );
+          {
+            const why = format(
+              "\n\nThe human's latest message was %d words. Yours is far longer; that contrast is a tell. Answer in about %d words.",
+              lw,
+              lw + 1,
+            );
+
+            prompt += why;
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2255,15 +2339,27 @@ export class Game {
 
       if (clean.some((c) => theirs.some((h) => this.parallel(c, h)))) {
         if (attempt === 0) {
-          prompt +=
-            "\n\nYour draft mirrors the human's wording or sentence shape too closely. Same style, but your OWN answer: different opener, different construction.";
+          {
+            const why =
+              "\n\nYour draft mirrors the human's wording or sentence shape too closely. Same style, but your OWN answer: different opener, different construction.";
+
+            prompt += why;
+
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
 
         if (attempt === 1) {
-          prompt +=
-            '\n\nStill too close to what the human wrote. Pick a DIFFERENT answer entirely (a different movie, a different city, a different take), in their style.';
+          {
+            const why =
+              '\n\nStill too close to what the human wrote. Pick a DIFFERENT answer entirely (a different movie, a different city, a different take), in their style.';
+
+            prompt += why;
+
+            this.trace('retry: ' + why.trim().slice(0, 140));
+          }
 
           continue;
         }
@@ -2273,8 +2369,12 @@ export class Game {
         );
       }
 
+      this.trace(`send: ${JSON.stringify(clean.slice(0, 4))}`);
+
       return clean.slice(0, 4);
     }
+
+    this.trace('send: nothing (all attempts rejected)');
 
     return [];
   }

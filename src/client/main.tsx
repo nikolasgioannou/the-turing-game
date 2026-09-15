@@ -61,6 +61,24 @@ function App() {
     ws.current.send(JSON.stringify(command));
   };
 
+  // Operator shortcut: Cmd/Ctrl + Shift + "+" opens the simulator (404 unless the server has it enabled).
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey &&
+        (event.key === '+' || event.key === '=')
+      ) {
+        event.preventDefault();
+        window.location.assign('/sim');
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   useEffect(() => {
     let stopped = false;
     let socket: WebSocket | undefined;

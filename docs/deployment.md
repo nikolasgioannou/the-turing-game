@@ -65,6 +65,10 @@ Emergency stop, in order of speed:
 2. `bun scripts/ops.ts pause-ai [minutes] [reason]` pauses admission through the database without a restart (default 24 hours).
 3. Revoke or rotate the OpenRouter key; the credential-failure pause then engages automatically.
 
+## Simulator
+
+`SIM_KEY` enables `/sim` and `/api/sim/*`; without it the routes do not exist. The dashboard asks for the key once per browser. `SIM_LANES` sets the initial lane count and `SIM_DAILY_MATCHES` (default 40) bounds simulated matches per day on top of every spending cap. Simulated matches reserve capacity like real ones, are never saved as outcomes, and are not visible to players. Set the key with `fly secrets set SIM_KEY=<long random string> -a the-turing-game`.
+
 ## Operational commands
 
 Run inside the app environment or locally against the intended DATABASE_URL:

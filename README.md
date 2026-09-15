@@ -19,9 +19,9 @@ Open http://localhost:5173. Vite hot-reloads the UI and proxies API/WebSocket re
 
 `bun run build && bun run start` serves the built app at http://localhost:3000. Set `DATABASE_URL` to use PostgreSQL; otherwise development storage uses `PGLITE_PATH`. Production requires `DATABASE_URL` and `APP_ORIGIN`. Never put credentials in client code or `VITE_` variables.
 
-## Simulation dashboard
+## Simulator
 
-`bun run sim` starts a private app server (its own PGlite database under `data/sim-db`, generous caps) and a dashboard at http://localhost:5175 that runs several matches at once with a scripted judge and a scripted human replaying real conversations. Watch the bot reply live, see how long it takes relative to the human, rerun any lane with any scenario, or rerun all. Every match makes real OpenRouter calls on your key (roughly a few cents each). Scenarios come from `data/sim-scenarios.json`, built from saved transcripts with `bun run sim:extract <dir>`; without it the small sample in `scripts/sim/scenarios.sample.json` is used. The simulator is a development tool and is not part of the served application.
+Set `SIM_KEY` in `.env` (and on production as a Fly secret) to enable an operator-only simulator at `/sim`; on the site, Cmd/Ctrl+Shift+= opens it. It runs several matches at once with a scripted judge and a scripted human replaying recorded conversations, so the bot can be watched live, with its full decision trace (every model attempt, every filter that fired, what was finally sent), and rerun with any scenario. Simulated matches are invisible to players, never count toward the score, use the normal spending caps plus `SIM_DAILY_MATCHES` (default 40 per day), and cost real OpenRouter calls (a few cents each). Scenarios are stored in the database; paste them in from the Scenarios panel. `bun run sim:extract <dir>` turns saved transcripts into that JSON without committing private conversations.
 
 ## Bot behavior
 
