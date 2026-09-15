@@ -239,7 +239,7 @@ test('arcade chat keeps messages and composer readable on mobile', async ({ brow
     };
   });
 
-  await expect(h.getByText(/Draft shared privately with AI/)).toBeVisible();
+  await expect(h.getByText(/Draft shared privately with AI/)).toHaveCount(0);
   await expect(j.getByText(/Draft shared privately with AI/)).toHaveCount(0);
   await h.getByLabel('Message the group').fill('private unfinished thought');
 

@@ -637,17 +637,12 @@ function Composer({
             if (!sendBlocked) e.currentTarget.form?.requestSubmit();
           }
         }}
-        aria-describedby={
-          [nearLimit ? 'character-count' : '', onDraft ? 'draft-note' : '']
-            .filter(Boolean)
-            .join(' ') || undefined
-        }
+        aria-describedby={nearLimit ? 'character-count' : undefined}
         maxLength={8000}
       />
       <div className="composer-bottom contents text-[10px]">
-        {nearLimit || onDraft ? (
+        {nearLimit ? (
           <div className="col-span-full row-start-2 flex flex-wrap justify-between gap-x-3 gap-y-1 px-1 text-[11px] text-muted">
-            {onDraft ? <span id="draft-note">Draft shared privately with AI</span> : null}
             {nearLimit ? (
               <span
                 id="character-count"
