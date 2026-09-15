@@ -458,6 +458,31 @@
             (m) => m.sender !== 'judge' && m.sender !== st.humanLabel,
           ).length;
           const huMsgs = st.messages.filter((m) => m.sender === st.humanLabel).length;
+          // Re-render only when something changed, and never yank the reader's scroll position.
+          const contentKey = [
+            st.run,
+            st.status,
+            st.phase,
+            left,
+            st.messages.map((m) => m.sentAt).join(','),
+            st.trace.length,
+            st.log.length,
+            st.note,
+            st.scenario,
+            scenarios.length,
+          ].join('|');
+          if (el.dataset.key === contentKey) return;
+          el.dataset.key = contentKey;
+          const oldBox = document.getElementById('msgs' + i);
+          const atBottom =
+            !oldBox || oldBox.scrollHeight - oldBox.scrollTop - oldBox.clientHeight < 40;
+          const oldScroll = oldBox ? oldBox.scrollTop : 0;
+          const oldTrace = el.querySelector('.tracebox');
+          const traceOpen = oldTrace ? oldTrace.open : false;
+          const traceEl = el.querySelector('.trace');
+          const traceScroll = traceEl ? traceEl.scrollTop : 0;
+          const sel = document.getElementById('sel' + i);
+          const chosen = sel && sel.matches(':focus') ? sel.value : null;
           el.innerHTML = `
       <div class="lanehead"><b>LANE ${i + 1}</b><span class="phase ${st.phase} status-${st.status}">${st.status === 'error' ? 'ERROR' : st.phase || st.status}</span>${left !== null ? `<span class="clock">${left}s</span>` : ''}
         <span style="flex:1"></span><select id="sel${i}">${opts}</select><button onclick="api('/api/sim/rerun?lane=${i}&scenario='+encodeURIComponent(document.getElementById('sel${i}').value),{method:'POST'})">Rerun</button></div>
@@ -468,7 +493,12 @@
       <details class="tracebox"><summary>bot trace (${st.trace.length})</summary><div class="trace">${st.trace.map(esc).join('\n')}</div></details>
       <div class="log">${st.log.map(esc).join('\n')}</div>`;
           const box = document.getElementById('msgs' + i);
-          box.scrollTop = box.scrollHeight;
+          box.scrollTop = atBottom ? box.scrollHeight : oldScroll;
+          const newTrace = el.querySelector('.tracebox');
+          if (newTrace) newTrace.open = traceOpen;
+          const newTraceEl = el.querySelector('.trace');
+          if (newTraceEl) newTraceEl.scrollTop = traceScroll;
+          if (chosen) document.getElementById('sel' + i).value = chosen;
         });
         const lc = document.getElementById('lanecount');
         if (lc && !lc.matches(':focus')) lc.value = String(states.length);
