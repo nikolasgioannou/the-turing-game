@@ -33,7 +33,7 @@ export function ReviewGallery() {
         <h1 className="font-arcade text-lg text-accent">UI review</h1>
       </header>
       <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,30%)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[270px_minmax(0,1fr)] lg:grid-rows-1">
-        <aside className="flex min-h-0 flex-col overflow-hidden border-b border-line p-4 lg:border-r">
+        <aside className="flex min-h-0 flex-col overflow-hidden border-line p-4 lg:border-r">
           <label htmlFor="state-search" className="sr-only">
             Find a state
           </label>
