@@ -88,17 +88,16 @@ export function ReviewGallery() {
             <Select
               aria-label="Preview size"
               value={mobile ? 'mobile' : 'desktop'}
-              onChange={(event) => {
-                const size = event.target.value;
-
+              onValueChange={(size) => {
                 setMobile(size === 'mobile');
                 setCopied(false);
                 history.replaceState(null, '', `/review?state=${selected.id}&size=${size}`);
               }}
-            >
-              <option value="desktop">Desktop · 1280px</option>
-              <option value="mobile">Mobile · 390px</option>
-            </Select>
+              options={[
+                { value: 'desktop', label: 'Desktop · 1280px' },
+                { value: 'mobile', label: 'Mobile · 390px' },
+              ]}
+            />
             <button
               className="border border-line px-3 py-2"
               onClick={async () => {
