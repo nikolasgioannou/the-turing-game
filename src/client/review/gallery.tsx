@@ -1,3 +1,4 @@
+import { Select } from '../ui';
 import { useState } from 'react';
 import { App } from '../main';
 import { materialize, reviewExamples } from './states';
@@ -87,20 +88,20 @@ export function ReviewGallery() {
             >
               Reset state
             </button>
-            <button
-              className="border border-line px-3 py-2"
-              aria-pressed={!mobile}
-              onClick={() => setMobile(false)}
+            <Select
+              aria-label="Preview size"
+              value={mobile ? 'mobile' : 'desktop'}
+              onChange={(event) => {
+                const size = event.target.value;
+
+                setMobile(size === 'mobile');
+                setCopied(false);
+                history.replaceState(null, '', `/review?state=${selected.id}&size=${size}`);
+              }}
             >
-              Desktop
-            </button>
-            <button
-              className="border border-line px-3 py-2"
-              aria-pressed={mobile}
-              onClick={() => setMobile(true)}
-            >
-              Mobile
-            </button>
+              <option value="desktop">Desktop · 1280px</option>
+              <option value="mobile">Mobile · 390px</option>
+            </Select>
             <button
               className="border border-line px-3 py-2"
               onClick={async () => {

@@ -50,7 +50,7 @@ try {
   const gallery = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 
   await gallery.goto(base + '/review');
-  await gallery.getByRole('button', { name: 'Mobile', exact: true }).click();
+  await gallery.getByRole('combobox', { name: 'Preview size' }).selectOption('mobile');
   await gallery.getByRole('button', { name: /Time up: human/ }).click();
 
   await gallery
