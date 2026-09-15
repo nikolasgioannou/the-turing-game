@@ -3,6 +3,7 @@
 // Simulated matches use the normal reservation and cap paths (real spend, real limits), never
 // count toward the public score, and carry the bot's decision trace for the dashboard.
 import { Game, type Peer } from '../game';
+import { PROMPT_VERSION, requestCompletion } from '../ai';
 import type { Event, Label, RoomView } from '../../shared/protocol';
 import type { Store } from '../store';
 import sample from './scenarios.sample.json';
@@ -25,6 +26,7 @@ export type LaneState = {
   run: number;
   log: string[];
   trace: string[];
+  verdict: { by: 'ai-judge' | 'coin'; reason: string } | null;
 };
 
 const CPS = 6; // scripted human typing speed, characters per second
@@ -114,9 +116,56 @@ export class Simulator {
         run: 0,
         log: [],
         trace: [],
+        verdict: null,
       });
 
     this.push();
+  }
+
+  // An independent model reads the transcript with labels only and picks the bot, with a reason.
+  // This is the evaluation: it never sees the mapping, so its verdict measures the bot's output.
+  async aiJudge(
+    matchId: string,
+    view: RoomView,
+  ): Promise<{ choice: Label; reason: string } | null> {
+    const transcript = view.messages
+      .map((m) => `${m.sender === 'judge' ? 'Judge' : 'Player ' + m.sender}: ${m.text}`)
+      .join('\n');
+    const params = {
+      system:
+        'You are judging a Turing-test party game. In this group chat, one of Player A and Player B is a human and the other is an AI trying to pass as human. Read the whole chat, decide which player is the AI, and explain the single strongest tell in one or two sentences. Respond with ONLY a JSON object: {"bot":"A"|"B","reason":"..."}',
+      messages: [{ role: 'user', content: transcript }],
+      max_tokens: 200,
+    };
+    const controller = new AbortController();
+    // The match's own reservation is released when the chat closes; the judge reserves separately.
+    const reservation = `sim-judge-${matchId}`;
+
+    if (!(await this.store.reserve(reservation))) return null;
+
+    try {
+      const text = await requestCompletion(params, 20, controller.signal, {
+        state: () => {},
+        reserve: (bound) =>
+          this.store.beginRequest(
+            reservation,
+            { model: 'judge', promptVersion: PROMPT_VERSION },
+            bound,
+          ),
+        settle: (id, usage, metadata) => this.store.settleRequest(id, usage, metadata),
+        failed: () => {},
+      });
+      const match = text.match(/\{[\s\S]*\}/);
+      const parsed = match ? (JSON.parse(match[0]) as { bot?: string; reason?: string }) : null;
+
+      if (parsed?.bot === 'A' || parsed?.bot === 'B')
+        return { choice: parsed.bot, reason: String(parsed.reason ?? '').slice(0, 900) };
+    } catch {
+    } finally {
+      await this.store.release(reservation).catch(() => {});
+    }
+
+    return null;
   }
 
   async loadScenarios() {
@@ -343,9 +392,16 @@ export class Simulator {
       await judge.until((v) => ['verdict', 'complete', 'abandoned', 'failed'].includes(v.phase));
 
       if (judge.view!.phase === 'verdict') {
-        const bot: Label = lane.humanLabel === 'A' ? 'B' : 'A';
+        log('asking the AI judge for a verdict');
 
-        await judge.command({ type: 'verdict', choice: bot, reason: scenario.reason || 'sim' });
+        const decided = await this.aiJudge(m.id, judge.view!);
+        const choice: Label = decided?.choice ?? (Math.random() < 0.5 ? 'A' : 'B');
+
+        lane.verdict = decided
+          ? { by: 'ai-judge', reason: decided.reason }
+          : { by: 'coin', reason: 'AI judge unavailable; coin flip' };
+
+        await judge.command({ type: 'verdict', choice, reason: lane.verdict.reason.slice(0, 900) });
         await judge.until((v) => v.phase !== 'verdict', 20_000);
       }
 

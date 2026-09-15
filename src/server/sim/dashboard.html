@@ -446,7 +446,7 @@
             done++;
             const aiWon = !st.result.humanWon;
             if (aiWon) aiWins++;
-            result = `<div class="result">Judge picked <b>${st.result.choice}</b> as the bot → <b class="${aiWon ? 'win' : 'lose'}">${aiWon ? 'AI fooled the judge' : 'AI was caught'}</b> · human was ${st.result.humanLabel} · "${esc(st.result.reason)}"</div>`;
+            result = `<div class="result">${st.verdict && st.verdict.by === 'ai-judge' ? 'AI judge' : 'Coin flip'} picked <b>${st.result.choice}</b> as the bot → <b class="${aiWon ? 'win' : 'lose'}">${aiWon ? 'AI fooled the judge' : 'AI was caught'}</b> · human was ${st.result.humanLabel} · "${esc(st.result.reason)}"</div>`;
           }
           const opts = scenarios
             .map(
