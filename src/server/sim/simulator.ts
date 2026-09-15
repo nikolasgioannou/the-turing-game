@@ -124,8 +124,13 @@ export class Simulator {
       'CREATE TABLE IF NOT EXISTS sim_scenarios(name text PRIMARY KEY, body jsonb NOT NULL)',
     );
 
-    const rows = await this.store.db.query<{ body: Scenario }>('SELECT body FROM sim_scenarios');
-    const stored = rows.map((r) => r.body);
+    const rows = await this.store.db.query<{ body: Scenario | string }>(
+      'SELECT body FROM sim_scenarios',
+    );
+    // postgres.js re-encodes a string parameter for jsonb; tolerate rows stored that way.
+    const stored = rows
+      .map((r) => (typeof r.body === 'string' ? (JSON.parse(r.body) as Scenario) : r.body))
+      .filter((b) => b && Array.isArray(b.turns));
 
     this.scenarios = [
       ...stored,
@@ -152,7 +157,7 @@ export class Simulator {
 
       await this.store.db.query(
         'INSERT INTO sim_scenarios(name,body) VALUES($1,$2::jsonb) ON CONFLICT(name) DO UPDATE SET body=EXCLUDED.body',
-        [clean.name, JSON.stringify(clean)],
+        [clean.name, process.env.DATABASE_URL ? clean : JSON.stringify(clean)],
       );
     }
 
