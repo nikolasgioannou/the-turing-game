@@ -440,3 +440,9 @@ Added replay controls directly below results. Public Play again queues the curre
 Validation: full unit/integration checks, typecheck and build pass, with regression coverage for all nine role preference combinations, cancellation, leaving, unauthorized requests and capacity failure. Two approved development OpenRouter browser journeys passed public requeue and friend rematch with role conflict resolution and role swapping; both verify a fresh chat and no repeated name dialog. Reviewed mobile replay controls. No production games were created. The earlier waiting dialog and draft-note removal are included in this push. Not deployed.
 
 Production release: GitHub Actions run 34999530770 deployed 8e73779 successfully. CI formatting, types, tests, build and Fly health checks passed. Public health returns 200; the served client includes friend rematches, role selection and the waiting dialog, and no longer contains the draft-sharing note. No production games were created for verification.
+
+## Development UI review gallery
+
+Added a development-only /review gallery with 40 named presets rendered through actual application components. It supports state search/navigation, desktop/mobile frame sizes, stable timers, state reset and copyable links. No backend connection or game commands are sent in review mode. The dedicated entry is excluded by the production build.
+
+Added review and review:capture commands. Export captured all 80 desktop/mobile images plus a clickable HTML contact sheet in work/ui-review. Gallery navigation and player-waiting/early-verdict screenshots were reviewed; capture completed without game API requests or browser errors. Full checks, typecheck and production build pass. Verified review fixture markers are absent from production assets. This is UI-only coverage, not a real mobile keyboard test.

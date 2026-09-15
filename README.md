@@ -45,3 +45,7 @@ Browser tests use installed Chrome on this Mac. Model output is stochastic; beha
 - [Progress](docs/progress.md)
 - [Issue tracking](docs/issues.md)
 - [Component library](src/client/ui/README.md)
+
+## UI review
+
+Run `bun run review` and open http://localhost:5174/review to inspect fixed UI states without playing a game. Run `bun run review:capture` to export desktop/mobile screenshots and an HTML contact sheet. See [UI review](docs/ui-review.md).

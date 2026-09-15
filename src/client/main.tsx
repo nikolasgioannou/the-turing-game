@@ -16,7 +16,6 @@ import {
   Panel,
 } from './ui';
 import { useEffect, useRef, useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import {
   characters,
   normalizeName,
@@ -40,20 +39,34 @@ const pathCommand = (): Command | null => {
   return invite ? { type: 'join', token: invite } : null;
 };
 
-function App() {
-  const [lobby, setLobby] = useState<Lobby | null>(null),
-    [room, setRoom] = useState<RoomView | null>(null),
-    [connected, setConnected] = useState(false),
-    [error, setError] = useState<string | null>(null),
+export type ReviewState = {
+  lobby?: Lobby | null;
+  room?: RoomView;
+  connected?: boolean;
+  error?: string;
+  startOpen?: boolean;
+  inviteRole?: boolean;
+  instructionsOpen?: boolean;
+  guessing?: boolean;
+  message?: string;
+};
+
+export function App({ review }: { review?: ReviewState }) {
+  const [lobby, setLobby] = useState<Lobby | null>(review ? (review.lobby ?? null) : null),
+    [room, setRoom] = useState<RoomView | null>(review?.room ?? null),
+    [connected, setConnected] = useState(review?.connected ?? false),
+    [error, setError] = useState<string | null>(review?.error ?? null),
     [joining, setJoining] = useState(false),
-    [inviteRole, setInviteRole] = useState(false),
-    [startOpen, setStartOpen] = useState(false),
-    [instructionsOpen, setInstructionsOpen] = useState(false);
+    [inviteRole, setInviteRole] = useState(review?.inviteRole ?? false),
+    [startOpen, setStartOpen] = useState(review?.startOpen ?? false),
+    [instructionsOpen, setInstructionsOpen] = useState(review?.instructionsOpen ?? false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
   const replayName = useRef('');
   const dismissedRoom = useRef<string | null>(null);
   const send = (command: Command) => {
+    if (review) return;
+
     setError(null);
 
     if (ws.current?.readyState !== WebSocket.OPEN) {
@@ -67,6 +80,8 @@ function App() {
 
   // Operator shortcut: Cmd/Ctrl + Shift + "+" opens the simulator (404 unless the server has it enabled).
   useEffect(() => {
+    if (review) return;
+
     const onKey = (event: KeyboardEvent) => {
       if (
         (event.metaKey || event.ctrlKey) &&
@@ -84,6 +99,8 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (review) return;
+
     let stopped = false;
     let socket: WebSocket | undefined;
     let heartbeat: ReturnType<typeof setInterval>;
@@ -256,6 +273,7 @@ function App() {
             connected={connected}
             playAgain={playAgain}
             replayName={replayName.current}
+            review={review}
           />
         ) : (
           <>
@@ -565,10 +583,12 @@ function ArcadeStage() {
   );
 }
 
-function Countdown({ deadline }: { deadline: number | null }) {
+function Countdown({ deadline, frozen = false }: { deadline: number | null; frozen?: boolean }) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
+    if (frozen) return;
+
     const timer = setInterval(() => setNow(Date.now()), 500);
 
     return () => clearInterval(timer);
@@ -590,6 +610,7 @@ function Countdown({ deadline }: { deadline: number | null }) {
 }
 
 function Composer({
+  initialValue = '',
   label,
   limit,
   onSubmit,
@@ -597,6 +618,7 @@ function Composer({
   button,
   sendBlocked = false,
 }: {
+  initialValue?: string;
   label: string;
   limit: number;
   onSubmit: (text: string) => void;
@@ -604,7 +626,7 @@ function Composer({
   button: string;
   sendBlocked?: boolean;
 }) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(initialValue);
   const input = useRef<HTMLTextAreaElement>(null);
   const draftCallback = useRef(onDraft);
 
@@ -694,6 +716,7 @@ function Composer({
 }
 
 function Room({
+  review,
   replayName,
   playAgain,
   room,
@@ -701,6 +724,7 @@ function Room({
   home,
   connected,
 }: {
+  review?: ReviewState;
   replayName: string;
   playAgain: (role: QueuePreference, invite: boolean) => void;
   room: RoomView;
@@ -710,7 +734,7 @@ function Room({
 }) {
   const [choice, setChoice] = useState<Label | null>(null),
     [reason, setReason] = useState(''),
-    [guessing, setGuessing] = useState(false),
+    [guessing, setGuessing] = useState(review?.guessing ?? false),
     [copied, setCopied] = useState(false),
     [waitingDismissed, setWaitingDismissed] = useState(false);
 
@@ -892,7 +916,7 @@ function Room({
             ) : null
           }
         >
-          {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
+          {room.phase === 'chat' ? <Countdown deadline={room.deadline} frozen={!!review} /> : null}
         </MatchToolbar>
       )}
       {done ? (
@@ -999,6 +1023,7 @@ function Room({
           {isJudge || isHuman ? (
             <div hidden={showVerdict}>
               <Composer
+                initialValue={review?.message}
                 label="Message the group"
                 button="Send"
                 limit={LIMITS.answer}
@@ -1082,8 +1107,6 @@ function Room({
     </div>
   );
 }
-
-createRoot(document.getElementById('root')!).render(<App />);
 
 // Browser context for conversation hints; never used as identity.
 function deviceHints() {
