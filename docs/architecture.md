@@ -7,9 +7,9 @@ React, Vite and Tailwind client; Bun HTTP/WebSocket authority; PostgreSQL in pro
 - `shared/protocol.ts`: browser-safe limits, types and explicit public views.
 - `shared/commands.ts`: server-only Zod command validation.
 - `server/database.ts`: PostgreSQL/PGlite adapters.
-- `server/store.ts`: minimal match outcomes, request ledger, daily capacity and reservations.
+- `server/store.ts`: minimal match outcomes.
 - `server/game.ts`: sessions, matchmaking, deadlines, scoring and public serialization.
-- `server/ai.ts`: private worker lifecycle and OpenRouter transport/accounting.
+- `server/ai.ts`: private worker lifecycle and OpenRouter transport.
 - `server/bot`: TypeScript conversation engine, private transport and behavior fixtures.
 - `client/ui`: shared controls and layouts with static Tailwind classes.
 
@@ -21,15 +21,15 @@ The bot owns all AI decisions, including its 400 ms loop, live draft planning, o
 
 Bun phases remain waiting → ready → opening → opening_ai → chat → verdict → complete, with abandoned/failed exits. The bot's opening can reveal a held human reply alongside its answer, or enter chat first from a developed draft / 40 seconds of silence. Bun accepts the worker's chat start timestamp and 90-second deadline. Worker snapshots publish AI and held opening messages without duplicates. Live human and judge messages are accepted immediately by Bun. Both players may continue during opening; a second human submission releases the previous held one. The latest opening stays private until worker publication, including early-attack races.
 
-Chat expiry and early verdict stop the worker and abort pending HTTP calls. Late worker events cannot alter a closed match. Anonymous HttpOnly session cookies own seats, so reconnects/refreshes resume the same match and bot. Explicit leave abandons. Server restarts end unfinished in-memory matches without counting a result and preserve conservative charges for in-flight requests.
+Chat expiry and early verdict stop the worker and abort pending HTTP calls. Late worker events cannot alter a closed match. Anonymous HttpOnly session cookies own seats, so reconnects/refreshes resume the same match and bot. Explicit leave abandons. Server restarts end unfinished in-memory matches without counting a result.
 
 Browser drafts use the client's 120 ms debounce in opening and live states. Only the human contestant can submit drafts. Text is transient in the worker; participant DTOs and the database never include it. Names are collected on entry; timezone, weekday, local time and device hints are passed privately on entry/reconnect. Human names never enter public DTOs; the judge name is public. The worker's original clock context handles date questions. Unsent drafts are shared with OpenRouter.
 
-## Accounting and secrets
+## Provider requests and secrets
 
-OpenRouter key stays in Bun's server environment. The worker receives no provider credentials. HTTPS uses the fixed OpenRouter endpoint and the pinned Haiku model routed to Anthropic without fallback providers. Chat generation retains 400 max output tokens; style analysis retains 500. Each retry and hedge independently reserves and settles usage. Unknown or canceled usage retains its conservative charge. Prompt bytes plus protocol overhead bound input without trimming the original prompt/context. Actual provider usage reconciles the bound.
+The OpenRouter key stays in Bun's server environment; workers receive no provider credentials. HTTPS uses the fixed OpenRouter endpoint and the pinned Haiku model routed to Anthropic without fallback providers. Chat generation retains 400 max output tokens; style analysis retains 500. Timeouts, retries and hedges remain part of bot behavior. Each attempt checks that its match is still active before dispatch; closing chat cancels pending calls.
 
-Admission reserves 75,000 input / 5,120 output tokens. Requests atomically top up that reservation when necessary under the existing daily caps (1,000,000 input / 100,000 output by default). There is no ten-request behavior cutoff. All top-ups remain on the admission UTC day, including after midnight. Closing a room releases only unused capacity. Token exhaustion and invalid credentials end as technical failures, never wins.
+There are no application spending budgets, usage counters, reservations, network match quotas or automatic admission pauses. Provider failures remain technical failures, never wins. The app does not read or write the former accounting tables.
 
 ## Deployment and UI
 
@@ -39,4 +39,4 @@ Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global
 
 Score aggregates are cached in the game authority until a terminal match outcome is saved. The match_outcomes table stores only the match ID and whether AI won. Transcripts stay in memory, with no match listing or saved-game endpoint. Names/device context do not spawn workers. Context updates after chat ends are rejected, and the latest opening remains held until its own publication.
 
-Postgame friend rematch preferences stay in the completed in-memory match. The rematch command requires an authenticated participant, a terminal friend match and a present peer still on that result screen. Both preferences must be compatible before newMatch applies the existing provider availability, network admission and capacity reservation checks. Neither an offer nor cancellation starts inference or saves another outcome. Leaving/disconnection clears consent; completed matches are not restored on reconnect. Public replay uses the existing queue path.
+Postgame friend rematch preferences stay in the completed in-memory match. The rematch command requires an authenticated participant, a terminal friend match and a present peer still on that result screen. Both preferences must be compatible before newMatch applies the provider credential availability check. Neither an offer nor cancellation starts inference or saves another outcome. Leaving/disconnection clears consent; completed matches are not restored on reconnect. Public replay uses the existing queue path.

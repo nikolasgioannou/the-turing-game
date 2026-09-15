@@ -3,7 +3,7 @@ import type { Lobby, RoomView } from '../../shared/protocol';
 
 const lobby: Lobby = {
   score: { completed: 125, aiWins: 47 },
-  availability: { available: true, message: null, resetsAt: 0 },
+  availability: { available: true, message: null },
   queued: null,
 };
 
@@ -59,17 +59,6 @@ add('Lobby', 'empty-score', 'No completed games', {
 add('Lobby', 'offline', 'Connection lost', {
   connected: false,
   error: 'Connection lost. Reconnecting to your match…',
-});
-
-add('Lobby', 'capacity', 'Daily capacity reached', {
-  lobby: {
-    ...lobby,
-    availability: {
-      available: false,
-      message: 'The daily AI capacity has been reached. Try again tomorrow.',
-      resetsAt: 0,
-    },
-  },
 });
 
 add('Lobby', 'rules', 'How to play', { instructionsOpen: true });

@@ -49,7 +49,7 @@ Run `bun run format` and `bun run format:check`. The workspace VS Code configura
 
 `Select` is a controlled custom dropdown with themed options and a chevron. Supply `value`, `options` (value/label pairs with optional disabled states), `onValueChange`, and an `aria-label`. It supports arrow keys, Home/End, typeahead, Enter/Space, Escape, and outside-click dismissal. Its popup uses the browser top layer to avoid clipping inside scroll panels.
 
-`Banner` provides the shared warning surface for connection errors and capacity notices. Supply `role="alert"` for errors or `role="status"` for informational updates. It forwards native div attributes and refs.
+`Banner` provides the shared warning surface for connection errors, provider availability and rematch notices. Supply `role="alert"` for errors or `role="status"` for informational updates. It forwards native div attributes and refs.
 
 `RoleButton` pairs its text with a pixel identity icon: human for tone `a`, judge for `b`, and a split orange-human/cyan-judge portrait for `neutral`. These icons appear in public, friend and replay role pickers. `IdentityIcon` also supports `judge` and `either` for reuse; decorative icons stay hidden from screen readers.
 

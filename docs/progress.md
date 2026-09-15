@@ -454,3 +454,11 @@ Daily capacity now uses the same shared banner as connection errors above the lo
 ## Short rules walkthrough
 
 Replaced the five-rule list with three manually advanced slides covering roles, the 90-second conversation, and identifying the bot. Back/Next controls, square progress markers, and a final Got it action keep the dialog compact. Reopening resets to the first slide. Typecheck and focused desktop/mobile browser checks passed for navigation, keyboard activation, stable dialog height, dismissal and reopening. No model calls or deployment.
+
+## Removal of AI spending controls
+
+At the owner's request, removed daily token/dollar caps, token-based cost estimates, request accounting and reservations, restart accounting recovery, per-network match quotas, automatic failure pauses, the AI_DISABLED switch, operator usage/pause/resume commands, and the simulator's daily match quota. Removed their configuration entries and capacity-only gallery preset; updated current product, architecture and deployment guidance. Earlier progress entries describe historical implementations that this change supersedes.
+
+Match outcomes and simulator scenarios remain in use. Old spending tables are neither read nor written; no local or production database records were deleted. Provider credentials remain server-only; request timeouts, output lengths, game closure cancellation, authentication, message limits and connection protections remain. Production secrets and provider-side key settings were not changed.
+
+Validation: typecheck, all 215 unit/integration tests and the production build passed, including uncapped match creation, failure isolation and closed-match request cancellation. No real OpenRouter calls, production changes, push or deployment.

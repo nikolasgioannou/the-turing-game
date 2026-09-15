@@ -13,8 +13,6 @@ kill_timeout = 20
 [env]
   NODE_ENV = "production"
   PORT = "3000"
-  DAILY_INPUT_TOKEN_CAP = "1000000"
-  DAILY_OUTPUT_TOKEN_CAP = "100000"
   APP_ORIGIN = "https://theturinggame.ai"
 
 [http_service]

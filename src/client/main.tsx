@@ -61,7 +61,7 @@ export function App({ review }: { review?: ReviewState }) {
     [inviteRole, setInviteRole] = useState(review?.inviteRole ?? false),
     [startOpen, setStartOpen] = useState(review?.startOpen ?? false),
     [instructionsOpen, setInstructionsOpen] = useState(review?.instructionsOpen ?? false);
-  const capacityBanner = useRef<HTMLDivElement>(null);
+  const availabilityBanner = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
   const replayName = useRef('');
@@ -247,15 +247,15 @@ export function App({ review }: { review?: ReviewState }) {
     history.replaceState(null, '', '/');
   };
 
-  const capacityReached = !!lobby && !lobby.availability.available;
+  const aiUnavailable = !!lobby && !lobby.availability.available;
   const startGame = () => {
-    if (!capacityReached) {
+    if (!aiUnavailable) {
       setStartOpen(true);
 
       return;
     }
 
-    const banner = capacityBanner.current;
+    const banner = availabilityBanner.current;
 
     if (!banner) return;
 
@@ -286,8 +286,8 @@ export function App({ review }: { review?: ReviewState }) {
         </Banner>
       ) : null}
       {room && ended(room.phase) ? <RematchNotice room={room} /> : null}
-      {capacityReached && (!room || waitingInvite) ? (
-        <Banner ref={capacityBanner} role="status" className="capacity">
+      {aiUnavailable && (!room || waitingInvite) ? (
+        <Banner ref={availabilityBanner} role="status" className="availability">
           {lobby.availability.message}
         </Banner>
       ) : null}

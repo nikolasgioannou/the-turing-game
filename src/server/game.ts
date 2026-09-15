@@ -11,13 +11,12 @@ import {
   type QueuePreference,
   type RoomView,
 } from '../shared/protocol';
-import { AIError, PROMPT_VERSION, type AI, type BotSession, type BotState } from './ai';
+import { AIError, type AI, type BotSession, type BotState } from './ai';
 import { Store } from './store';
 
 export interface Peer {
   id: string;
   session: string;
-  ip?: string;
   send: (event: Event) => void;
   roomId?: string;
   queue?: QueuePreference;
@@ -42,7 +41,6 @@ export type Match = {
   startedAt: number | null;
   openingHuman: string | null;
   humanMessageCount?: number;
-  aiRequests: number;
   choice: Label | null;
   reason: string;
   message: string | null;
@@ -138,18 +136,13 @@ export class Game {
   }
 
   async lobby(peer?: Peer) {
-    const [capacity, score] = await Promise.all([
-      this.store.availability(this.now()),
-      (this.score ??= this.store.score().catch((error) => {
-        this.score = undefined;
+    const score = await (this.score ??= this.store.score().catch((error) => {
+      this.score = undefined;
 
-        throw error;
-      })),
-    ]);
+      throw error;
+    }));
     const unavailable = this.ai.unavailable?.();
-    const availability = unavailable
-      ? { ...capacity, available: false, message: unavailable }
-      : capacity;
+    const availability = { available: !unavailable, message: unavailable ?? null };
 
     for (const p of peer ? [peer] : this.peers.values())
       p.send({
@@ -194,84 +187,12 @@ export class Game {
     const unavailable = this.ai.unavailable?.();
 
     if (unavailable) throw new ActionError(unavailable);
-
-    const state = await this.store.availability(this.now());
-
-    if (!state.available) throw new ActionError(state.message!);
   }
 
-  // Provider failures that mean every further request would be billed for nothing.
-  static readonly CREDENTIAL_FAILURE = /openrouter_(401|402|403)/;
-  // Generous enough for a room of friends behind one router; tight enough to stop a script.
-  static readonly MATCHES_PER_IP_PER_HOUR = Number(process.env.MATCHES_PER_IP_PER_HOUR ?? 30);
-  static readonly BREAKER_FAILURES = 3;
-  static readonly BREAKER_WINDOW_MS = 10 * 60_000;
-  static readonly BREAKER_PAUSE_MS = 10 * 60_000;
-  static readonly CREDENTIAL_PAUSE_MS = 30 * 60_000;
-
-  matchStarts = new Map<string, number[]>();
-  providerFailures: number[] = [];
-
-  // Bound automated match creation: one network cannot burn the day's capacity alone.
-  admitCreators(creators: Peer[]) {
-    const now = this.now();
-
-    for (const p of creators) {
-      if (!p.ip || p.ip === '127.0.0.1' || p.ip === '::1') continue; // local development and tests
-
-      const recent = (this.matchStarts.get(p.ip) ?? []).filter((t) => now - t < 60 * 60_000);
-
-      if (recent.length >= Game.MATCHES_PER_IP_PER_HOUR)
-        throw new ActionError(
-          'Too many games from your network in the last hour. Try again later.',
-        );
-
-      this.matchStarts.set(p.ip, recent);
-    }
-
-    for (const p of creators) this.matchStarts.get(p.ip ?? '')?.push(now);
-  }
-
-  // Stop admitting matches when the provider is rejecting us; every retry would be wasted spend.
-  async providerFailed(error: unknown) {
-    const now = this.now();
-    const code = error instanceof AIError ? error.code : '';
-
-    if (Game.CREDENTIAL_FAILURE.test(code)) {
-      await this.store.pauseAI(
-        'The AI provider rejected requests (credentials or credit). AI matches are paused; an operator has been notified.',
-        now + Game.CREDENTIAL_PAUSE_MS,
-      );
-
-      console.error('AI admission paused: provider credential/credit failure', code);
-    } else {
-      this.providerFailures = this.providerFailures.filter((t) => now - t < Game.BREAKER_WINDOW_MS);
-      this.providerFailures.push(now);
-
-      if (this.providerFailures.length >= Game.BREAKER_FAILURES) {
-        this.providerFailures = [];
-
-        await this.store.pauseAI(
-          'The AI provider is failing repeatedly. AI matches are paused for a few minutes.',
-          now + Game.BREAKER_PAUSE_MS,
-        );
-
-        console.error('AI admission paused: repeated provider failures');
-      }
-    }
-
-    await this.lobby();
-  }
-
-  async newMatch(creators: Peer[] = [], simulated = false) {
+  async newMatch(simulated = false) {
     await this.available();
 
-    if (!simulated) this.admitCreators(creators);
-
     const id = crypto.randomUUID();
-
-    if (!(await this.store.reserve(id, this.now())))
-      throw new ActionError('The daily AI capacity has been reached. Try again tomorrow.');
 
     const m: Match = {
       id,
@@ -283,7 +204,6 @@ export class Game {
       startedAt: null,
       openingHuman: null,
       humanMessageCount: 0,
-      aiRequests: 0,
       choice: null,
       reason: '',
       message: null,
@@ -365,7 +285,7 @@ export class Game {
     let next: Match;
 
     try {
-      next = await this.newMatch([p, other]);
+      next = await this.newMatch();
     } catch (error) {
       m.rematch = {};
       this.broadcast(m);
@@ -433,7 +353,7 @@ export class Game {
         );
 
         if (other) {
-          const next = await this.newMatch([p, other]);
+          const next = await this.newMatch();
 
           const role: Role =
             c.role !== 'either'
@@ -467,7 +387,7 @@ export class Game {
 
         return;
       case 'create': {
-        const next = await this.newMatch([p]);
+        const next = await this.newMatch();
 
         next.inviteToken = crypto.randomUUID() + crypto.randomUUID();
 
@@ -658,34 +578,14 @@ export class Game {
           state: (state) => {
             void this.run(() => this.receiveBot(m, state));
           },
-          reserve: (bound) =>
+          beforeRequest: () =>
             this.run(async () => {
               if (
                 !['ready', 'opening', 'opening_ai', 'chat'].includes(m.phase) ||
                 (m.deadline !== null && this.now() >= m.deadline)
               )
                 throw new AIError('match_closed');
-
-              try {
-                const id = await this.store.beginRequest(
-                  m.id,
-                  { model: this.ai.model, promptVersion: PROMPT_VERSION, request: ++m.aiRequests },
-                  bound,
-                );
-
-                return id;
-              } catch {
-                await this.finish(
-                  m,
-                  'failed',
-                  'AI capacity was exhausted. This match was not counted.',
-                );
-
-                throw new AIError('capacity');
-              }
             }),
-          settle: (id, usage, metadata) =>
-            this.run(() => this.store.settleRequest(id, usage, metadata)),
           failed: (error) => {
             void this.run(async () => {
               if (ended(m.phase) || m.phase === 'verdict') return;
@@ -696,8 +596,6 @@ export class Game {
                 'Bot unavailable:',
                 error instanceof AIError ? error.code : 'worker_error',
               );
-
-              await this.providerFailed(error);
             });
           },
           ...(m.trace ? { trace: m.trace } : {}),
@@ -799,7 +697,6 @@ export class Game {
     m.message = message;
     m.deadline = null;
     this.stopBot(m);
-    await this.store.release(m.id);
     await this.persist(m);
   }
 
@@ -821,7 +718,6 @@ export class Game {
       m.phase = 'verdict';
       m.deadline = this.now() + LIMITS.actionMs;
       this.stopBot(m);
-      await this.store.release(m.id);
       await this.persist(m);
     } else {
       await this.finish(

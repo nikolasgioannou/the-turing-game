@@ -28,14 +28,14 @@ This repository is the canonical implementation. Describe bot behavior directly 
 - Explicit leave abandons a match. Socket loss does not: sessions reclaim their seats on reconnect/refresh while deadlines continue. Heartbeat only detects dead transports.
 - The judge selects the bot: choosing the AI means both judge and player win; choosing the human means both lose.
 - Verdict and optional reasoning commit together before identity reveal.
-- Persist only match IDs and win/loss outcomes for the homepage score, plus provider usage accounting. Transcripts and judge reasoning stay in memory; do not restore public spectating or saved-game access. Abandoned/failed matches are not wins.
-- Usage limits are provider-independent, durable, atomic and include in-flight reservations.
-- Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production. The only exception is the operator simulator (`SIM_KEY`): its matches are invisible to players, never counted in the score, key-gated, and bounded by `SIM_DAILY_MATCHES` on top of the normal caps.
+- Persist only match IDs and win/loss outcomes for the homepage score, without provider usage accounting. Transcripts and judge reasoning stay in memory; do not restore public spectating or saved-game access. Abandoned/failed matches are not wins.
+- AI spending and admission guardrails have been removed at the owner’s request. Do not reintroduce budgets, accounting or automatic pauses without a new request. Keep game lifecycle cancellation and transport timeouts.
+- Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production. The only exception is the operator simulator (`SIM_KEY`): its matches are invisible to players, never counted in the score, and key-gated.
 
 ## Validation
 
 - Run full checks at feature milestones, not after every feedback message. Keep visual iteration fast; use focused checks for changed interactions.
-- Test state transitions, authority checks, opening/identity secrecy, simultaneous opening reveal, chat deadline and pacing, usage exhaustion/races, stale AI completions, timeouts and disconnects.
+- Test state transitions, authority checks, opening/identity secrecy, simultaneous opening reveal, chat deadline and pacing, stale AI completions, timeouts and disconnects.
 - Exercise real HTTP/WebSocket flows using real OpenRouter for browser journeys. Unit tests may inject controlled completions to verify state transitions and failures; no application mock mode or canned-response provider.
 - Review desktop/mobile UI, keyboard labels, focus and contrast. Test full journeys in isolated browser contexts.
 - Keep docs/progress.md honest about deployment and credentials. Never claim live AI or deployment tests without running them.

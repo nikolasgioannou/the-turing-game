@@ -21,25 +21,9 @@ if (!production) {
 }
 
 const db = await database(process.env.DATABASE_URL);
-const cap = (key: string, fallback: number) => {
-  const value = Number(process.env[key] ?? fallback);
-
-  if (!Number.isSafeInteger(value) || value < 0) throw new Error(`Invalid ${key}`);
-
-  return value;
-};
-const usdCap = process.env.DAILY_USD_CAP ? Number(process.env.DAILY_USD_CAP) : 2;
-
-if (!Number.isFinite(usdCap) || usdCap < 0) throw new Error('Invalid DAILY_USD_CAP');
-
-const store = new Store(db, {
-  input: cap('DAILY_INPUT_TOKEN_CAP', 1_000_000),
-  output: cap('DAILY_OUTPUT_TOKEN_CAP', 100_000),
-  usd: usdCap,
-});
+const store = new Store(db);
 
 await store.init();
-await store.recover();
 
 const game = new Game(store, createAI());
 // Operator simulator: only mounted when SIM_KEY is configured; every route requires the key.
@@ -197,7 +181,7 @@ const server = Bun.serve<SocketData>({
       )
         return json({ error: 'Connection limit reached' }, 429);
 
-      const peer: Peer = { id: crypto.randomUUID(), session: id, ip, send: () => {} };
+      const peer: Peer = { id: crypto.randomUUID(), session: id, send: () => {} };
 
       if (
         server.upgrade(req, {

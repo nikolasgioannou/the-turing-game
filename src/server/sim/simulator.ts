@@ -1,9 +1,9 @@
 // Operator-only simulator: several matches at once with a scripted judge and a scripted human
 // replaying recorded conversations, so the bot can be watched and rerun without people.
-// Simulated matches use the normal reservation and cap paths (real spend, real limits), never
-// count toward the public score, and carry the bot's decision trace for the dashboard.
+// Simulated matches make real provider calls, never count toward the public score,
+// and carry the bot's decision trace for the dashboard.
 import { Game, type Peer } from '../game';
-import { PROMPT_VERSION, requestCompletion } from '../ai';
+import { requestCompletion } from '../ai';
 import type { Event, Label, RoomView } from '../../shared/protocol';
 import type { Store } from '../store';
 import sample from './scenarios.sample.json';
@@ -30,7 +30,6 @@ export type LaneState = {
 };
 
 const CPS = 6; // scripted human typing speed, characters per second
-export const SIM_DAILY_MATCHES = Number(process.env.SIM_DAILY_MATCHES ?? 40);
 
 class ScriptedPeer implements Peer {
   id = crypto.randomUUID();
@@ -82,7 +81,6 @@ export class Simulator {
     number,
     { judge: ScriptedPeer; human: ScriptedPeer; cancel: boolean }
   >();
-  private started: number[] = [];
 
   constructor(
     readonly game: Game,
@@ -124,10 +122,7 @@ export class Simulator {
 
   // An independent model reads the transcript with labels only and picks the bot, with a reason.
   // This is the evaluation: it never sees the mapping, so its verdict measures the bot's output.
-  async aiJudge(
-    matchId: string,
-    view: RoomView,
-  ): Promise<{ choice: Label; reason: string } | null> {
+  async aiJudge(view: RoomView): Promise<{ choice: Label; reason: string } | null> {
     const transcript = view.messages
       .map((m) => `${m.sender === 'judge' ? 'Judge' : 'Player ' + m.sender}: ${m.text}`)
       .join('\n');
@@ -138,21 +133,11 @@ export class Simulator {
       max_tokens: 200,
     };
     const controller = new AbortController();
-    // The match's own reservation is released when the chat closes; the judge reserves separately.
-    const reservation = `sim-judge-${matchId}`;
-
-    if (!(await this.store.reserve(reservation))) return null;
 
     try {
       const text = await requestCompletion(params, 20, controller.signal, {
         state: () => {},
-        reserve: (bound) =>
-          this.store.beginRequest(
-            reservation,
-            { model: 'judge', promptVersion: PROMPT_VERSION },
-            bound,
-          ),
-        settle: (id, usage, metadata) => this.store.settleRequest(id, usage, metadata),
+        beforeRequest: async () => {},
         failed: () => {},
       });
       const match = text.match(/\{[\s\S]*\}/);
@@ -160,10 +145,7 @@ export class Simulator {
 
       if (parsed?.bot === 'A' || parsed?.bot === 'B')
         return { choice: parsed.bot, reason: String(parsed.reason ?? '').slice(0, 900) };
-    } catch {
-    } finally {
-      await this.store.release(reservation).catch(() => {});
-    }
+    } catch {}
 
     return null;
   }
@@ -220,18 +202,6 @@ export class Simulator {
 
   push() {
     for (const l of this.listeners) l(this.lanes);
-  }
-
-  // Simulated matches spend real money; bound how many can start per UTC day.
-  admit() {
-    const now = Date.now();
-
-    this.started = this.started.filter((t) => now - t < 86_400_000);
-
-    if (this.started.length >= SIM_DAILY_MATCHES)
-      throw new Error(`Simulator limit reached: ${SIM_DAILY_MATCHES} matches per day.`);
-
-    this.started.push(now);
   }
 
   stop(index: number) {
@@ -309,12 +279,11 @@ export class Simulator {
     };
 
     try {
-      this.admit();
       await this.game.run(() => this.game.connect(judge));
       await this.game.run(() => this.game.connect(human));
 
       // Create the room directly so it is flagged simulated; then seat the scripted human.
-      const m = await this.game.run(() => this.game.newMatch([judge], true));
+      const m = await this.game.run(() => this.game.newMatch(true));
 
       m.inviteToken = crypto.randomUUID() + crypto.randomUUID();
 
@@ -394,7 +363,7 @@ export class Simulator {
       if (judge.view!.phase === 'verdict') {
         log('asking the AI judge for a verdict');
 
-        const decided = await this.aiJudge(m.id, judge.view!);
+        const decided = await this.aiJudge(judge.view!);
         const choice: Label = decided?.choice ?? (Math.random() < 0.5 ? 'A' : 'B');
 
         lane.verdict = decided

@@ -8,9 +8,9 @@ The bot aims to pass as human and have the judge select the real human as the bo
 
 - Each match has an isolated Bun/TypeScript worker. Bun owns sessions, matchmaking, public views, persistence, scoring, admission limits and provider credentials.
 - The model is `anthropic/claude-haiku-4.5` through OpenRouter, routed to Anthropic with provider fallbacks disabled. Thinking is disabled; no temperature override is applied. Chat calls allow 400 output tokens and style analysis 500.
-- Chat requests have a six-second timeout, one transient retry and a second hedged call after 2.5 seconds. Style analysis has a 20-second timeout. Every actual call is accounted separately.
+- Chat requests have a six-second timeout, one transient retry and a second hedged call after 2.5 seconds. Style analysis has a 20-second timeout.
 - `worker.ts` communicates through private JSON lines. Credentials and HTTPS requests remain in the parent server. Workers disable dotenv loading and receive only an explicit environment; no local inference runs.
-- Retry handling honors retry-after-ms, retry-after and x-should-retry with jittered backoff. Successful accounting does not delay response delivery. Reservations are required before dispatch.
+- Retry handling honors retry-after-ms, retry-after and x-should-retry with jittered backoff. Each attempt checks that the match is still active before dispatch.
 
 ## Conversation and privacy
 
@@ -20,7 +20,7 @@ Drafts use a 120 ms debounce in opening and live chat and clear immediately on s
 
 Drafts and style cards are transient and sent to OpenRouter. They are not retained in application logs, database records or public views. Verbose worker logs are suppressed because they include private text. Socket refresh preserves the bot; closing chat kills the worker and cancels pending HTTP calls so late responses cannot be delivered.
 
-Message-size, human-action timeout and daily-token limits apply at the application boundary. Budget exhaustion or credential failure ends a match as a technical failure. Transient generation failures use the engine's retry/fallback behavior.
+Message-size and human-action timeout limits apply at the application boundary. Credential failure ends a match as a technical failure. No spending budget or usage ledger is enforced. Transient generation failures use the engine's retry/fallback behavior.
 
 ## Validation
 

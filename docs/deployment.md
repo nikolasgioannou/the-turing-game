@@ -6,7 +6,7 @@ The app is `the-turing-game` in the `the-turing-game` organization, with public 
 
 One always-on Bun app machine connects to Fly Managed Postgres cluster `turing-production` (`dzx6qo65n8g0jpv5`) in the same region. The approved Basic plan costs $38/month plus $2.80/month for 10 GB provisioned storage, excluding application hosting and OpenRouter usage. Pricing was verified during provisioning on 2026-09-14. There is no app volume or Python runtime; OpenRouter handles all model inference.
 
-Keep exactly one app machine. Deploy with `--ha=false --strategy immediate`; overlapping servers must not each recover the other's rooms. Scale-out is unsupported until room ownership/shared matchmaking is implemented. App restarts and deployments end active matches. PostgreSQL preserves outcomes and usage accounting, not conversations.
+Keep exactly one app machine. Deploy with `--ha=false --strategy immediate`; overlapping servers do not share live rooms. Scale-out is unsupported until room ownership/shared matchmaking is implemented. App restarts and deployments end active matches. PostgreSQL preserves outcomes, not conversations.
 
 ## Manual GitHub deployment
 
@@ -32,56 +32,19 @@ fly checks list
 curl --fail https://theturinggame.ai/api/health
 ```
 
-No local Docker installation is required. Inspect Fly logs when a health check or startup fails. After infrastructure changes, run a real two-participant game and a separate homepage session, verify an outcome, then restart when no players are active and verify the outcome and usage accounting remain intact.
+No local Docker installation is required. Inspect Fly logs when a health check or startup fails. After infrastructure changes, run a real two-participant game and a separate homepage session, verify an outcome, then restart when no players are active and verify the outcome remains intact.
 
-## Usage model
+## AI usage
 
-Daily token caps are enforced atomically. Initial admission reserves 75,000 input / 5,120 output tokens; each provider attempt reserves its actual conservative input-byte bound and 400 chat / 500 analyst output tokens, topping up only within the daily cap. Retries and hedges count separately. Unknown/canceled usage remains conservatively charged; measured usage reconciles it. Reservations stay on the admission UTC day. Chat closure releases unused capacity and cancels workers/requests.
+The app currently has no daily dollar/token caps, usage ledger, per-network match quota, automatic provider-failure pause or operator pause command. Old cap and kill-switch environment variables are ignored. All game and simulator calls use the configured OpenRouter key directly. Any limits configured on that key are managed separately in OpenRouter.
 
-## Spending guardrails
-
-Four independent limits bound provider spend. All are enforced server-side inside the same database transactions that admit matches and requests, so simultaneous requests cannot slip past them.
-
-| Limit | Default | Where |
-| --- | --- | --- |
-| Daily input tokens | `DAILY_INPUT_TOKEN_CAP=1000000` | admission, every request |
-| Daily output tokens | `DAILY_OUTPUT_TOKEN_CAP=100000` | admission, every request |
-| Daily money, at the pinned model's list price | `DAILY_USD_CAP=2` | admission, every request |
-| Matches per network per hour | `MATCHES_PER_IP_PER_HOUR=30` (loopback exempt) | match creation |
-
-Cost estimate at list price for `anthropic/claude-haiku-4.5` ($1 per million input, $5 per million output): the default token caps allow at most **$1.50 per UTC day** (about **$46 per month**), roughly 13 admitted matches per day. Hedged and retried attempts count separately, so exhaustion arrives earlier under bad latency; nothing lets spend exceed the caps. `DAILY_USD_CAP` is a money limit computed from the same counters and is the one to lower if the token caps are ever misconfigured; set it below $1.50 to make money the binding limit.
-
-Application limits are the inner fence. The provider key is the outer fence: keep a credit limit on the production OpenRouter key so a bug in this application cannot spend beyond it, and prefer prepaid credits over an open card. The two do not interact; whichever is reached first stops billable work.
-
-Automatic stops:
-
-- Provider credential or credit failures (HTTP 401/402/403) end the match and pause AI admission for 30 minutes. Without this, every new match would fail and pre-charge the day's cap for nothing.
-- Three provider failures of any kind within ten minutes trip a circuit breaker that pauses admission for ten minutes.
-- Both pauses expire on their own and show visitors the reason. `resume-ai` clears them early once the cause is fixed.
-
-Emergency stop, in order of speed:
-
-1. `fly secrets set AI_DISABLED=1 -a <app>` refuses every new AI match immediately after the restart it triggers. Existing matches finish or fail; no new requests are admitted. Unset it to resume.
-2. `bun scripts/ops.ts pause-ai [minutes] [reason]` pauses admission through the database without a restart (default 24 hours).
-3. Revoke or rotate the OpenRouter key; the credential-failure pause then engages automatically.
+Existing daily_usage, reservations, ai_requests and service_state tables are no longer read or written. This change does not delete existing database records. Match outcomes and simulator scenarios remain in use.
 
 ## Simulator
 
-`SIM_KEY` enables `/sim` and `/api/sim/*`; without it the routes do not exist. The dashboard asks for the key once per browser. `SIM_LANES` sets the initial lane count and `SIM_DAILY_MATCHES` (default 40) bounds simulated matches per day on top of every spending cap. Simulated matches reserve capacity like real ones, are never saved as outcomes, and are not visible to players. Set the key with `fly secrets set SIM_KEY=<long random string> -a the-turing-game`.
+`SIM_KEY` enables `/sim` and `/api/sim/*`; without it the routes do not exist. The dashboard asks for the key once per browser. `SIM_LANES` sets the initial lane count. Simulated matches and their judge evaluations make real OpenRouter calls without an app-level spending cap. They are never saved as outcomes and are not visible to players. Set the key with `fly secrets set SIM_KEY=<long random string> -a the-turing-game`.
 
-## Operational commands
-
-Run inside the app environment or locally against the intended DATABASE_URL:
-
-```sh
-bun scripts/ops.ts usage
-bun scripts/ops.ts pause-ai [minutes] [reason]
-bun scripts/ops.ts resume-ai
-```
-
-`usage` shows seven days of counters and availability state. It does not expose transcripts/keys. `pause-ai` stops admitting AI matches for the given number of minutes. `resume-ai` clears any pause, whether operator-set or automatic, after credits/credentials/provider outage are fixed. Neither bypasses token or money caps. No user-facing admin controls.
-
-Provider authentication/credit failures end the affected match as a technical failure and pause admission (see above). Transient completion failures retain the bot's retry/fallback behavior. Exhausted daily capacity blocks new admission and new requests, without counting a match result.
+Provider authentication/credit failures end the affected match as a technical failure. They do not pause new matches. Transient completion failures retain the bot's retry/fallback behavior. Chat closure cancels workers and pending requests.
 
 ## Limitations
 

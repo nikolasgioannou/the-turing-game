@@ -16,11 +16,11 @@ At chat expiry, pending bot work is canceled and the judge chooses. Early verdic
 
 Messages retain the app's 500-grapheme / 2,000-byte limit and 30 human messages per participant. Invite, opening and verdict actions retain 90-second timeouts. The input stays mounted and editable when sending is blocked; both Send and Enter submission respect the phase. Instructions and status remain separate from the stable composer placeholder.
 
-Explicit leave abandons. Disconnection/refresh retains the authenticated seat while deadlines continue. Provider credential/capacity failures are technical failures, not losses. Persist only match IDs and outcomes for aggregate scoring, plus provider usage metadata. Messages, submitted openings, names and judge reasoning remain in memory for the current match. No saved-game browsing or public match access is available. Do not persist unsent drafts or raw model request bodies.
+Explicit leave abandons. Disconnection/refresh retains the authenticated seat while deadlines continue. Provider credential/capacity failures are technical failures, not losses. Persist only match IDs and outcomes for aggregate scoring, without provider usage accounting. Messages, submitted openings, names and judge reasoning remain in memory for the current match. No saved-game browsing or public match access is available. Do not persist unsent drafts or raw model request bodies.
 
-## Capacity
+## AI usage
 
-Reserve initial match capacity before admission. Each real API attempt, including hedges, retries and style analysis, is separately charged. Dynamically top up under the existing daily token caps; release unused capacity at closure. No legacy ten-request cap controls bot behavior. Missing usage remains conservatively charged.
+AI requests have no application spending budgets, token accounting, per-network match quotas or automatic admission pauses. Normal request timeouts, reply length settings, game deadlines and cancellation remain. Provider errors fail the affected game without pausing future matches.
 
 Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, and a TypeScript worker runs the conversation engine. OpenRouter is the sole inference route. Fly production deployment is configured in docs/deployment.md. Keep dependencies project-local and create conventional commits at completed milestones.
 
@@ -30,4 +30,4 @@ The homepage credits Marc and Nik with links to their X profiles. A live line re
 
 ## Play again
 
-Results offer Play again with the current role or Change role (human, judge or either) before public matchmaking. Friend games offer a rematch with the same opponent without a new link, starting only after both participants opt in with compatible roles. Either role accepts the opposite seat; two flexible choices are assigned randomly. Matching fixed preferences require one person to change. Offers can be canceled and are withdrawn when a participant leaves or disconnects. If the friend is no longer on the result screen, Invite again creates a new invitation. The entered name is reused when replaying, and each new round receives fresh identities, messages and capacity reservations.
+Results offer Play again with the current role or Change role (human, judge or either) before public matchmaking. Friend games offer a rematch with the same opponent without a new link, starting only after both participants opt in with compatible roles. Either role accepts the opposite seat; two flexible choices are assigned randomly. Matching fixed preferences require one person to change. Offers can be canceled and are withdrawn when a participant leaves or disconnects. If the friend is no longer on the result screen, Invite again creates a new invitation. The entered name is reused when replaying, and each new round receives fresh identities and messages.

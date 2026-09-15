@@ -15,22 +15,16 @@ const params = {
 };
 
 function harness() {
-  const reservations: unknown[] = [],
-    settlements: unknown[] = [];
+  const requests: number[] = [];
   const hooks: BotHooks = {
     state: () => {},
     failed: () => {},
-    reserve: async (b) => {
-      reservations.push(b);
-
-      return String(reservations.length);
-    },
-    settle: async (id, usage, meta) => {
-      settlements.push({ id, usage, meta });
+    beforeRequest: async () => {
+      requests.push(requests.length);
     },
   };
 
-  return { hooks, reservations, settlements };
+  return { hooks, requests };
 }
 
 test('OpenRouter translation preserves content and configured token limits without sampling overrides', () => {
@@ -45,8 +39,8 @@ test('OpenRouter translation preserves content and configured token limits witho
   expect(openRouterBody({ ...params, max_tokens: 500 }).max_tokens).toBe(500);
 });
 
-test('provider usage is reconciled and text is returned unchanged', async () => {
-  const { hooks, reservations, settlements } = harness();
+test('provider text is returned unchanged', async () => {
+  const { hooks, requests } = harness();
   const fetcher = (async (url: any, options: any) => {
     expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
     expect(JSON.parse(options.body)).toEqual(openRouterBody(params));
@@ -63,12 +57,11 @@ test('provider usage is reconciled and text is returned unchanged', async () => 
     '{"send":false,"messages":[]}',
   );
 
-  expect(reservations).toHaveLength(1);
-  expect(settlements).toMatchObject([{ usage: { input: 17, output: 9 } }]);
+  expect(requests).toHaveLength(1);
 });
 
-test('single transient transport retry reserves both actual requests', async () => {
-  const { hooks, reservations, settlements } = harness();
+test('single transient transport retry checks match lifecycle before each request', async () => {
+  const { hooks, requests } = harness();
   let calls = 0;
   const fetcher = (async () =>
     ++calls === 1
@@ -79,12 +72,11 @@ test('single transient transport retry reserves both actual requests', async () 
     'ok',
   );
 
-  expect(reservations).toHaveLength(2);
-  expect(settlements).toHaveLength(2);
+  expect(requests).toHaveLength(2);
 });
 
 test('authentication failures do not retry and cancellation does not dispatch', async () => {
-  const { hooks, reservations } = harness();
+  const { hooks, requests } = harness();
 
   await expect(
     requestCompletion(
@@ -96,13 +88,13 @@ test('authentication failures do not retry and cancellation does not dispatch', 
     ),
   ).rejects.toThrow('openrouter_401');
 
-  expect(reservations).toHaveLength(1);
+  expect(requests).toHaveLength(1);
 
   const controller = new AbortController();
 
   controller.abort();
   await expect(requestCompletion(params, 6, controller.signal, hooks)).rejects.toThrow();
-  expect(reservations).toHaveLength(1);
+  expect(requests).toHaveLength(1);
 });
 
 test('missing API key fails clearly before spawning a worker', () => {
@@ -124,7 +116,7 @@ test('real TypeScript worker bridges opening and live replies, then cancels on c
 
   const states: import('../src/server/ai').BotState[] = [],
     calls: any[] = [];
-  const { hooks, reservations, settlements } = harness();
+  const { hooks } = harness();
   const failures: Error[] = [];
 
   hooks.state = (s) => states.push(s);
@@ -205,12 +197,10 @@ test('real TypeScript worker bridges opening and live replies, then cancels on c
     if (saved === undefined) delete process.env.OPENROUTER_API_KEY;
     else process.env.OPENROUTER_API_KEY = saved;
   }
-
-  expect(settlements).toHaveLength(reservations.length);
 }, 60000);
 
-test('canceling an in-flight provider call settles its conservative reservation', async () => {
-  const { hooks, reservations, settlements } = harness();
+test('canceling an in-flight provider call aborts transport', async () => {
+  const { hooks, requests } = harness();
   const controller = new AbortController();
   let dispatched!: () => void;
   const started = new Promise<void>((resolve) => {
@@ -226,8 +216,7 @@ test('canceling an in-flight provider call settles its conservative reservation'
   await started;
   controller.abort();
   await expect(result).rejects.toThrow('aborted');
-  expect(reservations).toHaveLength(1);
-  expect(settlements).toMatchObject([{ usage: null }]);
+  expect(requests).toHaveLength(1);
 });
 
 test('transport honors SDK retry hints and rejects excessive retry-after waits', () => {
@@ -240,19 +229,23 @@ test('transport honors SDK retry hints and rejects excessive retry-after waits',
   expect(delay).toBeLessThanOrEqual(500);
 });
 
-test('successful accounting does not hold back a model response', async () => {
+test('closed match prevents provider dispatch', async () => {
   const { hooks } = harness();
-  let release!: () => void;
 
-  hooks.settle = () =>
-    new Promise<void>((resolve) => {
-      release = resolve;
-    });
+  hooks.beforeRequest = async () => {
+    throw new Error('match_closed');
+  };
 
-  const fetcher = (async () =>
-    Response.json({ choices: [{ message: { content: 'ready' } }] })) as unknown as typeof fetch;
-  const result = await requestCompletion(params, 6, new AbortController().signal, hooks, fetcher);
+  let called = false;
+  const fetcher = (async () => {
+    called = true;
 
-  expect(result).toBe('ready');
-  release();
+    return new Response();
+  }) as unknown as typeof fetch;
+
+  await expect(
+    requestCompletion(params, 6, new AbortController().signal, hooks, fetcher),
+  ).rejects.toThrow('match_closed');
+
+  expect(called).toBe(false);
 });

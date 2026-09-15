@@ -1,9 +1,7 @@
 import { resolve } from 'node:path';
 import { SYSTEM } from './bot/constants';
 import type { Label } from '../shared/protocol';
-import type { Allowance } from './store';
 
-export const PROMPT_VERSION = 'turing-v4';
 export const SYSTEM_PROMPT = SYSTEM;
 export const MODEL = 'anthropic/claude-haiku-4.5';
 
@@ -33,8 +31,7 @@ export interface BotSession {
 
 export interface BotHooks {
   state(state: BotState): void;
-  reserve(bound: Allowance): Promise<string>;
-  settle(id: string, usage: Allowance | null, metadata: Record<string, unknown>): Promise<void>;
+  beforeRequest(): Promise<void>;
   failed(error: Error): void;
   trace?(text: string): void;
 }
@@ -86,15 +83,15 @@ export async function requestCompletion(
   fetcher: typeof fetch = fetch,
 ) {
   const body = JSON.stringify(openRouterBody(params));
-  const bound = { input: Buffer.byteLength(body) + 1024, output: params.max_tokens };
 
   for (let attempt = 0; attempt < 2; attempt++) {
     signal.throwIfAborted();
 
-    const id = await hooks.reserve(bound);
+    await hooks.beforeRequest();
+
     let status: number | undefined;
     let responseHeaders = new Headers();
-    let settled = false;
+    let received = false;
 
     try {
       signal.throwIfAborted();
@@ -115,31 +112,10 @@ export async function requestCompletion(
       if (!response.ok) throw new AIError(`openrouter_${status}`);
 
       const result = (await response.json()) as {
-        id?: string;
-        model?: string;
-        provider?: string;
         choices?: { message?: { content?: string } }[];
-        usage?: { prompt_tokens?: number; completion_tokens?: number };
       };
-      const input = result.usage?.prompt_tokens,
-        output = result.usage?.completion_tokens;
-      const usage =
-        Number.isSafeInteger(input) && input! >= 0 && Number.isSafeInteger(output) && output! >= 0
-          ? { input: input!, output: output! }
-          : null;
 
-      void hooks
-        .settle(id, usage, {
-          status: 'ok',
-          model: result.model ?? MODEL,
-          provider: result.provider ?? 'openrouter',
-          requestId: result.id,
-        })
-        .catch((error) =>
-          hooks.failed(error instanceof Error ? error : new Error('Usage settlement failed')),
-        );
-
-      settled = true;
+      received = true;
 
       const text = result.choices?.[0]?.message?.content;
 
@@ -147,13 +123,10 @@ export async function requestCompletion(
 
       return text;
     } catch (error) {
-      if (!settled)
-        await hooks.settle(id, null, { status: 'failed', code: status ?? 'network_or_cancel' });
-
       if (
         signal.aborted ||
         attempt ||
-        settled ||
+        received ||
         responseHeaders.get('x-should-retry') === 'false' ||
         (responseHeaders.get('x-should-retry') !== 'true' &&
           status &&
@@ -189,15 +162,10 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
   return {
     model: MODEL,
     unavailable: () =>
-      process.env.AI_DISABLED === '1'
-        ? 'The AI is temporarily disabled by the operator. Try again later.'
-        : process.env.OPENROUTER_API_KEY
-          ? null
-          : 'Set OPENROUTER_API_KEY in .env and restart the server.',
+      process.env.OPENROUTER_API_KEY
+        ? null
+        : 'Set OPENROUTER_API_KEY in .env and restart the server.',
     start(id, humanLabel, hooks, session = {}) {
-      if (process.env.AI_DISABLED === '1')
-        throw new AIError('The AI is temporarily disabled by the operator. Try again later.');
-
       if (!process.env.OPENROUTER_API_KEY)
         throw new AIError('Set OPENROUTER_API_KEY in .env and restart the server.');
 

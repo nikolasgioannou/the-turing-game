@@ -1,13 +1,7 @@
 import { commandSchema } from '../src/shared/commands';
-import { afterAll, beforeAll, beforeEach, expect, test, describe, spyOn } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, expect, test, spyOn } from 'bun:test';
 import { database } from '../src/server/database';
-import {
-  Store,
-  MATCH_INPUT,
-  MATCH_OUTPUT,
-  INPUT_PER_REQUEST,
-  OUTPUT_PER_REQUEST,
-} from '../src/server/store';
+import { Store } from '../src/server/store';
 import { Game, type Peer, type Match } from '../src/server/game';
 import { AIError, type AI, type BotHooks, type BotCommand, type BotState } from '../src/server/ai';
 import { characters, type Event } from '../src/shared/protocol';
@@ -42,9 +36,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await store.db.query('TRUNCATE match_outcomes,ai_requests,reservations,daily_usage');
-  await store.db.query('UPDATE service_state SET reason=null,until_at=0');
-  store.caps = { input: 1_000_000, output: 100_000 };
+  await store.db.query('TRUNCATE match_outcomes');
   clock = Date.now();
   sessions.clear();
   game = new Game(store, ai, () => clock);
@@ -217,10 +209,11 @@ test('deadline stops worker and rejects late replies, sending and spectator gues
   expect(game.view(m, j.p).result?.humanWon).toBe(true);
 });
 
-test('early verdict commits reason and identity together, cancels work and settles outstanding usage', async () => {
+test('early verdict commits reason and identity together, cancels work and blocks late requests', async () => {
   const { j, m } = await opening();
   const hooks = sessions.get(m.id)!.hooks;
-  const request = await hooks.reserve({ input: 12345, output: 400 });
+
+  await hooks.beforeRequest();
 
   await game.handle(j.p, {
     type: 'verdict',
@@ -231,13 +224,7 @@ test('early verdict commits reason and identity together, cancels work and settl
   expect(m.phase).toBe('complete');
   expect(game.view(m, j.p).result?.humanWon).toBe(false);
   expect(sessions.get(m.id)!.stopped).toBe(true);
-  await hooks.settle(request, { input: 200, output: 20 }, { status: 'ok' });
-
-  const [usage] = await store.db.query<any>('SELECT * FROM daily_usage');
-
-  expect(Number(usage.input_used)).toBe(200);
-  expect(Number(usage.input_reserved)).toBe(0);
-  await expect(hooks.reserve({ input: 10, output: 10 })).rejects.toThrow();
+  await expect(hooks.beforeRequest()).rejects.toThrow('match_closed');
 });
 
 test('refresh preserves worker, seat, private opening and deadline', async () => {
@@ -317,86 +304,6 @@ test('judge identifies the bot and both humans win', async () => {
 test('Unicode limits and draft bounds apply at the public boundary', () => {
   expect(characters('👨‍👩‍👧‍👦')).toBe(1);
   expect(commandSchema.safeParse({ type: 'draft', text: 'a'.repeat(501) }).success).toBe(false);
-});
-
-describe('provider-independent usage', () => {
-  test('concurrent reservations cannot exceed input or output cap', async () => {
-    store.caps = { input: MATCH_INPUT, output: MATCH_OUTPUT };
-
-    const results = await Promise.all([store.reserve('one'), store.reserve('two')]);
-
-    expect(results.filter(Boolean)).toHaveLength(1);
-    expect((await store.availability()).available).toBe(false);
-    await store.release(results[0] ? 'one' : 'two');
-    expect((await store.availability()).available).toBe(true);
-  });
-
-  test('unknown usage stays conservatively charged; measured usage reconciles', async () => {
-    await store.reserve('one');
-
-    const id = await store.beginRequest('one', {});
-
-    await store.settleRequest(id, null, {});
-
-    let [r] = await store.db.query<any>('SELECT * FROM daily_usage');
-
-    expect(Number(r.input_used)).toBe(INPUT_PER_REQUEST);
-    expect(Number(r.output_used)).toBe(OUTPUT_PER_REQUEST);
-    await store.settleRequest(id, { input: 123, output: 45 }, {});
-    [r] = await store.db.query<any>('SELECT * FROM daily_usage');
-    expect(Number(r.input_used)).toBe(123);
-    expect(Number(r.output_used)).toBe(45);
-    await store.release('one');
-  });
-
-  test('UTC reset preserves admission-day reservations for active games', async () => {
-    const now = Date.UTC(2026, 8, 13, 23, 59, 59);
-
-    await store.reserve('one', now);
-
-    const id = await store.beginRequest('one', {});
-
-    await store.settleRequest(id, { input: 3, output: 2 }, {});
-    await store.reserve('two', now + 2000);
-
-    const rows = await store.db.query<any>('SELECT * FROM daily_usage ORDER BY day');
-
-    expect(rows).toHaveLength(2);
-    expect(rows[0].day).toBe('2026-09-13');
-    expect(Number(rows[0].input_used)).toBe(3);
-    expect(Number(rows[1].input_used)).toBe(0);
-  });
-});
-
-test('dynamic request top-ups, hedges and retries cannot overrun daily capacity', async () => {
-  store.caps = { input: MATCH_INPUT + 1000, output: MATCH_OUTPUT };
-  await store.reserve('one');
-
-  const results = await Promise.allSettled([
-    store.beginRequest('one', {}, { input: MATCH_INPUT, output: 400 }),
-    store.beginRequest('one', {}, { input: MATCH_INPUT, output: 400 }),
-  ]);
-
-  expect(results.filter((x) => x.status === 'fulfilled')).toHaveLength(1);
-
-  const [day] = await store.db.query<any>('SELECT * FROM daily_usage');
-
-  expect(Number(day.input_used) + Number(day.input_reserved)).toBeLessThanOrEqual(store.caps.input);
-  await store.release('one');
-  await expect(store.beginRequest('one', {}, { input: 1, output: 1 })).rejects.toThrow();
-});
-
-test('restart recovery retains conservative in-flight charges', async () => {
-  const { m } = await question();
-
-  await store.beginRequest(m.id, {}, { input: 18000, output: 400 });
-  await store.recover();
-  expect(await store.db.query('SELECT * FROM match_outcomes')).toHaveLength(0);
-
-  const [day] = await store.db.query<any>('SELECT * FROM daily_usage');
-
-  expect(Number(day.input_used)).toBe(18000);
-  expect(Number(day.input_reserved)).toBe(0);
 });
 
 test('opening submission racing an early attack is retained until the worker publishes it', async () => {
@@ -755,136 +662,6 @@ for (const [randomValue, expectedRole] of [
   });
 }
 
-describe('spending guardrails', () => {
-  test('a daily USD cap is enforced alongside the token caps, including reservations', async () => {
-    store.caps = { input: 1_000_000, output: 100_000, usd: 0.1 };
-
-    // One match reservation costs 75K in + 5.12K out = $0.1006 at list price: over the cap.
-    expect((await store.availability(clock)).available).toBe(false);
-    expect(await store.reserve('one', clock)).toBe(false);
-
-    store.caps = { input: 1_000_000, output: 100_000, usd: 0.2 };
-    expect(await store.reserve('one', clock)).toBe(true);
-    expect(await store.reserve('two', clock)).toBe(false);
-
-    const id = await store.beginRequest('one', {}, { input: 7_500, output: 512 });
-
-    await store.settleRequest(id, { input: 100, output: 10 }, {});
-    await store.release('one');
-
-    // Settling to real usage frees the difference; the day now holds only $0.00015 of use.
-    expect((await store.availability(clock)).available).toBe(true);
-  });
-
-  test('credential or credit failures pause admission until an operator resumes it or it expires', async () => {
-    const { m } = await question();
-    const hooks = sessions.get(m.id)!.hooks;
-
-    hooks.failed(new AIError('openrouter_402'));
-    await game.run(async () => {});
-
-    expect(m.phase).toBe('failed');
-
-    const paused = await store.availability(clock);
-
-    expect(paused.available).toBe(false);
-    expect(paused.message).toContain('paused');
-
-    const p = await peer();
-
-    await expect(game.handle(p.p, { type: 'create', role: 'judge' })).rejects.toThrow(/paused/);
-
-    // Expires on its own after the pause window.
-    clock += Game.CREDENTIAL_PAUSE_MS + 1;
-    expect((await store.availability(clock)).available).toBe(true);
-
-    // An operator can also resume early.
-    hooks.failed(new AIError('openrouter_401'));
-    await game.run(async () => {});
-    await store.resumeAI();
-    expect((await store.availability(clock)).available).toBe(true);
-  });
-
-  test('repeated provider failures trip a circuit breaker; a single failure does not', async () => {
-    const first = await question();
-
-    sessions.get(first.m.id)!.hooks.failed(new AIError('openrouter_503'));
-    await game.run(async () => {});
-    expect((await store.availability(clock)).available).toBe(true);
-
-    for (let i = 0; i < Game.BREAKER_FAILURES - 1; i++) {
-      const next = await question();
-
-      sessions.get(next.m.id)!.hooks.failed(new AIError('openrouter_503'));
-      await game.run(async () => {});
-    }
-
-    const paused = await store.availability(clock);
-
-    expect(paused.available).toBe(false);
-    expect(paused.message).toContain('failing repeatedly');
-
-    clock += Game.BREAKER_PAUSE_MS + 1;
-    expect((await store.availability(clock)).available).toBe(true);
-  });
-
-  test('one network cannot create more than the hourly match limit', async () => {
-    store.caps = { input: 1e9, output: 1e8 }; // plenty of daily capacity; this test is about the per-IP limit
-
-    const creators: Peer[] = [];
-
-    for (let i = 0; i < Game.MATCHES_PER_IP_PER_HOUR; i++) {
-      const p = await peer();
-
-      p.p.ip = '203.0.113.9';
-      creators.push(p.p);
-      await game.handle(p.p, { type: 'create', role: 'judge' });
-    }
-
-    const extra = await peer();
-
-    extra.p.ip = '203.0.113.9';
-
-    await expect(game.handle(extra.p, { type: 'create', role: 'judge' })).rejects.toThrow(
-      /Too many games/,
-    );
-
-    // A different network is unaffected, and the limit rolls off after an hour.
-    const other = await peer();
-
-    other.p.ip = '198.51.100.4';
-    await game.handle(other.p, { type: 'create', role: 'judge' });
-
-    clock += 60 * 60_000 + 1;
-    await game.handle(extra.p, { type: 'create', role: 'judge' });
-    expect(extra.p.roomId).toBeDefined();
-
-    // Loopback (local development and browser tests) is never limited.
-    for (let i = 0; i < Game.MATCHES_PER_IP_PER_HOUR + 1; i++) {
-      const local = await peer();
-
-      local.p.ip = '127.0.0.1';
-      await game.handle(local.p, { type: 'create', role: 'judge' });
-    }
-  });
-
-  test('the operator kill switch refuses new matches without touching the database', async () => {
-    const original = ai.unavailable;
-
-    ai.unavailable = () => 'The AI is temporarily disabled by the operator. Try again later.';
-
-    try {
-      const p = await peer();
-
-      await expect(game.handle(p.p, { type: 'create', role: 'human' })).rejects.toThrow(
-        /disabled by the operator/,
-      );
-    } finally {
-      ai.unavailable = original;
-    }
-  });
-});
-
 async function finishedFriends() {
   const h = await peer(),
     j = await peer();
@@ -968,17 +745,6 @@ test('rematches reject outsiders and public matches', async () => {
   await expect(game.handle(h.p, { type: 'rematch', role: 'human' })).rejects.toThrow();
 });
 
-test('friend rematches obey admission capacity and reset consent on failure', async () => {
-  const { h, j, m } = await finishedFriends();
-
-  await game.handle(h.p, { type: 'rematch', role: 'human' });
-  store.caps = { input: 0, output: 0 };
-  await expect(game.handle(j.p, { type: 'rematch', role: 'judge' })).rejects.toThrow();
-  expect(game.rooms.size).toBe(1);
-  expect(game.view(m, h.p).rematch?.own).toBeNull();
-  expect(game.view(m, j.p).rematch?.own).toBeNull();
-});
-
 test('disconnection withdraws friend rematch consent', async () => {
   const { h, j, m } = await finishedFriends();
 
@@ -986,4 +752,38 @@ test('disconnection withdraws friend rematch consent', async () => {
   await game.disconnect(h.p);
   expect(game.view(m, j.p).rematch).toEqual({ own: null, other: null, available: false });
   await expect(game.handle(j.p, { type: 'rematch', role: 'judge' })).rejects.toThrow('left');
+});
+
+test('provider failures do not pause future match creation', async () => {
+  for (const code of ['openrouter_402', 'openrouter_503', 'openrouter_503', 'openrouter_503']) {
+    const { m } = await question();
+
+    sessions.get(m.id)!.hooks.failed(new AIError(code));
+    await game.run(async () => {});
+    expect(m.phase).toBe('failed');
+  }
+
+  const p = await peer();
+
+  await game.handle(p.p, { type: 'create', role: 'judge' });
+  expect(p.p.roomId).toBeDefined();
+});
+
+test('store initializes only match outcome storage', async () => {
+  const rows = await store.db.query<{ tablename: string }>(
+    "SELECT tablename FROM pg_tables WHERE schemaname='public'",
+  );
+
+  expect(rows.map((r) => r.tablename).sort()).toEqual(['match_outcomes']);
+});
+
+test('match creation has no daily token or hourly match quota', async () => {
+  for (let i = 0; i < 40; i++) {
+    const p = await peer();
+
+    await game.handle(p.p, { type: 'create', role: 'judge' });
+    expect(p.p.roomId).toBeDefined();
+  }
+
+  expect(game.rooms.size).toBe(40);
 });
