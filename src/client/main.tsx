@@ -285,6 +285,19 @@ export function App({ review }: { review?: ReviewState }) {
           )}
         </Banner>
       ) : null}
+      {room &&
+      ended(room.phase) &&
+      room.matchKind === 'friend' &&
+      room.rematch?.available &&
+      room.rematch.other &&
+      !room.rematch.own ? (
+        <Banner tone="info" role="status">
+          <div>
+            <strong className="block text-sm">Your friend wants a rematch!</strong>
+            <p className="mt-1 text-sm text-ink">Join below, or change your role.</p>
+          </div>
+        </Banner>
+      ) : null}
       {capacityReached && (!room || waitingInvite) ? (
         <Banner ref={capacityBanner} role="status" className="capacity">
           {lobby.availability.message}
