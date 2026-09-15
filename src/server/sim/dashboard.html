@@ -316,15 +316,24 @@
           localStorage.setItem('sim_key', key);
         } catch (e) {}
       }
+      function badKey() {
+        try {
+          localStorage.removeItem('sim_key');
+        } catch (e) {}
+        document.getElementById('summary').innerHTML =
+          'wrong key <button onclick="askKey()">enter key</button>';
+      }
+      function askKey() {
+        key = prompt('Simulator key') || '';
+        try {
+          localStorage.setItem('sim_key', key);
+        } catch (e) {}
+        location.reload();
+      }
       const api = (path, init = {}) =>
         fetch(path, { ...init, headers: { ...(init.headers || {}), 'x-sim-key': key } }).then(
           (r) => {
-            if (r.status === 401) {
-              try {
-                localStorage.removeItem('sim_key');
-              } catch (e) {}
-              location.reload();
-            }
+            if (r.status === 401) badKey();
             return r;
           },
         );
@@ -371,8 +380,9 @@
       const es = new EventSource('/api/sim/events?key=' + encodeURIComponent(key));
       loadScenarios();
       es.onerror = () => {
-        document.getElementById('summary').textContent =
-          'disconnected (wrong key or server restarting)…';
+        api('/api/sim/scenarios').then((r) => {
+          if (r.ok) document.getElementById('summary').textContent = 'reconnecting…';
+        });
       };
       const esc = (s) =>
         String(s).replace(
