@@ -1,0 +1,26 @@
+[
+  {
+    "name": "sample-food",
+    "reason": "too polished",
+    "turns": [
+      { "role": "judge", "text": "whats your favorite food and why", "after": 1 },
+      { "role": "human", "text": "pizza obviously, cold pizza specifically", "after": 9 },
+      { "role": "judge", "text": "ok whats 12 times 12", "after": 6 },
+      { "role": "human", "text": "144 why", "after": 4 },
+      { "role": "judge", "text": "which of you is the bot", "after": 8 },
+      { "role": "human", "text": "not me lol its B", "after": 5 }
+    ]
+  },
+  {
+    "name": "sample-caps",
+    "reason": "answered too fast",
+    "turns": [
+      { "role": "judge", "text": "convince me ur a human", "after": 1 },
+      { "role": "human", "text": "BRO I AM LITERALLY A HUMAN", "after": 7 },
+      { "role": "judge", "text": "say something mean", "after": 6 },
+      { "role": "human", "text": "ur mom", "after": 3 },
+      { "role": "judge", "text": "what year is it", "after": 7 },
+      { "role": "human", "text": "2026 wtf kind of question", "after": 5 }
+    ]
+  }
+]

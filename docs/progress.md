@@ -418,3 +418,9 @@ Validation: all 209 unit/integration tests, typecheck and build pass, including 
 ## Browser suite after the guardrails
 
 Ran the full browser suite twice against development OpenRouter. The first run exposed that a six-matches-per-network hourly limit locks out a group on one router and the suite itself; the limit is now 30 by default, configurable through `MATCHES_PER_IP_PER_HOUR`, with loopback exempt. The second run passed 23 of 24 journeys; the remaining failure was the multiplayer results journey still selecting the human and expecting a win, left over from the switch to bot identification. The journey now selects the bot and passes. All 24 journeys have passed in the current tree. Not deployed.
+
+## Simulation dashboard
+
+Added `scripts/sim.ts`, a development-only simulator: it boots a private app server on its own database and generous caps, drives N matches through the real WebSocket protocol with a scripted judge and a scripted human that replays recorded conversations (typing drafts live at a realistic pace and answering with the recorded delays), and serves a dashboard on port 5175 that streams every lane over server-sent events. Each AI message is annotated with its timing relative to the judge and the human, lanes show the verdict outcome, and any lane can be rerun with any scenario. `scripts/sim/extract.ts` builds scenarios from saved transcripts into `data/sim-scenarios.json`, which stays out of git; a two-scenario sample ships in the repository. Nothing in the served application changed.
+
+Validation: typecheck and build pass; a five-lane run against development OpenRouter replayed sixteen recorded conversations with the bot responding live. Not deployed (no production code changed).

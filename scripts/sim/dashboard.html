@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Turing Game · Simulator</title>
+    <style>
+      :root {
+        --bg: #050a12;
+        --panel: #0b1220;
+        --line: #1c2a44;
+        --text: #e6f0ff;
+        --muted: #6f83a8;
+        --judge: #ffc233;
+        --human: #39ff88;
+        --ai: #ff4fd8;
+        --cyan: #38e8ff;
+        --red: #ff3b3b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.4 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        z-index: 2;
+      }
+      header h1 {
+        font-size: 15px;
+        letter-spacing: 3px;
+        margin: 0;
+        color: var(--cyan);
+      }
+      header .legend {
+        color: var(--muted);
+        font-size: 12px;
+        display: flex;
+        gap: 14px;
+      }
+      .j {
+        color: var(--judge);
+      }
+      .h {
+        color: var(--human);
+      }
+      .a {
+        color: var(--ai);
+      }
+      button {
+        background: transparent;
+        color: var(--cyan);
+        border: 1px solid var(--cyan);
+        padding: 7px 12px;
+        font: inherit;
+        font-size: 12px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--cyan);
+        color: #012;
+      }
+      button:hover {
+        filter: brightness(1.2);
+      }
+      select {
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--line);
+        padding: 6px;
+        font: inherit;
+        font-size: 12px;
+        max-width: 150px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 12px;
+        padding: 12px;
+      }
+      .lane {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        min-height: 560px;
+        max-height: calc(100vh - 90px);
+      }
+      .lanehead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+      }
+      .lanehead b {
+        color: var(--cyan);
+        letter-spacing: 2px;
+      }
+      .phase {
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .phase.chat {
+        color: var(--judge);
+      }
+      .phase.complete {
+        color: var(--human);
+      }
+      .phase.failed,
+      .phase.abandoned,
+      .status-error {
+        color: var(--red);
+      }
+      .clock {
+        color: var(--cyan);
+        font-weight: 700;
+      }
+      .msgs {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .m {
+        display: grid;
+        grid-template-columns: 52px 62px 1fr;
+        gap: 8px;
+        align-items: baseline;
+        padding: 6px 8px;
+        border-left: 3px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .m .t {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .m .w {
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+      .m.judge {
+        border-left-color: var(--judge);
+      }
+      .m.judge .w {
+        color: var(--judge);
+      }
+      .m.human {
+        border-left-color: var(--human);
+      }
+      .m.human .w {
+        color: var(--human);
+      }
+      .m.ai {
+        border-left-color: var(--ai);
+      }
+      .m.ai .w {
+        color: var(--ai);
+      }
+      .m .x {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .m .d {
+        color: var(--muted);
+        font-size: 11px;
+        margin-left: 6px;
+      }
+      .result {
+        padding: 10px 12px;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
+      }
+      .result b.win {
+        color: var(--human);
+      }
+      .result b.lose {
+        color: var(--red);
+      }
+      .log {
+        max-height: 110px;
+        overflow-y: auto;
+        padding: 8px 12px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 11px;
+        white-space: pre-wrap;
+      }
+      .note {
+        color: var(--red);
+        font-size: 12px;
+        padding: 0 12px 8px;
+      }
+      .stats {
+        display: flex;
+        gap: 14px;
+        padding: 6px 12px;
+        border-top: 1px solid var(--line);
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .stats b {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>TURING SIMULATOR</h1>
+      <div class="legend">
+        <span class="j">■ judge (scripted)</span><span class="h">■ human (scripted replay)</span
+        ><span class="a">■ AI (live)</span>
+      </div>
+      <span style="flex: 1"></span>
+      <span id="summary" class="legend"></span>
+      <button class="primary" onclick="fetch('/rerun-all', { method: 'POST' })">Rerun all</button>
+    </header>
+    <div class="grid" id="grid"></div>
+    <script>
+      let scenarios = [];
+      fetch('/scenarios')
+        .then((r) => r.json())
+        .then((s) => {
+          scenarios = s;
+        });
+      const es = new EventSource('/events');
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+        );
+      const fmt = (ms) => {
+        const d = new Date(ms);
+        return d.toLocaleTimeString([], { minute: '2-digit', second: '2-digit' });
+      };
+      es.onmessage = (e) => {
+        const { states, now } = JSON.parse(e.data);
+        const grid = document.getElementById('grid');
+        let aiFirst = 0,
+          aiTotal = 0,
+          aiWins = 0,
+          done = 0;
+        states.forEach((st, i) => {
+          let el = document.getElementById('lane' + i);
+          if (!el) {
+            el = document.createElement('div');
+            el.className = 'lane';
+            el.id = 'lane' + i;
+            grid.appendChild(el);
+          }
+          const bot = st.humanLabel ? (st.humanLabel === 'A' ? 'B' : 'A') : null;
+          const left =
+            st.phase === 'chat' && st.deadline
+              ? Math.max(0, Math.round((st.deadline - now) / 1000))
+              : null;
+          let prev = null,
+            lastHuman = null,
+            lastJudge = null;
+          const rows = st.messages
+            .map((m) => {
+              const who =
+                m.sender === 'judge' ? 'judge' : m.sender === st.humanLabel ? 'human' : 'ai';
+              const delta = prev ? ((m.sentAt - prev) / 1000).toFixed(1) + 's' : '';
+              let extra = '';
+              if (
+                who === 'ai' &&
+                lastJudge !== null &&
+                (lastHuman === null || lastHuman < lastJudge)
+              ) {
+                extra = `AI first, ${((m.sentAt - lastJudge) / 1000).toFixed(1)}s after judge`;
+                aiFirst++;
+                aiTotal++;
+              } else if (who === 'ai' && lastHuman !== null) {
+                extra = `${((m.sentAt - lastHuman) / 1000).toFixed(1)}s after human`;
+                aiTotal++;
+              } else if (who === 'human' && lastJudge !== null)
+                extra = `${((m.sentAt - lastJudge) / 1000).toFixed(1)}s after judge`;
+              if (who === 'human') lastHuman = m.sentAt;
+              if (who === 'judge') lastJudge = m.sentAt;
+              prev = m.sentAt;
+              return `<div class="m ${who}"><span class="t">${fmt(m.sentAt)}</span><span class="w">${who === 'ai' ? 'AI ' + (bot || '') : who === 'human' ? 'HUMAN ' + (st.humanLabel || '') : 'JUDGE'}</span><span class="x">${esc(m.text)}<span class="d">${delta ? '+' + delta : ''}${extra ? ' · ' + extra : ''}</span></span></div>`;
+            })
+            .join('');
+          let result = '';
+          if (st.result) {
+            done++;
+            const aiWon = !st.result.humanWon;
+            if (aiWon) aiWins++;
+            result = `<div class="result">Judge picked <b>${st.result.choice}</b> as the bot → <b class="${aiWon ? 'win' : 'lose'}">${aiWon ? 'AI fooled the judge' : 'AI was caught'}</b> · human was ${st.result.humanLabel} · "${esc(st.result.reason)}"</div>`;
+          }
+          const opts = scenarios
+            .map(
+              (s) =>
+                `<option value="${esc(s.name)}" ${s.name === st.scenario ? 'selected' : ''}>${esc(s.name)} (${s.turns})</option>`,
+            )
+            .join('');
+          const aiMsgs = st.messages.filter(
+            (m) => m.sender !== 'judge' && m.sender !== st.humanLabel,
+          ).length;
+          const huMsgs = st.messages.filter((m) => m.sender === st.humanLabel).length;
+          el.innerHTML = `
+      <div class="lanehead"><b>LANE ${i + 1}</b><span class="phase ${st.phase} status-${st.status}">${st.status === 'error' ? 'ERROR' : st.phase || st.status}</span>${left !== null ? `<span class="clock">${left}s</span>` : ''}
+        <span style="flex:1"></span><select id="sel${i}">${opts}</select><button onclick="fetch('/rerun?lane=${i}&scenario='+encodeURIComponent(document.getElementById('sel${i}').value),{method:'POST'})">Rerun</button></div>
+      <div class="msgs" id="msgs${i}">${rows}</div>
+      ${st.note ? `<div class="note">${esc(st.note)}</div>` : ''}
+      ${result}
+      <div class="stats"><span>run <b>${st.run}</b></span><span>human <b>${huMsgs}</b></span><span>AI <b>${aiMsgs}</b></span><span>scenario <b>${esc(st.scenario)}</b></span></div>
+      <div class="log">${st.log.map(esc).join('\n')}</div>`;
+          const box = document.getElementById('msgs' + i);
+          box.scrollTop = box.scrollHeight;
+        });
+        document.getElementById('summary').innerHTML =
+          `<span>AI first: <b>${aiFirst}/${aiTotal}</b> replies</span><span>fooled judge: <b>${aiWins}/${done}</b> finished</span>`;
+      };
+    </script>
+  </body>
+</html>

@@ -19,6 +19,10 @@ Open http://localhost:5173. Vite hot-reloads the UI and proxies API/WebSocket re
 
 `bun run build && bun run start` serves the built app at http://localhost:3000. Set `DATABASE_URL` to use PostgreSQL; otherwise development storage uses `PGLITE_PATH`. Production requires `DATABASE_URL` and `APP_ORIGIN`. Never put credentials in client code or `VITE_` variables.
 
+## Simulation dashboard
+
+`bun run sim` starts a private app server (its own PGlite database under `data/sim-db`, generous caps) and a dashboard at http://localhost:5175 that runs several matches at once with a scripted judge and a scripted human replaying real conversations. Watch the bot reply live, see how long it takes relative to the human, rerun any lane with any scenario, or rerun all. Every match makes real OpenRouter calls on your key (roughly a few cents each). Scenarios come from `data/sim-scenarios.json`, built from saved transcripts with `bun run sim:extract <dir>`; without it the small sample in `scripts/sim/scenarios.sample.json` is used. The simulator is a development tool and is not part of the served application.
+
 ## Bot behavior
 
 The bot uses Claude Haiku 4.5 with response planning, style analysis, draft handling, hedged requests, normalization and pacing. It can send before the human and adapt to unsent drafts. OpenRouter receives that context; application storage does not retain unsent drafts. See [bot architecture and behavior](src/server/bot/README.md).
