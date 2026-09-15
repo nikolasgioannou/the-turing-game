@@ -884,3 +884,106 @@ describe('spending guardrails', () => {
     }
   });
 });
+
+async function finishedFriends() {
+  const h = await peer(),
+    j = await peer();
+
+  await game.handle(h.p, { type: 'create', role: 'human' });
+
+  const m = game.rooms.get(h.p.roomId!)!;
+
+  await game.handle(j.p, { type: 'join', token: m.inviteToken });
+  m.choice = m.humanLabel === 'A' ? 'B' : 'A';
+  await game.finish(m, 'complete', null);
+
+  return { h, j, m };
+}
+
+for (const humanChoice of ['human', 'judge', 'either'] as const) {
+  for (const judgeChoice of ['human', 'judge', 'either'] as const) {
+    test(`friend rematch preferences: ${humanChoice} / ${judgeChoice}`, async () => {
+      const { h, j, m } = await finishedFriends();
+
+      await game.handle(h.p, { type: 'rematch', role: humanChoice });
+      expect(game.rooms.size).toBe(1);
+      expect(game.view(m, j.p).rematch?.other).toBe(humanChoice);
+      await game.handle(j.p, { type: 'rematch', role: judgeChoice });
+
+      const conflict = humanChoice !== 'either' && humanChoice === judgeChoice;
+
+      if (conflict) {
+        expect(h.p.roomId).toBe(m.id);
+        expect(game.rooms.size).toBe(1);
+        await game.handle(j.p, { type: 'rematch', role: 'either' });
+      }
+
+      const next = game.rooms.get(h.p.roomId!)!;
+
+      expect(next.id).not.toBe(m.id);
+      expect(j.p.roomId).toBe(next.id);
+      expect(next.phase).toBe('ready');
+      expect(game.view(next, h.p).matchKind).toBe('friend');
+      expect(next.messages).toEqual([]);
+      expect(next.choice).toBeNull();
+      expect(game.role(next, h.p)).not.toBe(game.role(next, j.p));
+
+      if (humanChoice !== 'either') expect(game.role(next, h.p)).toBe(humanChoice);
+
+      if (judgeChoice !== 'either' && !conflict) expect(game.role(next, j.p)).toBe(judgeChoice);
+
+      expect((await store.score()).completed).toBe(1);
+      await expect(game.handle(h.p, { type: 'rematch', role: 'either' })).rejects.toThrow();
+    });
+  }
+}
+
+test('friend rematch cancellation withdraws consent', async () => {
+  const { h, j, m } = await finishedFriends();
+
+  await game.handle(h.p, { type: 'rematch', role: 'human' });
+  await game.handle(h.p, { type: 'rematch', role: null });
+  await game.handle(j.p, { type: 'rematch', role: 'judge' });
+  expect(game.rooms.size).toBe(1);
+  expect(game.view(m, j.p).rematch?.other).toBeNull();
+});
+
+test('friend leaving invalidates a rematch offer', async () => {
+  const { h, j, m } = await finishedFriends();
+
+  await game.handle(h.p, { type: 'rematch', role: 'human' });
+  await game.handle(h.p, { type: 'home' });
+  expect(game.view(m, j.p).rematch).toEqual({ own: null, other: null, available: false });
+  await expect(game.handle(j.p, { type: 'rematch', role: 'judge' })).rejects.toThrow('left');
+  expect(game.rooms.size).toBe(1);
+});
+
+test('rematches reject outsiders and public matches', async () => {
+  const { h, m } = await finishedFriends();
+  const outsider = await peer();
+
+  outsider.p.roomId = m.id;
+  await expect(game.handle(outsider.p, { type: 'rematch', role: 'human' })).rejects.toThrow();
+  m.inviteToken = undefined;
+  await expect(game.handle(h.p, { type: 'rematch', role: 'human' })).rejects.toThrow();
+});
+
+test('friend rematches obey admission capacity and reset consent on failure', async () => {
+  const { h, j, m } = await finishedFriends();
+
+  await game.handle(h.p, { type: 'rematch', role: 'human' });
+  store.caps = { input: 0, output: 0 };
+  await expect(game.handle(j.p, { type: 'rematch', role: 'judge' })).rejects.toThrow();
+  expect(game.rooms.size).toBe(1);
+  expect(game.view(m, h.p).rematch?.own).toBeNull();
+  expect(game.view(m, j.p).rematch?.own).toBeNull();
+});
+
+test('disconnection withdraws friend rematch consent', async () => {
+  const { h, j, m } = await finishedFriends();
+
+  await game.handle(h.p, { type: 'rematch', role: 'either' });
+  await game.disconnect(h.p);
+  expect(game.view(m, j.p).rematch).toEqual({ own: null, other: null, available: false });
+  await expect(game.handle(j.p, { type: 'rematch', role: 'judge' })).rejects.toThrow('left');
+});

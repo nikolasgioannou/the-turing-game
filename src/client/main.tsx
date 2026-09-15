@@ -1,3 +1,4 @@
+import { PlayAgain } from './play-again';
 import { WaitingForJudge } from './waiting-for-judge';
 import { copyText } from './clipboard';
 import { Music } from './music';
@@ -27,6 +28,7 @@ import {
   type Label,
   type Lobby,
   type RoomView,
+  type QueuePreference,
 } from '../shared/protocol';
 import './styles.css';
 import { ChatMessageItem } from './chat-message';
@@ -49,6 +51,7 @@ function App() {
     [instructionsOpen, setInstructionsOpen] = useState(false);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
+  const replayName = useRef('');
   const dismissedRoom = useRef<string | null>(null);
   const send = (command: Command) => {
     setError(null);
@@ -139,6 +142,8 @@ function App() {
           } else if (event.type === 'room') {
             if (event.data.id === dismissedRoom.current) return;
 
+            if (ended(event.data.phase)) replayName.current = event.data.ownName ?? '';
+
             setRoom(event.data);
             setStartOpen(event.data.phase === 'waiting');
             setJoining(false);
@@ -184,6 +189,8 @@ function App() {
   }, []);
 
   const home = () => {
+    replayName.current = '';
+
     if (room && !ended(room.phase)) {
       if (!confirm('Leave this match? It will end for both players.')) return;
 
@@ -199,6 +206,15 @@ function App() {
     setInviteRole(false);
 
     send({ type: invite ? 'create' : 'queue', role });
+  };
+  const playAgain = (role: QueuePreference, invite: boolean) => {
+    if (!connected) return;
+
+    if (room) dismissedRoom.current = room.id;
+
+    setRoom(null);
+    setStartOpen(true);
+    play(role, invite);
   };
   const waitingInvite = room?.phase === 'waiting';
   const cancelInvite = (close = false) => {
@@ -232,7 +248,15 @@ function App() {
       ) : null}
       <main className="pt-6 max-[640px]:pt-4 [.app-shell:has(.active-chat)_&]:min-h-0 [.app-shell:has(.active-chat)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex [.app-shell:has(.arcade-lobby)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex-col [.app-shell:has(.arcade-lobby)_&]:justify-center [.app-shell:has(.arcade-lobby)_&]:py-6">
         {room && !waitingInvite ? (
-          <Room key={room.id} room={room} send={send} home={home} connected={connected} />
+          <Room
+            key={room.id}
+            room={room}
+            send={send}
+            home={home}
+            connected={connected}
+            playAgain={playAgain}
+            replayName={replayName.current}
+          />
         ) : (
           <>
             <section className="arcade-lobby">
@@ -670,11 +694,15 @@ function Composer({
 }
 
 function Room({
+  replayName,
+  playAgain,
   room,
   send,
   home,
   connected,
 }: {
+  replayName: string;
+  playAgain: (role: QueuePreference, invite: boolean) => void;
   room: RoomView;
   send: (c: Command) => void;
   home: () => void;
@@ -703,7 +731,7 @@ function Room({
     }
   });
   const contextPhase = ['ready', 'opening', 'opening_ai', 'chat'].includes(room.phase);
-  const needsName = (isJudge || isHuman) && contextPhase && !room.ownName;
+  const needsName = (isJudge || isHuman) && contextPhase && !room.ownName && !replayName;
   const contextSent = useRef(false);
 
   useEffect(() => {
@@ -713,11 +741,13 @@ function Room({
       return;
     }
 
-    if (!room.ownName || contextSent.current || !contextPhase || (!isJudge && !isHuman)) return;
+    const knownName = room.ownName || replayName;
+
+    if (!knownName || contextSent.current || !contextPhase || (!isJudge && !isHuman)) return;
 
     contextSent.current = true;
-    send({ type: 'context', name: room.ownName, ...(isHuman ? { hints: deviceHints() } : {}) });
-  }, [connected, room.ownName, contextPhase, isJudge, isHuman]);
+    send({ type: 'context', name: knownName, ...(isHuman ? { hints: deviceHints() } : {}) });
+  }, [connected, room.ownName, replayName, contextPhase, isJudge, isHuman]);
 
   const copy = async () => {
     try {
@@ -865,6 +895,9 @@ function Room({
           {room.phase === 'chat' ? <Countdown deadline={room.deadline} /> : null}
         </MatchToolbar>
       )}
+      {done ? (
+        <PlayAgain room={room} connected={connected} send={send} play={playAgain} home={home} />
+      ) : null}
       {room.phase === 'waiting' ? (
         <Panel className="waiting-panel [&_.muted]:mb-0 [&_.muted]:text-sm [&_input]:mt-2.5 [&_input]:mb-5 [&_input]:w-full [&_input]:p-3 [&_p]:leading-[1.6]">
           <p>
@@ -1045,13 +1078,6 @@ function Room({
             </form>
           ) : null}
         </section>
-      ) : null}
-      {done ? (
-        <div className="postgame mt-7.5 flex items-center gap-5.5 text-sm max-[700px]:flex-col max-[700px]:items-start">
-          <Button variant="primary" onClick={home}>
-            Back to lobby ↗
-          </Button>
-        </div>
       ) : null}
     </div>
   );

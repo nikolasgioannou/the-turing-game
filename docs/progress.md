@@ -432,3 +432,9 @@ The simulator's scripted judge previously selected the bot by construction, so e
 ## Player verdict waiting dialog
 
 When chat ends and the judge is choosing, the human player now sees a waiting dialog using the shared dialog and button components. It explains that results appear automatically and offers View conversation. The dialog unmounts when the match completes or fails. Typecheck and production build pass; no live model calls were needed. Not deployed.
+
+## Postgame replay
+
+Added replay controls directly below results. Public Play again queues the current role, with a Change role dialog for human/judge/either. Friend matches support mutual rematch consent without copying another invitation, role conflicts, flexible role assignment, cancellation and new-invitation fallback after the friend leaves. Replay reuses the entered name. Each round is a fresh match and retains all admission/usage checks. No database migration or new persisted player data.
+
+Validation: full unit/integration checks, typecheck and build pass, with regression coverage for all nine role preference combinations, cancellation, leaving, unauthorized requests and capacity failure. Two approved development OpenRouter browser journeys passed public requeue and friend rematch with role conflict resolution and role swapping; both verify a fresh chat and no repeated name dialog. Reviewed mobile replay controls. No production games were created. The earlier waiting dialog and draft-note removal are included in this push. Not deployed.

@@ -45,6 +45,12 @@ export type ChatMessage = {
 };
 
 export type RoomView = {
+  matchKind: 'public' | 'friend';
+  rematch: {
+    own: QueuePreference | null;
+    other: QueuePreference | null;
+    available: boolean;
+  } | null;
   id: string;
   phase: Phase;
   messages: ChatMessage[];

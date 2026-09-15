@@ -18,6 +18,7 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('create'), role: z.enum(['human', 'judge', 'either']) }),
   z.object({ type: z.literal('join'), token: z.string().min(20).max(100) }),
   z.object({ type: z.literal('home') }),
+  z.object({ type: z.literal('rematch'), role: z.enum(['human', 'judge', 'either']).nullable() }),
   z.object({ type: z.literal('message'), text: text(LIMITS.answer) }),
   z.object({
     type: z.literal('draft'),

@@ -795,3 +795,87 @@ test('live score reserves its layout while loading', async ({ page }) => {
     await page.unroute('**/api/session');
   }
 });
+
+for (const friend of [false, true]) {
+  test(`play again end to end: ${friend ? 'friend rematch' : 'public queue'}`, async ({
+    browser,
+  }) => {
+    const humanContext = await browser.newContext();
+    const judgeContext = await browser.newContext();
+    const h = await humanContext.newPage(),
+      j = await judgeContext.newPage();
+
+    try {
+      await h.goto('/');
+      await h.getByRole('button', { name: 'Start game', exact: true }).click();
+
+      if (friend) await h.getByRole('button', { name: 'Invite a friend', exact: true }).click();
+
+      await h.getByRole('button', { name: /Play as human/ }).click();
+
+      if (friend) {
+        await j.goto(await h.getByLabel('Invitation link').inputValue());
+      } else {
+        await j.goto('/');
+        await j.getByRole('button', { name: 'Start game', exact: true }).click();
+        await j.getByRole('button', { name: /Play as judge/ }).click();
+      }
+
+      for (const [page, name] of [
+        [h, 'Nik'],
+        [j, 'Marc'],
+      ] as const) {
+        await page.getByLabel('First name', { exact: true }).fill(name);
+        await page.getByRole('button', { name: 'Enter', exact: true }).click();
+        await expect(page.getByRole('dialog', { name: 'Your first name' })).toHaveCount(0);
+      }
+
+      await j.getByLabel('Message the group').fill('what food do you like?');
+      await j.getByRole('button', { name: 'Send', exact: true }).click();
+      await h.getByLabel('Message the group').fill('pizza');
+      await h.getByRole('button', { name: 'Send', exact: true }).click();
+      await j.getByRole('button', { name: 'Make a guess', exact: true }).click();
+      await j.getByRole('button', { name: 'Contestant A', exact: true }).click();
+      await j.getByRole('button', { name: 'Submit verdict & reveal' }).click();
+      await expect(h.getByRole('region', { name: 'Your result' })).toBeVisible();
+
+      await h.setViewportSize({ width: 390, height: 844 });
+      await h.screenshot({ path: `work/replay-controls-${friend ? 'friend' : 'public'}.png` });
+
+      if (friend) {
+        await h.getByRole('button', { name: 'Change role', exact: true }).click();
+        await h.getByRole('button', { name: /Play as judge/ }).click();
+        await expect(h.getByText('Waiting for your friend to join the rematch…')).toBeVisible();
+        await j.getByRole('button', { name: 'Rematch with friend', exact: true }).click();
+        await expect(j.getByText(/You both chose the same role/)).toBeVisible();
+        await j.getByRole('button', { name: 'Change role', exact: true }).click();
+        await j.getByRole('button', { name: /Either role/ }).click();
+      } else {
+        await h.getByRole('button', { name: 'Play again', exact: true }).click();
+        await expect(h.getByRole('heading', { name: 'Finding an opponent' })).toBeVisible();
+        await j.getByRole('button', { name: 'Play again', exact: true }).click();
+      }
+
+      for (const page of [h, j]) {
+        await expect(page.getByRole('region', { name: 'Your result' })).toHaveCount(0);
+        await expect(page.getByLabel('Message the group')).toBeVisible();
+      }
+
+      for (const page of [h, j])
+        await expect(page.getByRole('dialog', { name: 'Your first name' })).toHaveCount(0);
+
+      const nextJudge = friend ? h : j;
+      const nextHuman = friend ? j : h;
+
+      await nextJudge.getByLabel('Message the group').fill('next question draft');
+      await expect(nextJudge.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
+      await expect(nextJudge.getByLabel('Your contestant')).toHaveCount(0);
+      await expect(nextHuman.getByLabel('Your contestant')).toHaveCount(1);
+      await expect(nextJudge.getByRole('log')).not.toContainText('what food do you like?');
+      await nextJudge.screenshot({ path: `work/play-again-${friend ? 'friend' : 'public'}.png` });
+    } finally {
+      await humanContext.close();
+      await judgeContext.close();
+    }
+  });
+}

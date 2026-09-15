@@ -24,6 +24,7 @@ export interface Peer {
 }
 
 export type Match = {
+  rematch?: Partial<Record<Role, QueuePreference>>;
   names?: { judge?: string; player?: string };
   id: string;
   phase: Phase;
@@ -100,6 +101,15 @@ export class Game {
 
     return {
       id: m.id,
+      matchKind: m.inviteToken ? 'friend' : 'public',
+      rematch:
+        ended(m.phase) && m.inviteToken
+          ? {
+              own: m.rematch?.[role] ?? null,
+              other: m.rematch?.[role === 'human' ? 'judge' : 'human'] ?? null,
+              available: !!this.rematchPeer(m, p),
+            }
+          : null,
       phase: m.phase,
       createdAt: m.createdAt,
       deadline: m.deadline,
@@ -298,6 +308,91 @@ export class Game {
     p.queue = undefined;
   }
 
+  rematchPeer(m: Match, p: Peer) {
+    return [...this.peers.values()].find(
+      (other) =>
+        other.session !== p.session &&
+        other.roomId === m.id &&
+        !other.queue &&
+        this.role(m, other) !== null &&
+        !this.activeSession(other),
+    );
+  }
+
+  clearRematch(m: Match | undefined, p: Peer) {
+    if (!m || !ended(m.phase)) return;
+
+    const role = this.role(m, p);
+
+    if (role && m.rematch) delete m.rematch[role];
+
+    this.broadcast(m);
+  }
+
+  async rematch(m: Match | undefined, p: Peer, preference: QueuePreference | null) {
+    const role = m && this.role(m, p);
+
+    if (!m || !role || !ended(m.phase) || !m.inviteToken || m.simulated)
+      throw new ActionError('Rematches are only available after a friend game.');
+
+    if (p.queue || this.activeSession(p))
+      throw new ActionError('Finish your current game or leave the queue first.');
+
+    m.rematch ??= {};
+
+    if (preference === null) {
+      delete m.rematch[role];
+      this.broadcast(m);
+
+      return;
+    }
+
+    const other = this.rematchPeer(m, p);
+
+    if (!other) throw new ActionError('Your friend has left. Create a new invitation instead.');
+
+    m.rematch[role] = preference;
+
+    const opposite = role === 'human' ? 'judge' : 'human';
+    const otherPreference = m.rematch[opposite];
+
+    if (!otherPreference || (preference !== 'either' && preference === otherPreference)) {
+      this.broadcast(m);
+
+      return;
+    }
+
+    let next: Match;
+
+    try {
+      next = await this.newMatch([p, other]);
+    } catch (error) {
+      m.rematch = {};
+      this.broadcast(m);
+
+      throw error;
+    }
+
+    const assigned: Role =
+      preference !== 'either'
+        ? preference
+        : otherPreference === 'human'
+          ? 'judge'
+          : otherPreference === 'judge'
+            ? 'human'
+            : Math.random() < 0.5
+              ? 'human'
+              : 'judge';
+
+    next.inviteToken = crypto.randomUUID() + crypto.randomUUID();
+    this.assign(next, p, assigned);
+    this.assign(next, other, assigned === 'human' ? 'judge' : 'human');
+    next.phase = 'ready';
+    m.rematch = {};
+    this.broadcast(m);
+    await this.persist(next);
+  }
+
   async handle(p: Peer, raw: unknown) {
     const parsed = commandSchema.safeParse(raw);
 
@@ -325,6 +420,10 @@ export class Game {
     }
 
     switch (c.type) {
+      case 'rematch':
+        await this.rematch(m, p, c.role);
+
+        return;
       case 'queue': {
         const other = [...this.peers.values()].find(
           (x) =>
@@ -357,10 +456,13 @@ export class Game {
           await this.lobby();
         }
 
+        this.clearRematch(m, p);
+
         return;
       }
       case 'cancel':
         p.queue = undefined;
+        this.clearRematch(m, p);
         await this.lobby(p);
 
         return;
@@ -376,6 +478,7 @@ export class Game {
         );
 
         await this.persist(next);
+        this.clearRematch(m, p);
 
         return;
       }
@@ -394,6 +497,7 @@ export class Game {
         next.phase = 'ready';
         next.deadline = this.now() + LIMITS.actionMs;
         await this.persist(next);
+        this.clearRematch(m, p);
 
         return;
       }
@@ -403,6 +507,7 @@ export class Game {
 
         p.queue = undefined;
         p.roomId = undefined;
+        this.clearRematch(m, p);
         await this.lobby(p);
 
         return;
@@ -413,6 +518,7 @@ export class Game {
 
         p.queue = undefined;
         p.roomId = undefined;
+        this.clearRematch(m, p);
         await this.lobby(p);
 
         return;
@@ -702,6 +808,8 @@ export class Game {
 
     const m = p.roomId ? this.rooms.get(p.roomId) : undefined;
     // Transport loss never changes match state, deadlines or pending AI work.
+
+    this.clearRematch(m, p);
 
     if (m) this.broadcast(m);
 

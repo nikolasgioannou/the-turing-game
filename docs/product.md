@@ -27,3 +27,7 @@ Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, a
 ## Homepage credits and live score
 
 The homepage credits Marc and Nik with links to their X profiles. A live line reports how many completed games the AI fooled the judge in, alongside total completed games. This counts match outcomes, not unique people. Failed, abandoned and unfinished matches do not count. Existing lobby broadcasts refresh the database aggregate when verdicts are saved and on the regular server tick; no player details are exposed.
+
+## Play again
+
+Results offer Play again with the current role or Change role (human, judge or either) before public matchmaking. Friend games offer a rematch with the same opponent without a new link, starting only after both participants opt in with compatible roles. Either role accepts the opposite seat; two flexible choices are assigned randomly. Matching fixed preferences require one person to change. Offers can be canceled and are withdrawn when a participant leaves or disconnects. If the friend is no longer on the result screen, Invite again creates a new invitation. The entered name is reused when replaying, and each new round receives fresh identities, messages and capacity reservations.
