@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Command, QueuePreference, RoomView } from '../shared/protocol';
-import { Button, Dialog, RoleButton } from './ui';
+import { Banner, Button, Dialog, RoleButton } from './ui';
 
 export function PlayAgain({
   room,
@@ -19,7 +19,6 @@ export function PlayAgain({
   const friend = room.matchKind === 'friend';
   const rematch = room.rematch;
   const canRematch = friend && rematch?.available;
-  const conflict = !!rematch?.own && rematch.own !== 'either' && rematch.own === rematch.other;
   const choose = (role: QueuePreference) => {
     setChoosing(false);
 
@@ -29,17 +28,9 @@ export function PlayAgain({
 
   return (
     <section className="mt-7 mb-8 space-y-4" aria-label="Play again">
-      {friend && !(canRematch && rematch?.other && !rematch.own) ? (
+      {friend && !canRematch ? (
         <p className="text-sm text-muted" role="status">
-          {!canRematch
-            ? 'Your friend has left. Send a new invitation to play again.'
-            : conflict
-              ? 'You both chose the same role. Change roles or choose Either role.'
-              : rematch?.own
-                ? 'Waiting for your friend to join the rematch…'
-                : rematch?.other
-                  ? 'Your friend wants to play again. Choose your role to join.'
-                  : 'Play another round with your friend. Both of you need to join.'}
+          Your friend has left. Send a new invitation to play again.
         </p>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
@@ -63,15 +54,17 @@ export function PlayAgain({
             Cancel rematch
           </Button>
         ) : null}
-        <Button variant="ghost" size="text" onClick={home}>
-          Back to lobby
-        </Button>
       </div>
       <p className="text-xs text-muted">
         {rematch?.own
           ? `Your choice: ${rematch.own === 'either' ? 'Either role' : rematch.own}.`
           : `Keep playing as ${room.role === 'human' ? 'the human' : 'the judge'}, or change roles.`}
       </p>
+      <div className="border-t border-line pt-4">
+        <Button variant="secondary" size="compact" onClick={home}>
+          Back to lobby
+        </Button>
+      </div>
       {choosing ? (
         <Dialog label="Play again" onClose={() => setChoosing(false)}>
           <h2>Choose your next role</h2>
@@ -106,5 +99,35 @@ export function PlayAgain({
         </Dialog>
       ) : null}
     </section>
+  );
+}
+
+export function RematchNotice({ room }: { room: RoomView }) {
+  const rematch = room.rematch;
+
+  if (room.matchKind !== 'friend' || !rematch?.available || (!rematch.own && !rematch.other))
+    return null;
+
+  const conflict = !!rematch.own && rematch.own !== 'either' && rematch.own === rematch.other;
+
+  return (
+    <Banner tone={conflict ? 'warning' : 'info'} role="status">
+      <div>
+        <strong className="block text-sm">
+          {conflict
+            ? 'You both chose the same role.'
+            : rematch.own
+              ? 'Waiting for your friend to join the rematch…'
+              : 'Your friend wants a rematch!'}
+        </strong>
+        <p className="mt-1 text-sm text-ink">
+          {conflict
+            ? 'One of you needs to switch roles or choose Either role.'
+            : rematch.own
+              ? 'You can change your role or cancel below.'
+              : 'Join below, or change your role.'}
+        </p>
+      </div>
+    </Banner>
   );
 }
