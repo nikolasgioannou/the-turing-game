@@ -26,13 +26,13 @@ export function ChatMessageItem({
       <div
         className={`chat-sender flex flex-wrap items-center gap-2 text-[11px] leading-normal max-[640px]:flex-nowrap max-[640px]:text-[10px] ${colors.text}`}
       >
-        {revealedIdentity ? (
-          <IdentityIcon kind={revealedIdentity} />
+        {revealedIdentity || message.sender === 'judge' ? (
+          <IdentityIcon kind={message.sender === 'judge' ? 'judge' : revealedIdentity!} />
         ) : (
           <span
             className={`inline-flex size-5 shrink-0 items-center justify-center font-arcade text-[10px] leading-none text-[#111] ${colors.badge}`}
           >
-            {message.sender === 'judge' ? 'J' : message.sender}
+            {message.sender}
           </span>
         )}
         <span>

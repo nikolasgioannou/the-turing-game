@@ -43,9 +43,10 @@ export function IdentityIcon({
         <>
           <path
             fill="currentColor"
-            d="M7 0h2v3h4v2h2v7h-2v2H3v-2H1V5h2V3h4zM0 7h1v4H0zm15 0h1v4h-1z"
+            d="M6 0h4v2H9v2h5v9H2V4h5V2H6zM0 6h1v5H0zm15 0h1v5h-1zM5 14h6v2H5z"
           />
-          <path fill="var(--color-canvas)" d="M4 6h3v3H4zm5 0h3v3H9zm-4 5h6v1H5z" />
+          <path fill="var(--color-canvas)" d="M4 6h3v2H4zm5 0h3v2H9zM4 10h8v2H4z" />
+          <path fill="currentColor" d="M6 10h1v2H6zm3 0h1v2H9z" />
         </>
       ) : kind === 'either' ? (
         <>
