@@ -450,3 +450,7 @@ Added review and review:capture commands. Export captured all 80 desktop/mobile 
 ## Capacity banner feedback
 
 Daily capacity now uses the same shared banner as connection errors above the lobby. Start Game remains clickable at capacity and replays a brief stepped blink on the notice without opening matchmaking. Reduced motion replaces the blink with an outline highlight. Typecheck and focused desktop/mobile browser checks passed, including repeat clicks and reduced motion. No model calls or production deployment.
+
+## Short rules walkthrough
+
+Replaced the five-rule list with three manually advanced slides covering roles, the 90-second conversation, and identifying the bot. Back/Next controls, square progress markers, and a final Got it action keep the dialog compact. Reopening resets to the first slide. Typecheck and focused desktop/mobile browser checks passed for navigation, keyboard activation, stable dialog height, dismissal and reopening. No model calls or deployment.
