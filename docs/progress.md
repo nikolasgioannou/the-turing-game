@@ -446,3 +446,7 @@ Production release: GitHub Actions run 34999530770 deployed 8e73779 successfully
 Added a development-only /review gallery with 40 named presets rendered through actual application components. It supports state search/navigation, desktop/mobile frame sizes, stable timers, state reset and copyable links. No backend connection or game commands are sent in review mode. The dedicated entry is excluded by the production build.
 
 Added review and review:capture commands. Export captured all 80 desktop/mobile images plus a clickable HTML contact sheet in work/ui-review. Gallery navigation and player-waiting/early-verdict screenshots were reviewed; capture completed without game API requests or browser errors. Full checks, typecheck and production build pass. Verified review fixture markers are absent from production assets. This is UI-only coverage, not a real mobile keyboard test.
+
+## Capacity banner feedback
+
+Daily capacity now uses the same shared banner as connection errors above the lobby. Start Game remains clickable at capacity and replays a brief stepped blink on the notice without opening matchmaking. Reduced motion replaces the blink with an outline highlight. Typecheck and focused desktop/mobile browser checks passed, including repeat clicks and reduced motion. No model calls or production deployment.

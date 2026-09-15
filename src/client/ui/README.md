@@ -48,3 +48,5 @@ Run `bun run format` and `bun run format:check`. The workspace VS Code configura
 `MatchToolbar` keeps the countdown centered between optional identity and action slots. `IdentityIcon` provides pixel human/bot icons for revealed results; live contestants retain anonymous A/B badges. `MatchResult` in `../match-result.tsx` presents the participant’s win or loss and the judge’s selection.
 
 `Select` is a controlled custom dropdown with themed options and a chevron. Supply `value`, `options` (value/label pairs with optional disabled states), `onValueChange`, and an `aria-label`. It supports arrow keys, Home/End, typeahead, Enter/Space, Escape, and outside-click dismissal. Its popup uses the browser top layer to avoid clipping inside scroll panels.
+
+`Banner` provides the shared warning surface for connection errors and capacity notices. Supply `role="alert"` for errors or `role="status"` for informational updates. It forwards native div attributes and refs.

@@ -9,3 +9,5 @@ export { Slider } from './slider';
 export { IdentityIcon } from './identity-icon';
 
 export { Select } from './select';
+
+export { Banner } from './banner';

@@ -6,6 +6,7 @@ import { CreatorCredits, LiveScore } from './home-details';
 import { HowToPlay } from './how-to-play';
 import { AppShell, RoomTitle, MatchToolbar } from './ui/layout';
 import {
+  Banner,
   Button,
   ChoiceButton,
   RoleButton,
@@ -60,6 +61,7 @@ export function App({ review }: { review?: ReviewState }) {
     [inviteRole, setInviteRole] = useState(review?.inviteRole ?? false),
     [startOpen, setStartOpen] = useState(review?.startOpen ?? false),
     [instructionsOpen, setInstructionsOpen] = useState(review?.instructionsOpen ?? false);
+  const capacityBanner = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
   const replayName = useRef('');
@@ -245,14 +247,34 @@ export function App({ review }: { review?: ReviewState }) {
     history.replaceState(null, '', '/');
   };
 
+  const capacityReached = !!lobby && !lobby.availability.available;
+  const startGame = () => {
+    if (!capacityReached) {
+      setStartOpen(true);
+
+      return;
+    }
+
+    const banner = capacityBanner.current;
+
+    if (!banner) return;
+
+    banner.scrollIntoView({ block: 'nearest' });
+    banner.getAnimations().forEach((animation) => animation.cancel());
+
+    banner.animate(
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? [{ outline: '2px solid currentColor' }, { outline: '2px solid currentColor' }]
+        : [{ opacity: 1 }, { opacity: 0.4 }, { opacity: 1 }],
+      { duration: 600, iterations: 2, easing: 'steps(2, end)' },
+    );
+  };
+
   return (
     <AppShell>
       <Music />
       {error ? (
-        <div
-          role="alert"
-          className="error-banner mt-5 flex justify-between gap-5 rounded-none border border-[#f17b49] bg-[#351c17] p-4 text-[15px] leading-[1.6] text-[#ffcfaf] [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-inherit [&_button]:underline"
-        >
+        <Banner role="alert" className="error-banner">
           {error}
           {!connected ? (
             <button onClick={() => location.reload()}>Retry now</button>
@@ -261,7 +283,12 @@ export function App({ review }: { review?: ReviewState }) {
               ×
             </button>
           )}
-        </div>
+        </Banner>
+      ) : null}
+      {capacityReached && (!room || waitingInvite) ? (
+        <Banner ref={capacityBanner} role="status" className="capacity">
+          {lobby.availability.message}
+        </Banner>
       ) : null}
       <main className="pt-6 max-[640px]:pt-4 [.app-shell:has(.active-chat)_&]:min-h-0 [.app-shell:has(.active-chat)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex [.app-shell:has(.arcade-lobby)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex-col [.app-shell:has(.arcade-lobby)_&]:justify-center [.app-shell:has(.arcade-lobby)_&]:py-6">
         {room && !waitingInvite ? (
@@ -291,10 +318,8 @@ export function App({ review }: { review?: ReviewState }) {
                   variant="arcade"
                   size="arcade"
                   aria-label="Start game"
-                  disabled={
-                    !connected || joining || !!lobby?.queued || !lobby?.availability.available
-                  }
-                  onClick={() => setStartOpen(true)}
+                  disabled={!connected || joining || !!lobby?.queued || !lobby}
+                  onClick={startGame}
                 >
                   Start game
                 </Button>
@@ -302,14 +327,6 @@ export function App({ review }: { review?: ReviewState }) {
                   How to play
                 </Button>
               </div>
-              {lobby && !lobby.availability.available ? (
-                <p
-                  className="capacity rounded-[5px] border border-[#735742] bg-[#30261f] p-4 text-[15px] leading-[1.6] text-[#f6d7b9]"
-                  role="status"
-                >
-                  {lobby.availability.message}
-                </p>
-              ) : null}
               <LiveScore score={lobby?.score} connected={connected} />
               <ArcadeStage />
             </section>
