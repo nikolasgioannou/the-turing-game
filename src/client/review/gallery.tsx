@@ -1,3 +1,4 @@
+import { PreviewFrame } from './preview-frame';
 import { Select } from '../ui';
 import { useState } from 'react';
 import { App } from '../main';
@@ -62,8 +63,8 @@ export function ReviewGallery() {
               ))}
           </nav>
         </aside>
-        <main className="min-h-0 min-w-0 overflow-auto overscroll-contain p-4">
-          <div className="mb-3 flex flex-wrap items-center gap-3 text-xs">
+        <main className="flex min-h-0 min-w-0 flex-col overflow-hidden p-4">
+          <div className="mb-3 flex shrink-0 flex-wrap items-center gap-3 text-xs">
             <button
               className="border border-line px-3 py-2"
               disabled={index === 0}
@@ -111,16 +112,13 @@ export function ReviewGallery() {
               {copied ? 'Link copied' : 'Copy state link'}
             </button>
           </div>
-          <h2 className="mb-3 text-base font-bold">{selected.title}</h2>
-          <div className="overflow-auto border border-line bg-black/30 p-3">
-            <iframe
-              key={`${selected.id}-${revision}`}
-              title={selected.title}
-              src={url}
-              style={{ width: mobile ? 390 : 1280, height: mobile ? 844 : 900 }}
-              className="mx-auto block max-w-none border-0 bg-canvas"
-            />
-          </div>
+          <h2 className="mb-3 shrink-0 text-base font-bold">{selected.title}</h2>
+          <PreviewFrame
+            key={`${selected.id}-${revision}`}
+            title={selected.title}
+            src={url}
+            mobile={mobile}
+          />
         </main>
       </div>
     </div>
