@@ -22,7 +22,6 @@ COPY --from=build /app/dist ./dist
 COPY package.json ./
 COPY src/server ./src/server
 COPY src/shared ./src/shared
-COPY scripts/ops.ts ./scripts/ops.ts
 USER bun
 EXPOSE 3000
 CMD ["bun", "src/server/index.ts"]
