@@ -65,11 +65,50 @@ const unavailableLobby: Lobby = {
   ...lobby,
   availability: {
     available: false,
-    message: 'AI games are temporarily unavailable. Please check back soon.',
+    message: 'We’ve reached our game limit. Please come back later.',
   },
 };
 
-add('Lobby', 'capacity', 'AI games unavailable', { lobby: unavailableLobby });
+add('Lobby', 'capacity', 'Game limit reached', { lobby: unavailableLobby });
+
+add('Lobby', 'capacity-reset', 'Capacity with reset time', {
+  lobby: {
+    ...unavailableLobby,
+    availability: {
+      ...unavailableLobby.availability,
+      message: 'We’ve reached today’s game limit. Come back tomorrow.',
+      resetsAt: Date.now() + 3_600_000,
+    },
+  },
+});
+
+add('Lobby', 'availability-check', 'AI connection check failed', {
+  lobby: {
+    ...lobby,
+    availability: {
+      available: false,
+      message: 'We’re having trouble starting games. Please try again shortly.',
+    },
+  },
+});
+
+add('Start', 'capacity-queue', 'Matchmaking paused', {
+  lobby: unavailableLobby,
+  availabilityNotice: 'paused',
+});
+
+add('Lobby', 'capacity-recovered', 'Games are back', { availabilityNotice: 'recovered' });
+
+add('Replay', 'capacity-recovered-friend', 'AI back: friend rematch', {
+  availabilityNotice: 'recovered',
+  room: room({
+    phase: 'failed',
+    matchKind: 'friend',
+    rematch: { own: null, other: null, available: true },
+    message:
+      'We reached our game limit and had to end this round early. It won’t count as a win or loss.',
+  }),
+});
 
 for (const role of ['judge', 'human'] as const) {
   add('Results', 'capacity-' + role, 'AI interrupted: ' + role, {
@@ -80,7 +119,7 @@ for (const role of ['judge', 'human'] as const) {
       phase: 'failed',
       deadline: null,
       message:
-        'The AI became unavailable, so we had to stop this game. It won’t count as a win or loss.',
+        'We reached our game limit and had to end this round early. It won’t count as a win or loss.',
     }),
   });
 }

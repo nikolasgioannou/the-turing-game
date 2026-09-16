@@ -1,3 +1,8 @@
+import {
+  AvailabilityNotice,
+  availabilityNoticeReducer,
+  initialAvailabilityNotice,
+} from './availability-notice';
 import { PlayAgain, RematchNotice } from './play-again';
 import { WaitingForJudge } from './waiting-for-judge';
 import { copyText } from './clipboard';
@@ -16,7 +21,7 @@ import {
   Textarea,
   Panel,
 } from './ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useReducer } from 'react';
 import {
   characters,
   normalizeName,
@@ -41,6 +46,7 @@ const pathCommand = (): Command | null => {
 };
 
 export type ReviewState = {
+  availabilityNotice?: 'paused' | 'recovered';
   lobby?: Lobby | null;
   room?: RoomView;
   connected?: boolean;
@@ -61,6 +67,11 @@ export function App({ review }: { review?: ReviewState }) {
     [inviteRole, setInviteRole] = useState(review?.inviteRole ?? false),
     [startOpen, setStartOpen] = useState(review?.startOpen ?? false),
     [instructionsOpen, setInstructionsOpen] = useState(review?.instructionsOpen ?? false);
+  const [availabilityNotice, updateAvailabilityNotice] = useReducer(availabilityNoticeReducer, {
+    ...initialAvailabilityNotice,
+    paused: review?.availabilityNotice === 'paused',
+    recovered: review?.availabilityNotice === 'recovered',
+  });
   const availabilityBanner = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   const initial = useRef(pathCommand());
@@ -157,6 +168,7 @@ export function App({ review }: { review?: ReviewState }) {
 
           if (event.type === 'lobby') {
             setLobby(event.data);
+            updateAvailabilityNotice({ type: 'lobby', lobby: event.data });
 
             if (!event.data.availability.available) setStartOpen(false);
 
@@ -253,6 +265,7 @@ export function App({ review }: { review?: ReviewState }) {
   const aiUnavailable = !!lobby && !lobby.availability.available;
   const startGame = () => {
     if (!aiUnavailable) {
+      updateAvailabilityNotice({ type: 'dismiss' });
       setStartOpen(true);
 
       return;
@@ -289,11 +302,29 @@ export function App({ review }: { review?: ReviewState }) {
         </Banner>
       ) : null}
       {room && ended(room.phase) ? <RematchNotice room={room} /> : null}
-      {aiUnavailable ? (
-        <Banner ref={availabilityBanner} role="status" className="availability">
-          {lobby.availability.message}
-        </Banner>
-      ) : null}
+      <AvailabilityNotice
+        availability={lobby?.availability}
+        state={availabilityNotice}
+        bannerRef={availabilityBanner}
+        onDismiss={() => updateAvailabilityNotice({ type: 'dismiss' })}
+        actionLabel={room ? 'View play options' : 'Play again'}
+        onPlay={
+          connected && (!room || ended(room.phase))
+            ? () => {
+                updateAvailabilityNotice({ type: 'dismiss' });
+
+                if (room) {
+                  const options = document.querySelector<HTMLElement>('[aria-label="Play again"]');
+
+                  options?.scrollIntoView({ block: 'nearest' });
+                  options?.querySelector<HTMLButtonElement>('button')?.focus();
+                } else {
+                  setStartOpen(true);
+                }
+              }
+            : undefined
+        }
+      />
       <main className="pt-6 max-[640px]:pt-4 [.app-shell:has(.active-chat)_&]:min-h-0 [.app-shell:has(.active-chat)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex [.app-shell:has(.arcade-lobby)_&]:flex-1 [.app-shell:has(.arcade-lobby)_&]:flex-col [.app-shell:has(.arcade-lobby)_&]:justify-center [.app-shell:has(.arcade-lobby)_&]:py-6">
         {room && !waitingInvite ? (
           <Room

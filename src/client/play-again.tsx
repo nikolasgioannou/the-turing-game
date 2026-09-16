@@ -65,7 +65,7 @@ export function PlayAgain({
       </div>
       <p className="text-xs text-muted">
         {!available
-          ? 'You can play again when AI games are available.'
+          ? 'Please come back for another round later.'
           : rematch?.own
             ? `Your choice: ${rematch.own === 'either' ? 'Either role' : rematch.own}.`
             : `Keep playing as ${room.role === 'human' ? 'the human' : 'the judge'}, or change roles.`}

@@ -143,7 +143,13 @@ export class Game {
       throw error;
     }));
     const unavailable = this.ai.unavailable?.();
-    const availability = { available: !unavailable, message: unavailable ?? null };
+    const availability = {
+      available: !unavailable,
+      message: unavailable ?? null,
+      ...(unavailable && this.ai.capacityResetsAt?.()
+        ? { resetsAt: this.ai.capacityResetsAt() }
+        : {}),
+    };
 
     for (const p of peer ? [peer] : this.peers.values())
       p.send({
@@ -744,9 +750,9 @@ export class Game {
   }
 
   async tick() {
-    if (this.ai.capacityExhausted?.()) {
-      for (const p of this.peers.values()) delete p.queue;
+    if (this.ai.unavailable?.()) for (const p of this.peers.values()) delete p.queue;
 
+    if (this.ai.capacityExhausted?.()) {
       for (const m of this.rooms.values()) {
         if (!ended(m.phase) && m.phase !== 'verdict')
           await this.finish(m, 'failed', CAPACITY_INTERRUPTED);

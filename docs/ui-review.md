@@ -4,7 +4,7 @@ Run `bun run review`, then open http://localhost:5174/review. This starts only V
 
 Use the sidebar search, Previous/Next, Desktop/Mobile and Reset state controls. Copy state link shares the selected state with someone running their own local checkout. Frames retain their 1280×900 or 390×844 viewport and scale to fit the available panel. Only the app inside the frame scrolls; the preview panel itself does not. Match timers stay frozen. Dialogs and local controls are interactive, but server actions intentionally do not advance the sample. Use another preset to see the resulting state.
 
-The 42 presets cover loading, scores, offline and AI-capacity states, rules, role choices, queues, invitations, name entry, opening phases, live chat, low time, character limits, guessing, player waiting, results, interrupted games and rematch states. Add presets in `src/client/review/states.ts` as new UI states are introduced.
+The 47 presets cover loading, scores, offline and AI-capacity states, rules, role choices, queues, invitations, name entry, opening phases, live chat, low time, character limits, guessing, player waiting, results, interrupted games and rematch states. Add presets in `src/client/review/states.ts` as new UI states are introduced.
 
 ## Screenshot export
 

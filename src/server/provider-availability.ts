@@ -1,12 +1,14 @@
-export const CAPACITY_MESSAGE = 'AI games are temporarily unavailable. Please check back soon.';
+export const CAPACITY_MESSAGE = 'We’ve reached our game limit. Please come back later.';
 export const CAPACITY_INTERRUPTED =
-  'The AI became unavailable, so we had to stop this game. It won’t count as a win or loss.';
-const CHECK_MESSAGE = 'We’re having trouble connecting to the AI. Please try again shortly.';
+  'We reached our game limit and had to end this round early. It won’t count as a win or loss.';
+const CHECK_MESSAGE = 'We’re having trouble starting games. Please try again shortly.';
 const REFRESH_MS = 30_000;
 
 // OpenRouter owns the budget. This is only a short-lived availability cache.
 export class ProviderAvailability {
   private state: 'unknown' | 'available' | 'exhausted' = 'unknown';
+  resetsAt?: number;
+  private dailyReset = false;
   private nextCheck = 0;
   private revision = 0;
   private pending?: Promise<void>;
@@ -22,11 +24,19 @@ export class ProviderAvailability {
   }
 
   get message() {
-    return this.state === 'available' ? null : this.exhausted ? CAPACITY_MESSAGE : CHECK_MESSAGE;
+    if (this.state === 'available') return null;
+
+    if (!this.exhausted) return CHECK_MESSAGE;
+
+    return this.dailyReset
+      ? 'We’ve reached today’s game limit. Come back tomorrow.'
+      : CAPACITY_MESSAGE;
   }
 
   reportExhausted() {
     this.state = 'exhausted';
+    this.resetsAt = undefined;
+    this.dailyReset = false;
     this.revision++;
     this.nextCheck = this.now() + REFRESH_MS;
   }
@@ -67,7 +77,7 @@ export class ProviderAvailability {
       if (!response.ok) throw new Error('key_status_unavailable');
 
       const result = (await response.json()) as {
-        data?: { limit_remaining?: unknown; limit?: unknown };
+        data?: { limit_remaining?: unknown; limit?: unknown; limit_reset?: unknown };
       };
 
       if (revision !== this.revision) return;
@@ -80,6 +90,25 @@ export class ProviderAvailability {
       else if (typeof remaining === 'number' && Number.isFinite(remaining))
         this.state = remaining > 0 ? 'available' : 'exhausted';
       else throw new Error('invalid_key_status');
+
+      this.resetsAt = undefined;
+      this.dailyReset = false;
+
+      if (this.exhausted) {
+        const date = new Date(this.now());
+        const midnight = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+
+        if (data?.limit_reset === 'daily') {
+          this.dailyReset = true;
+          this.resetsAt = midnight + 86_400_000;
+        }
+
+        if (data?.limit_reset === 'weekly')
+          this.resetsAt = midnight + (7 - ((date.getUTCDay() + 6) % 7)) * 86_400_000;
+
+        if (data?.limit_reset === 'monthly')
+          this.resetsAt = Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1);
+      }
     } catch {
       if (revision === this.revision && !this.exhausted) this.state = 'unknown';
     } finally {

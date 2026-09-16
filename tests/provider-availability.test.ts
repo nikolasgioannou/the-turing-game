@@ -113,3 +113,42 @@ test('402 from key endpoint also reports exhausted capacity', async () => {
   await h.monitor.refresh();
   expect(h.monitor.exhausted).toBe(true);
 });
+
+test('reset hints only follow confirmed key exhaustion and use UTC boundaries', async () => {
+  const now = Date.UTC(2026, 8, 15, 18);
+
+  for (const [period, expected] of [
+    ['daily', Date.UTC(2026, 8, 16)],
+    ['weekly', Date.UTC(2026, 8, 21)],
+    ['monthly', Date.UTC(2026, 9, 1)],
+    [null, undefined],
+  ] as const) {
+    const monitor = new ProviderAvailability(
+      (async () =>
+        Response.json({
+          data: { limit: 5, limit_remaining: 0, limit_reset: period },
+        })) as unknown as typeof fetch,
+      () => now,
+      () => 'key',
+    );
+
+    await monitor.refresh();
+    expect(monitor.resetsAt).toBe(expected);
+    expect(monitor.message?.includes('Come back tomorrow')).toBe(period === 'daily');
+    monitor.reportExhausted();
+    expect(monitor.resetsAt).toBeUndefined();
+    expect(monitor.message).toBe(CAPACITY_MESSAGE);
+  }
+
+  const monitor = new ProviderAvailability(
+    (async () =>
+      Response.json({
+        data: { limit: 5, limit_remaining: 4, limit_reset: 'daily' },
+      })) as unknown as typeof fetch,
+    () => now,
+    () => 'key',
+  );
+
+  await monitor.refresh();
+  expect(monitor.resetsAt).toBeUndefined();
+});

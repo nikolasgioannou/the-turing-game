@@ -43,6 +43,7 @@ export interface AI {
   unavailable?(): string | null;
   refreshAvailability?(): Promise<void>;
   capacityExhausted?(): boolean;
+  capacityResetsAt?(): number | undefined;
   reportCreditExhausted?(): void;
   start(id: string, humanLabel: Label, hooks: BotHooks, options?: { trace?: boolean }): BotSession;
 }
@@ -177,6 +178,7 @@ export function createAI(
     model: MODEL,
     refreshAvailability: () => options.availability?.refresh() ?? Promise.resolve(),
     capacityExhausted: () => options.availability?.exhausted ?? false,
+    capacityResetsAt: () => options.availability?.resetsAt,
     reportCreditExhausted: () => options.availability?.reportExhausted(),
     unavailable: () =>
       process.env.OPENROUTER_API_KEY
