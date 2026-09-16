@@ -10,6 +10,7 @@ React, Vite and Tailwind client; Bun HTTP/WebSocket authority; PostgreSQL in pro
 - `server/store.ts`: minimal match outcomes.
 - `server/game.ts`: sessions, matchmaking, deadlines, scoring and public serialization.
 - `server/ai.ts`: private worker lifecycle and OpenRouter transport.
+- `server/provider-availability.ts`: single-flight key-status refresh, 30-second cache and immediate credit-exhaustion updates.
 - `server/bot`: TypeScript conversation engine, private transport and behavior fixtures.
 - `client/ui`: shared controls and layouts with static Tailwind classes.
 
@@ -29,7 +30,9 @@ Browser drafts use the client's 120 ms debounce in opening and live states. Only
 
 The OpenRouter key stays in Bun's server environment; workers receive no provider credentials. HTTPS uses the fixed OpenRouter endpoint and the pinned Haiku model routed to Anthropic without fallback providers. Chat generation retains 400 max output tokens; style analysis retains 500. Timeouts, retries and hedges remain part of bot behavior. Each attempt checks that its match is still active before dispatch; closing chat cancels pending calls.
 
-There are no application spending budgets, usage counters, reservations, network match quotas or automatic admission pauses. Provider failures remain technical failures, never wins. The app does not read or write the former accounting tables.
+OpenRouter owns spending limits. The server caches key availability for 30 seconds and rejects new matches when credit is exhausted or status cannot be verified. Model HTTP 402 responses immediately update the cache, even if an older positive status check is still in flight. The next game tick stops active games and clears queues; verdict-ready games can finish. Failed status refreshes preserve known exhaustion. Provider checks run outside the game tick; admission refreshes coalesce with those checks.
+
+There are no local spending budgets, usage counters, reservations or network match quotas. Provider failures remain technical failures, never wins. The app does not read or write the former accounting tables.
 
 ## Deployment and UI
 
@@ -39,4 +42,4 @@ Tailwind v4 uses the Vite plugin and `client/styles.css` for tokens/fonts/global
 
 Score aggregates are cached in the game authority until a terminal match outcome is saved. The match_outcomes table stores only the match ID and whether AI won. Transcripts stay in memory, with no match listing or saved-game endpoint. Names/device context do not spawn workers. Context updates after chat ends are rejected, and the latest opening remains held until its own publication.
 
-Postgame friend rematch preferences stay in the completed in-memory match. The rematch command requires an authenticated participant, a terminal friend match and a present peer still on that result screen. Both preferences must be compatible before newMatch applies the provider credential availability check. Neither an offer nor cancellation starts inference or saves another outcome. Leaving/disconnection clears consent; completed matches are not restored on reconnect. Public replay uses the existing queue path.
+Postgame friend rematch preferences stay in the completed in-memory match. The rematch command requires an authenticated participant, a terminal friend match and a present peer still on that result screen. Both preferences must be compatible before newMatch applies the provider credential and cached credit availability checks. Neither an offer nor cancellation starts inference or saves another outcome. Leaving/disconnection clears consent; completed matches are not restored on reconnect. Public replay uses the existing queue path.

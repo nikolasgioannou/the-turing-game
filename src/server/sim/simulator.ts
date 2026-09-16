@@ -137,7 +137,10 @@ export class Simulator {
     try {
       const text = await requestCompletion(params, 20, controller.signal, {
         state: () => {},
-        beforeRequest: async () => {},
+        beforeRequest: async () => {
+          await this.game.available();
+        },
+        creditExhausted: () => this.game.ai.reportCreditExhausted?.(),
         failed: () => {},
       });
       const match = text.match(/\{[\s\S]*\}/);

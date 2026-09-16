@@ -20,7 +20,7 @@ Drafts use a 120 ms debounce in opening and live chat and clear immediately on s
 
 Drafts and style cards are transient and sent to OpenRouter. They are not retained in application logs, database records or public views. Verbose worker logs are suppressed because they include private text. Socket refresh preserves the bot; closing chat kills the worker and cancels pending HTTP calls so late responses cannot be delivered.
 
-Message-size and human-action timeout limits apply at the application boundary. Credential failure ends a match as a technical failure. No spending budget or usage ledger is enforced. Transient generation failures use the engine's retry/fallback behavior.
+Message-size and human-action timeout limits apply at the application boundary. Credential failure ends a match as a technical failure. OpenRouter owns the spending limit; a cached key-status check controls new game admission and credit-exhaustion errors interrupt affected games without scoring. There is no local usage ledger. Transient generation failures use the engine's retry/fallback behavior.
 
 ## Validation
 

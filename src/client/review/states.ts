@@ -61,6 +61,30 @@ add('Lobby', 'offline', 'Connection lost', {
   error: 'Connection lost. Reconnecting to your match…',
 });
 
+const unavailableLobby: Lobby = {
+  ...lobby,
+  availability: {
+    available: false,
+    message: 'AI games are temporarily unavailable. Please check back soon.',
+  },
+};
+
+add('Lobby', 'capacity', 'AI games unavailable', { lobby: unavailableLobby });
+
+for (const role of ['judge', 'human'] as const) {
+  add('Results', 'capacity-' + role, 'AI interrupted: ' + role, {
+    lobby: unavailableLobby,
+    room: room({
+      role,
+      ownLabel: role === 'human' ? 'A' : null,
+      phase: 'failed',
+      deadline: null,
+      message:
+        'The AI became unavailable, so we had to stop this game. It won’t count as a win or loss.',
+    }),
+  });
+}
+
 add('Lobby', 'rules', 'How to play', { instructionsOpen: true });
 add('Start', 'roles-public', 'Public role selection', { startOpen: true });
 add('Start', 'roles-friend', 'Friend role selection', { startOpen: true, inviteRole: true });

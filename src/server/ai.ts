@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import type { ProviderAvailability } from './provider-availability';
 import { SYSTEM } from './bot/constants';
 import type { Label } from '../shared/protocol';
 
@@ -32,6 +33,7 @@ export interface BotSession {
 export interface BotHooks {
   state(state: BotState): void;
   beforeRequest(): Promise<void>;
+  creditExhausted?(): void;
   failed(error: Error): void;
   trace?(text: string): void;
 }
@@ -39,6 +41,9 @@ export interface BotHooks {
 export interface AI {
   model: string;
   unavailable?(): string | null;
+  refreshAvailability?(): Promise<void>;
+  capacityExhausted?(): boolean;
+  reportCreditExhausted?(): void;
   start(id: string, humanLabel: Label, hooks: BotHooks, options?: { trace?: boolean }): BotSession;
 }
 
@@ -109,6 +114,12 @@ export async function requestCompletion(
       status = response.status;
       responseHeaders = response.headers;
 
+      if (status === 402) {
+        hooks.creditExhausted?.();
+
+        throw new AIError('openrouter_402');
+      }
+
       if (!response.ok) throw new AIError(`openrouter_${status}`);
 
       const result = (await response.json()) as {
@@ -124,6 +135,7 @@ export async function requestCompletion(
       return text;
     } catch (error) {
       if (
+        status === 402 ||
         signal.aborted ||
         attempt ||
         received ||
@@ -158,12 +170,17 @@ export async function requestCompletion(
   throw new AIError('request_failed');
 }
 
-export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
+export function createAI(
+  options: { fetcher?: typeof fetch; availability?: ProviderAvailability } = {},
+): AI {
   return {
     model: MODEL,
+    refreshAvailability: () => options.availability?.refresh() ?? Promise.resolve(),
+    capacityExhausted: () => options.availability?.exhausted ?? false,
+    reportCreditExhausted: () => options.availability?.reportExhausted(),
     unavailable: () =>
       process.env.OPENROUTER_API_KEY
-        ? null
+        ? (options.availability?.message ?? null)
         : 'Set OPENROUTER_API_KEY in .env and restart the server.',
     start(id, humanLabel, hooks, session = {}) {
       if (!process.env.OPENROUTER_API_KEY)
@@ -221,7 +238,15 @@ export function createAI(options: { fetcher?: typeof fetch } = {}): AI {
                   event.params,
                   event.timeout,
                   controller.signal,
-                  hooks,
+                  {
+                    ...hooks,
+                    beforeRequest: async () => {
+                      await hooks.beforeRequest();
+
+                      if (options.availability?.exhausted) throw new AIError('openrouter_402');
+                    },
+                    creditExhausted: () => options.availability?.reportExhausted(),
+                  },
                   options.fetcher,
                 )
                   .then((text) => write({ type: 'result', id: event.id, text }))

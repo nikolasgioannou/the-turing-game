@@ -249,3 +249,26 @@ test('closed match prevents provider dispatch', async () => {
 
   expect(called).toBe(false);
 });
+
+test('credit exhaustion is reported immediately and never retried even with a retry hint', async () => {
+  const { hooks } = harness();
+  let reported = 0,
+    calls = 0;
+
+  hooks.creditExhausted = () => {
+    reported++;
+  };
+
+  const fetcher = (async () => {
+    calls++;
+
+    return new Response('', { status: 402, headers: { 'x-should-retry': 'true' } });
+  }) as unknown as typeof fetch;
+
+  await expect(
+    requestCompletion(params, 6, new AbortController().signal, hooks, fetcher),
+  ).rejects.toThrow('openrouter_402');
+
+  expect(calls).toBe(1);
+  expect(reported).toBe(1);
+});

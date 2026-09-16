@@ -12,6 +12,7 @@ import {
   type RoomView,
 } from '../shared/protocol';
 import { AIError, type AI, type BotSession, type BotState } from './ai';
+import { CAPACITY_INTERRUPTED } from './provider-availability';
 import { Store } from './store';
 
 export interface Peer {
@@ -184,6 +185,8 @@ export class Game {
   }
 
   async available() {
+    await this.ai.refreshAvailability?.();
+
     const unavailable = this.ai.unavailable?.();
 
     if (unavailable) throw new ActionError(unavailable);
@@ -590,7 +593,17 @@ export class Game {
             void this.run(async () => {
               if (ended(m.phase) || m.phase === 'verdict') return;
 
-              await this.finish(m, 'failed', 'The AI is unavailable. This match was not counted.');
+              const exhausted = error instanceof AIError && error.code === 'openrouter_402';
+
+              if (exhausted) this.ai.reportCreditExhausted?.();
+
+              await this.finish(
+                m,
+                'failed',
+                exhausted
+                  ? CAPACITY_INTERRUPTED
+                  : 'The AI is unavailable. This match was not counted.',
+              );
 
               console.error(
                 'Bot unavailable:',
@@ -731,6 +744,15 @@ export class Game {
   }
 
   async tick() {
+    if (this.ai.capacityExhausted?.()) {
+      for (const p of this.peers.values()) delete p.queue;
+
+      for (const m of this.rooms.values()) {
+        if (!ended(m.phase) && m.phase !== 'verdict')
+          await this.finish(m, 'failed', CAPACITY_INTERRUPTED);
+      }
+    }
+
     for (const m of this.rooms.values()) {
       if (!ended(m.phase) && m.deadline !== null && this.now() >= m.deadline) await this.expire(m);
 

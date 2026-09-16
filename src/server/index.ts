@@ -1,6 +1,7 @@
 import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
 import { database } from './database';
+import { ProviderAvailability } from './provider-availability';
 import { Store } from './store';
 import { createAI } from './ai';
 import { ActionError, Game, type Peer } from './game';
@@ -25,7 +26,11 @@ const store = new Store(db);
 
 await store.init();
 
-const game = new Game(store, createAI());
+const availability = new ProviderAvailability();
+
+await availability.refresh();
+
+const game = new Game(store, createAI({ availability }));
 // Operator simulator: only mounted when SIM_KEY is configured; every route requires the key.
 const simKey = process.env.SIM_KEY?.trim() || null;
 const simulator = simKey ? new Simulator(game, store, Number(process.env.SIM_LANES ?? 5)) : null;
@@ -304,6 +309,7 @@ const timer = setInterval(() => {
 
   for (const [ip, r] of perIp) if (r.until < Date.now()) perIp.delete(ip);
 
+  void availability.refresh();
   void game.run(() => game.tick());
 }, 1000);
 let stopping = false;

@@ -36,15 +36,19 @@ No local Docker installation is required. Inspect Fly logs when a health check o
 
 ## AI usage
 
-The app currently has no daily dollar/token caps, usage ledger, per-network match quota, automatic provider-failure pause or operator pause command. Old cap and kill-switch environment variables are ignored. All game and simulator calls use the configured OpenRouter key directly. Any limits configured on that key are managed separately in OpenRouter.
+Configure the production key’s spending limit and reset period in OpenRouter. The server reads GET /api/v1/key with that same key, caching availability for 30 seconds; no management key is needed. A zero or negative limit_remaining blocks new games. An explicitly unlimited key is allowed, so set a provider limit if you want spending capped. No dollar amounts or credentials are sent to players.
+
+An HTTP 402 from a model call immediately marks capacity unavailable, prevents retries for that error and ends affected active games without scoring. The server cancels pending bot work and clears queued players. It rechecks OpenRouter automatically, resuming admission when credit is available. Games already awaiting a verdict may finish because they need no more AI calls. A positive cached balance does not guarantee enough credit to finish a game; OpenRouter enforces spending.
+
+Failed or malformed status checks temporarily block new games but do not interrupt existing chats unless exhaustion is known. Known exhaustion remains unavailable through check failures. The app has no separate daily dollar/token caps, accounting ledger or per-network match quota. Old cap and kill-switch environment variables are ignored.
 
 Existing daily_usage, reservations, ai_requests and service_state tables are no longer read or written. This change does not delete existing database records. Match outcomes and simulator scenarios remain in use.
 
 ## Simulator
 
-`SIM_KEY` enables `/sim` and `/api/sim/*`; without it the routes do not exist. The dashboard asks for the key once per browser. `SIM_LANES` sets the initial lane count. Simulated matches and their judge evaluations make real OpenRouter calls without an app-level spending cap. They are never saved as outcomes and are not visible to players. Set the key with `fly secrets set SIM_KEY=<long random string> -a the-turing-game`.
+`SIM_KEY` enables `/sim` and `/api/sim/*`; without it the routes do not exist. The dashboard asks for the key once per browser. `SIM_LANES` sets the initial lane count. Simulated matches and their judge evaluations make real OpenRouter calls and share the production key’s availability checks. They are never saved as outcomes and are not visible to players. Set the key with `fly secrets set SIM_KEY=<long random string> -a the-turing-game`.
 
-Provider authentication/credit failures end the affected match as a technical failure. They do not pause new matches. Transient completion failures retain the bot's retry/fallback behavior. Chat closure cancels workers and pending requests.
+Provider authentication/credit failures end the affected match as a technical failure. Credit-exhaustion failures also mark capacity unavailable until a later provider check reports credit. Transient completion failures retain the bot's retry/fallback behavior. Chat closure cancels workers and pending requests.
 
 ## Limitations
 

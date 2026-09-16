@@ -3,12 +3,14 @@ import type { Command, QueuePreference, RoomView } from '../shared/protocol';
 import { Banner, Button, Dialog, RoleButton } from './ui';
 
 export function PlayAgain({
+  available,
   room,
   connected,
   send,
   play,
   home,
 }: {
+  available: boolean;
   room: RoomView;
   connected: boolean;
   send: (command: Command) => void;
@@ -20,6 +22,8 @@ export function PlayAgain({
   const rematch = room.rematch;
   const canRematch = friend && rematch?.available;
   const choose = (role: QueuePreference) => {
+    if (!connected || !available) return;
+
     setChoosing(false);
 
     if (canRematch) send({ type: 'rematch', role });
@@ -36,12 +40,16 @@ export function PlayAgain({
       <div className="flex flex-wrap items-center gap-3">
         <Button
           variant="primary"
-          disabled={!connected || (!!rematch?.own && !!canRematch)}
+          disabled={!connected || !available || (!!rematch?.own && !!canRematch)}
           onClick={() => choose(room.role)}
         >
           {friend ? (canRematch ? 'Rematch with friend' : 'Invite again') : 'Play again'}
         </Button>
-        <Button variant="secondary" disabled={!connected} onClick={() => setChoosing(true)}>
+        <Button
+          variant="secondary"
+          disabled={!connected || !available}
+          onClick={() => setChoosing(true)}
+        >
           Change role
         </Button>
         {rematch?.own ? (
@@ -56,9 +64,11 @@ export function PlayAgain({
         ) : null}
       </div>
       <p className="text-xs text-muted">
-        {rematch?.own
-          ? `Your choice: ${rematch.own === 'either' ? 'Either role' : rematch.own}.`
-          : `Keep playing as ${room.role === 'human' ? 'the human' : 'the judge'}, or change roles.`}
+        {!available
+          ? 'You can play again when AI games are available.'
+          : rematch?.own
+            ? `Your choice: ${rematch.own === 'either' ? 'Either role' : rematch.own}.`
+            : `Keep playing as ${room.role === 'human' ? 'the human' : 'the judge'}, or change roles.`}
       </p>
       <div className="border-t border-line pt-4">
         <Button variant="secondary" size="compact" onClick={home}>
@@ -72,7 +82,7 @@ export function PlayAgain({
             <RoleButton
               tone="a"
               title="Play as human"
-              disabled={!connected}
+              disabled={!connected || !available}
               onClick={() => choose('human')}
             >
               Avoid being mistaken for AI.

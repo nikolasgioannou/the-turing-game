@@ -29,7 +29,7 @@ This repository is the canonical implementation. Describe bot behavior directly 
 - The judge selects the bot: choosing the AI means both judge and player win; choosing the human means both lose.
 - Verdict and optional reasoning commit together before identity reveal.
 - Persist only match IDs and win/loss outcomes for the homepage score, without provider usage accounting. Transcripts and judge reasoning stay in memory; do not restore public spectating or saved-game access. Abandoned/failed matches are not wins.
-- AI spending and admission guardrails have been removed at the owner’s request. Do not reintroduce budgets, accounting or automatic pauses without a new request. Keep game lifecycle cancellation and transport timeouts.
+- OpenRouter is the spending authority. Cache key availability briefly and react to credit-exhaustion errors; do not add local token/dollar budgets or usage ledgers. Exhaustion interrupts affected games without scoring and automatically recovers when provider credit returns. Keep game lifecycle cancellation and transport timeouts.
 - Every UI element must serve a purpose. No filler, decorative metrics, or artificial live games in production. The only exception is the operator simulator (`SIM_KEY`): its matches are invisible to players, never counted in the score, and key-gated.
 
 ## Validation

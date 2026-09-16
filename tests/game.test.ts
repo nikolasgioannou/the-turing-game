@@ -787,3 +787,74 @@ test('match creation has no daily token or hourly match quota', async () => {
 
   expect(game.rooms.size).toBe(40);
 });
+
+test('provider exhaustion ends active games without outcomes, clears queues, and recovers', async () => {
+  const first = await opening();
+  const second = await opening();
+  const waiting = await peer();
+
+  await game.handle(waiting.p, { type: 'queue', role: 'human' });
+
+  let exhausted = false;
+
+  ai.capacityExhausted = () => exhausted;
+
+  ai.reportCreditExhausted = () => {
+    exhausted = true;
+  };
+
+  ai.unavailable = () => (exhausted ? 'AI games are temporarily unavailable.' : null);
+
+  try {
+    sessions.get(first.m.id)!.hooks.failed(new AIError('openrouter_402'));
+    await game.run(async () => {});
+    await game.tick();
+
+    for (const m of [first.m, second.m]) {
+      expect(m.phase).toBe('failed');
+      expect(m.message).toContain('won’t count');
+      expect(sessions.get(m.id)!.stopped).toBe(true);
+      expect(game.view(m, m.id === first.m.id ? first.j.p : second.j.p).result).toBeNull();
+    }
+
+    expect(waiting.p.queue).toBeUndefined();
+    expect(await store.score()).toEqual({ completed: 0, aiWins: 0 });
+
+    const newcomer = await peer();
+
+    await expect(game.handle(newcomer.p, { type: 'create', role: 'judge' })).rejects.toThrow(
+      'temporarily unavailable',
+    );
+
+    exhausted = false;
+    await game.handle(newcomer.p, { type: 'create', role: 'judge' });
+    expect(newcomer.p.roomId).toBeDefined();
+  } finally {
+    delete ai.capacityExhausted;
+    delete ai.reportCreditExhausted;
+    delete ai.unavailable;
+  }
+});
+
+test('credit exhaustion does not discard a game already ready for a verdict', async () => {
+  const { m, j } = await opening();
+
+  await game.expire(m);
+  ai.capacityExhausted = () => true;
+
+  try {
+    await game.tick();
+    expect(m.phase).toBe('verdict');
+
+    await game.handle(j.p, {
+      type: 'verdict',
+      choice: m.humanLabel === 'A' ? 'B' : 'A',
+      reason: '',
+    });
+
+    expect(m.phase).toBe('complete');
+    expect((await store.score()).completed).toBe(1);
+  } finally {
+    delete ai.capacityExhausted;
+  }
+});

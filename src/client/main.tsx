@@ -157,6 +157,9 @@ export function App({ review }: { review?: ReviewState }) {
 
           if (event.type === 'lobby') {
             setLobby(event.data);
+
+            if (!event.data.availability.available) setStartOpen(false);
+
             setJoining(false);
           } else if (event.type === 'room') {
             if (event.data.id === dismissedRoom.current) return;
@@ -286,7 +289,7 @@ export function App({ review }: { review?: ReviewState }) {
         </Banner>
       ) : null}
       {room && ended(room.phase) ? <RematchNotice room={room} /> : null}
-      {aiUnavailable && (!room || waitingInvite) ? (
+      {aiUnavailable ? (
         <Banner ref={availabilityBanner} role="status" className="availability">
           {lobby.availability.message}
         </Banner>
@@ -300,6 +303,7 @@ export function App({ review }: { review?: ReviewState }) {
             home={home}
             connected={connected}
             playAgain={playAgain}
+            aiAvailable={!aiUnavailable}
             replayName={replayName.current}
             review={review}
           />
@@ -734,6 +738,7 @@ function Composer({
 }
 
 function Room({
+  aiAvailable,
   review,
   replayName,
   playAgain,
@@ -742,6 +747,7 @@ function Room({
   home,
   connected,
 }: {
+  aiAvailable: boolean;
   review?: ReviewState;
   replayName: string;
   playAgain: (role: QueuePreference, invite: boolean) => void;
@@ -883,7 +889,10 @@ function Room({
           <MatchResult result={room.result} role={room.role} />
         ) : (
           <RoomTitle>
-            <h1>Match ended.</h1>
+            <h1>{room.phase === 'failed' ? 'Game interrupted' : 'Match ended.'}</h1>
+            {room.message ? (
+              <p className="mt-4 text-sm leading-relaxed text-muted">{room.message}</p>
+            ) : null}
           </RoomTitle>
         )
       ) : (
@@ -913,7 +922,14 @@ function Room({
         </MatchToolbar>
       )}
       {done ? (
-        <PlayAgain room={room} connected={connected} send={send} play={playAgain} home={home} />
+        <PlayAgain
+          available={aiAvailable}
+          room={room}
+          connected={connected}
+          send={send}
+          play={playAgain}
+          home={home}
+        />
       ) : null}
       {room.phase === 'waiting' ? (
         <Panel className="waiting-panel [&_.muted]:mb-0 [&_.muted]:text-sm [&_input]:mt-2.5 [&_input]:mb-5 [&_input]:w-full [&_input]:p-3 [&_p]:leading-[1.6]">
@@ -939,7 +955,7 @@ function Room({
         </Panel>
       ) : null}
 
-      {room.message ? (
+      {room.message && !done ? (
         <Panel
           className="ended-panel mb-6.5 text-[15px] leading-[1.6] text-[#f6d7b9]"
           role="status"

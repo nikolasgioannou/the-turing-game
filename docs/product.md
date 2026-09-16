@@ -20,7 +20,9 @@ Explicit leave abandons. Disconnection/refresh retains the authenticated seat wh
 
 ## AI usage
 
-AI requests have no application spending budgets, token accounting, per-network match quotas or automatic admission pauses. Normal request timeouts, reply length settings, game deadlines and cancellation remain. Provider errors fail the affected game without pausing future matches.
+OpenRouter is the source of truth for spending limits. When its key has no remaining credit, show “AI games are temporarily unavailable. Please check back soon.” above the page content. Clicking Start Game highlights the notice. Credit exhaustion during play interrupts affected games without wins or losses, retains the visible conversation, and leaves Back to lobby available. Replay is unavailable until provider credit returns. Pending verdicts can finish without more inference.
+
+The server checks provider status every 30 seconds and resumes automatically. If status cannot be verified, new games wait while existing games continue unless credit exhaustion is known. There is no application token accounting or independent spending limit. Normal request timeouts, reply length settings, game deadlines and cancellation remain.
 
 Bun owns the game, React/Tailwind owns the UI, PostgreSQL/PGlite owns storage, and a TypeScript worker runs the conversation engine. OpenRouter is the sole inference route. Fly production deployment is configured in docs/deployment.md. Keep dependencies project-local and create conventional commits at completed milestones.
 
