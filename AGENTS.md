@@ -42,4 +42,8 @@ This repository is the canonical implementation. Describe bot behavior directly 
 
 ## Issue tracking
 
-When the user asks to write, add, update or manage tickets/issues, they mean Moth tickets in this repository unless they explicitly name another tracker. A request to file a ticket does not authorize implementing it. Use Moth for repository-local tickets. Run `moth schema --json` to inspect the legal fields and statuses, and `moth list --unblocked` to find available work. Create and update tickets through the CLI; move claimed tickets to `in-progress` and completed tickets to `done`. Run `moth check` before committing ticket changes. Commit `.moth/` tickets alongside related code. Do not put credentials or private conversations in tickets.
+When the user asks to write, add, update or manage tickets/issues, they mean Moth tickets in this repository unless they explicitly name another tracker. Use Moth for repository-local tickets.
+
+Do not select, claim, start, or implement a Moth ticket unless the user explicitly asks you to work on that ticket or explicitly delegates a defined set of tickets. The existence of an open or unblocked ticket is not authorization. Requests to create, review, organize, or prioritize tickets authorize only that ticket-management work, not implementation. Do not automatically pick up another ticket after finishing authorized work.
+
+Run `moth schema --json` to inspect legal fields and statuses. Create and update tickets through the CLI. Leave newly filed tickets in the backlog unless the user requests a different status. Only after explicit implementation authorization, move the relevant ticket to `in-progress`; move it to `done` after the authorized work is complete. Run `moth check` before committing ticket changes. Commit `.moth/` tickets alongside related code when applicable. Do not put credentials or private conversations in tickets.
