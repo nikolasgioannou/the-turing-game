@@ -512,3 +512,7 @@ Added session and normalized-network start throttles across public matching, inv
 ## Recoverable verdict writes
 
 Added a saving phase that freezes the submitted choice/reason and cancels bot work while keeping identities hidden. Outcome writes retry up to three times with bounded dependency waits; PostgreSQL statements also have a server-side timeout. Successful retries use the existing unique match ID to avoid duplicate scores. Persistent or ambiguous failures show an actionable interruption without falsely claiming the result was never recorded. Tests cover rejected/ambiguous writes, retained reasoning, duplicate submissions, permanent failure and disconnect during saving. All 63 game tests and typecheck pass. Database waits are still serialized at this milestone and are addressed by the separately authorized dependency-isolation ticket.
+
+## Authoritative match restoration
+
+WebSocket handshakes now explicitly report the restored room or absence of a room. The browser remembers only the previous room ID for refresh recovery; a missing room clears stale chat/timer state and displays a route back to normal play. Active seats still restore by authenticated session, and retained friend results can restore rematch availability without restoring withdrawn consent. Tests verify normal reconnect, server-state loss, foreign-room secrecy and friend result recovery. All 65 game tests and typecheck pass; browser coverage follows with the mobile milestone.

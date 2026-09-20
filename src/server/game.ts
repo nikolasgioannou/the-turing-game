@@ -22,6 +22,7 @@ export interface Peer {
   id: string;
   session: string;
   ip?: string;
+  resumeRoom?: string;
   send: (event: Event) => void;
   roomId?: string;
   queue?: QueuePreference;
@@ -85,13 +86,17 @@ export class Game {
     this.peers.set(peer.id, peer);
     // Seats belong to the authenticated browser session, not a transient socket.
 
-    const match = [...this.rooms.values()].find(
+    const active = [...this.rooms.values()].find(
       (m) => !ended(m.phase) && this.role(m, peer) !== null,
     );
+    const previous = peer.resumeRoom ? this.rooms.get(peer.resumeRoom) : undefined;
+    const match = active ?? (previous && this.role(previous, peer) ? previous : undefined);
+
+    peer.send({ type: 'session', roomId: match?.id ?? null });
 
     if (match) {
       peer.roomId = match.id;
-      peer.send({ type: 'room', data: this.view(match, peer) });
+      this.broadcast(match);
     }
 
     await this.lobby(peer);

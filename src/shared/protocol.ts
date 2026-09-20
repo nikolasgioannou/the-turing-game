@@ -83,6 +83,7 @@ export type Lobby = {
 };
 
 export type Event =
+  | { type: 'session'; roomId: string | null }
   | { type: 'lobby'; data: Lobby }
   | { type: 'room'; data: RoomView }
   | { type: 'error'; message: string }

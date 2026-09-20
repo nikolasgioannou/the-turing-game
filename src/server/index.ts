@@ -190,7 +190,14 @@ const server = Bun.serve<SocketData>({
       )
         return json({ error: 'Connection limit reached' }, 429);
 
-      const peer: Peer = { id: crypto.randomUUID(), session: id, ip, send: () => {} };
+      const resumeRoom = url.searchParams.get('room');
+      const peer: Peer = {
+        id: crypto.randomUUID(),
+        session: id,
+        ip,
+        ...(resumeRoom && /^[a-f0-9-]{36}$/.test(resumeRoom) ? { resumeRoom } : {}),
+        send: () => {},
+      };
 
       if (
         server.upgrade(req, {

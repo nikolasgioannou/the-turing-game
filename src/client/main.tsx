@@ -1,3 +1,4 @@
+import { rememberedRoom, rememberRoom, ROOM_MISSING } from './restoration';
 import {
   AvailabilityNotice,
   availabilityNoticeReducer,
@@ -74,6 +75,7 @@ export function App({ review }: { review?: ReviewState }) {
   });
   const availabilityBanner = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
+  const previousRoom = useRef<string | null>(review ? null : rememberedRoom());
   const initial = useRef(pathCommand());
   const replayName = useRef('');
   const dismissedRoom = useRef<string | null>(null);
@@ -86,6 +88,11 @@ export function App({ review }: { review?: ReviewState }) {
       setError('Connection lost. Reconnecting to your match…');
 
       return;
+    }
+
+    if (['home', 'leave', 'queue', 'create'].includes(command.type)) {
+      previousRoom.current = null;
+      rememberRoom(null);
     }
 
     ws.current.send(JSON.stringify(command));
@@ -136,7 +143,7 @@ export function App({ review }: { review?: ReviewState }) {
         if (stopped) return;
 
         socket = new WebSocket(
-          `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`,
+          `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws${previousRoom.current ? '?room=' + encodeURIComponent(previousRoom.current) : ''}`,
         );
 
         ws.current = socket;
@@ -145,20 +152,13 @@ export function App({ review }: { review?: ReviewState }) {
           if (stopped) return;
 
           attempts = 0;
-          setConnected(true);
+
           setError(null);
 
           heartbeat = setInterval(() => {
             if (socket?.readyState === WebSocket.OPEN)
               socket.send(JSON.stringify({ type: 'ping' }));
           }, 15_000);
-
-          const restore = initial.current ?? pathCommand();
-
-          if (restore) {
-            socket!.send(JSON.stringify(restore));
-            initial.current = null;
-          }
         };
 
         socket.onmessage = (e) => {
@@ -166,7 +166,25 @@ export function App({ review }: { review?: ReviewState }) {
 
           const event: Event = JSON.parse(e.data);
 
-          if (event.type === 'lobby') {
+          if (event.type === 'session') {
+            setConnected(true);
+
+            if (!event.roomId) {
+              if (previousRoom.current) setError(ROOM_MISSING);
+
+              previousRoom.current = null;
+              rememberRoom(null);
+              setRoom(null);
+              setJoining(false);
+              setStartOpen(false);
+
+              const restore = initial.current ?? pathCommand();
+
+              if (restore) socket!.send(JSON.stringify(restore));
+            }
+
+            initial.current = null;
+          } else if (event.type === 'lobby') {
             setLobby(event.data);
             updateAvailabilityNotice({ type: 'lobby', lobby: event.data });
 
@@ -178,6 +196,8 @@ export function App({ review }: { review?: ReviewState }) {
 
             if (ended(event.data.phase)) replayName.current = event.data.ownName ?? '';
 
+            previousRoom.current = event.data.id;
+            rememberRoom(event.data.id);
             setRoom(event.data);
             setStartOpen(event.data.phase === 'waiting');
             setJoining(false);

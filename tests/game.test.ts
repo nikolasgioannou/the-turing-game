@@ -1082,3 +1082,57 @@ test('disconnect while saving preserves the committed result', async () => {
     store.saveOutcome = original;
   }
 });
+
+test('reconnect handshake distinguishes restored seats from missing or foreign matches', async () => {
+  const { h, m } = await opening();
+
+  await game.disconnect(h.p);
+
+  const events: Event[] = [];
+  const restored: Peer = {
+    id: crypto.randomUUID(),
+    session: h.p.session,
+    resumeRoom: m.id,
+    send: (e) => events.push(e),
+  };
+
+  await game.connect(restored);
+  expect(events[0]).toEqual({ type: 'session', roomId: m.id });
+  expect(restored.roomId).toBe(m.id);
+
+  const foreign: Peer = {
+    id: crypto.randomUUID(),
+    session: crypto.randomUUID(),
+    resumeRoom: m.id,
+    send: (e) => events.push(e),
+  };
+
+  events.length = 0;
+  await game.connect(foreign);
+  expect(events[0]).toEqual({ type: 'session', roomId: null });
+
+  const fresh = new Game(store, ai, () => clock);
+
+  events.length = 0;
+  await fresh.connect({ ...restored, id: crypto.randomUUID(), roomId: undefined });
+  expect(events[0]).toEqual({ type: 'session', roomId: null });
+});
+
+test('friend result reconnect restores rematch availability without restoring withdrawn consent', async () => {
+  const { h, j, m } = await finishedFriends();
+
+  await game.handle(h.p, { type: 'rematch', role: 'human' });
+  await game.disconnect(h.p);
+
+  const reconnect: Peer = {
+    id: crypto.randomUUID(),
+    session: h.p.session,
+    resumeRoom: m.id,
+    send: () => {},
+  };
+
+  await game.connect(reconnect);
+  expect(reconnect.roomId).toBe(m.id);
+  expect(game.view(m, reconnect).rematch?.own).toBeNull();
+  expect(game.view(m, j.p).rematch?.available).toBe(true);
+});
