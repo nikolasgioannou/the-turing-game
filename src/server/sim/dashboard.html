@@ -308,17 +308,17 @@
     <script>
       let key = '';
       try {
-        key = localStorage.getItem('sim_key') || '';
+        key = sessionStorage.getItem('sim_key') || '';
       } catch (e) {}
       if (!key) {
         key = prompt('Simulator key (SIM_KEY on the server)') || '';
         try {
-          localStorage.setItem('sim_key', key);
+          sessionStorage.setItem('sim_key', key);
         } catch (e) {}
       }
       function badKey() {
         try {
-          localStorage.removeItem('sim_key');
+          sessionStorage.removeItem('sim_key');
         } catch (e) {}
         document.getElementById('summary').innerHTML =
           'wrong key <button onclick="askKey()">enter key</button>';
@@ -326,7 +326,7 @@
       function askKey() {
         key = prompt('Simulator key') || '';
         try {
-          localStorage.setItem('sim_key', key);
+          sessionStorage.setItem('sim_key', key);
         } catch (e) {}
         location.reload();
       }
@@ -377,13 +377,7 @@
       async function setLanes(n) {
         await api('/api/sim/lanes?count=' + n, { method: 'POST' });
       }
-      const es = new EventSource('/api/sim/events?key=' + encodeURIComponent(key));
       loadScenarios();
-      es.onerror = () => {
-        api('/api/sim/scenarios').then((r) => {
-          if (r.ok) document.getElementById('summary').textContent = 'reconnecting…';
-        });
-      };
       const esc = (s) =>
         String(s).replace(
           /[&<>"]/g,
@@ -393,8 +387,7 @@
         const d = new Date(ms);
         return d.toLocaleTimeString([], { minute: '2-digit', second: '2-digit' });
       };
-      es.onmessage = (e) => {
-        const { states, now } = JSON.parse(e.data);
+      function renderStates({ states, now }) {
         const grid = document.getElementById('grid');
         let aiFirst = 0,
           aiTotal = 0,
@@ -504,7 +497,18 @@
         if (lc && !lc.matches(':focus')) lc.value = String(states.length);
         document.getElementById('summary').innerHTML =
           `<span>AI first: <b>${aiFirst}/${aiTotal}</b> replies</span><span>fooled judge: <b>${aiWins}/${done}</b> finished</span>`;
-      };
+      }
+      async function poll() {
+        try {
+          const response = await api('/api/sim/state', { signal: AbortSignal.timeout(5000) });
+          if (response.ok) renderStates(await response.json());
+        } catch {
+          document.getElementById('summary').textContent = 'Connection interrupted. Retrying…';
+        } finally {
+          setTimeout(poll, 1000);
+        }
+      }
+      void poll();
     </script>
   </body>
 </html>

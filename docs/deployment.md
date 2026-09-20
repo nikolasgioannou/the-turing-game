@@ -46,7 +46,7 @@ Existing daily_usage, reservations, ai_requests and service_state tables are no 
 
 ## Simulator
 
-`SIM_KEY` enables `/sim` and `/api/sim/*`; without it the routes do not exist. The dashboard asks for the key once per browser. `SIM_LANES` sets the initial lane count. Simulated matches and their judge evaluations make real OpenRouter calls and share the production key’s availability checks. They are never saved as outcomes and are not visible to players. Set the key with `fly secrets set SIM_KEY=<long random string> -a the-turing-game`.
+The simulator is local-only. Set SIM_KEY in the development .env to enable it; production does not mount its dashboard or API, even with a configured secret. Simulations make real calls using the local OpenRouter key. Scenarios can be managed from the local dashboard.
 
 Provider authentication/credit failures end the affected match as a technical failure. Credit-exhaustion failures also mark capacity unavailable until a later provider check reports credit. Transient completion failures retain the bot's retry/fallback behavior. Chat closure cancels workers and pending requests.
 
@@ -65,3 +65,13 @@ Spaceship DNS points `theturinggame.ai` at Fly using A `66.241.125.138` and AAAA
 `MAX_ACTIVE_GAMES` defaults to 20 and must be a positive integer. Set it in `.env` for local development and restart the server. For production, edit `[env].MAX_ACTIVE_GAMES` in `fly.toml` and deploy. The limit is per process and assumes the current single-machine authority. All unfinished rooms reserve a slot, including invitations, verdicts and simulator rooms. Public players wait in the existing queue and are matched on the next tick when space opens. Full friend creation/rematch and simulator attempts receive a retry message; joining an existing invitation uses its reserved slot. This is a concurrency limit, not a spending cap or a measured capacity guarantee.
 
 Connection limiting uses Fly-Client-IP only when running on Fly and the transport peer is on Fly's private fdaa IPv6 or 172.16.0.0/12 IPv4 network. Public traffic must enter through the configured Fly HTTP service; organization-private callers are trusted. Direct/local traffic uses the socket address, and arbitrary X-Forwarded-For headers are ignored. Do not expose this listener directly or place an untrusted proxy inside that trust boundary. Equivalent IPv6 and IPv4-mapped addresses share a limiter bucket. Fly's header contract is documented at https://fly.io/docs/networking/request-headers/.
+
+## Readiness and recovery
+
+`/api/health` is process liveness. `/api/ready` checks a bounded database query and a round trip through the serialized game loop, coalescing concurrent probes and caching results for two seconds. It returns 503 if either fails or times out; the underlying probe remains shared until it settles, preventing probe accumulation during an outage. `acceptingGames` additionally reflects provider availability and room capacity. Exhausted provider credit is a normal admission pause, not a reason to fail infrastructure readiness or restart the machine.
+
+The deployment workflow checks readiness with per-request and overall retry limits. If it fails, inspect the workflow and Fly startup logs, correct the cause or redeploy a known-good image, then verify readiness and an authenticated lobby connection. A successful container rollout alone is not proof of a working database connection. Fly's existing routing check stays on process liveness to avoid taking away active games solely because a downstream service is unavailable.
+
+No external alert service or notification destination is configured. Detailed continuous resource/error telemetry is deferred; this change provides dependency/readiness diagnostics, not a monitoring dashboard. The earlier controlled load measurements remain the evidence for the initial 20-game cap.
+
+The simulator is now local-only, even if production still has a SIM_KEY secret. Production does not mount its API or dashboard and no longer stages that secret during deployment. Local simulator API requests require x-sim-key; URL credentials are rejected. The dashboard polls bounded state responses with a header and retains its key in tab-scoped session storage. Never point local simulations at the production OpenRouter key. Restoring a production simulator requires a separate resource and access policy; it cannot share the player machine by default.

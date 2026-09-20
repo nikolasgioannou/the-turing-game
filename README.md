@@ -21,7 +21,7 @@ Open http://localhost:5173. Vite hot-reloads the UI and proxies API/WebSocket re
 
 ## Simulator
 
-Set `SIM_KEY` in `.env` (and on production as a Fly secret) to enable an operator-only simulator at `/sim`; on the site, Cmd/Ctrl+Shift+= opens it. It runs several matches at once with a scripted judge and a scripted human replaying recorded conversations, so the bot can be watched live, with its full decision trace (every model attempt, every filter that fired, what was finally sent), and rerun with any scenario. At the end of each lane an independent AI judge reads the transcript with labels only, picks the bot and states the strongest tell; that verdict is the evaluation. Simulated matches are invisible to players, never count toward the score, make real OpenRouter calls under the configured key’s spending limit and availability checks. Scenarios are stored in the database; paste them in from the Scenarios panel. `bun run sim:extract <dir>` turns saved transcripts into that JSON without committing private conversations.
+Set `SIM_KEY` in the local `.env` to enable an operator-only simulator at `/sim`; on the site, Cmd/Ctrl+Shift+= opens it. It runs several matches at once with a scripted judge and a scripted human replaying recorded conversations, so the bot can be watched live, with its full decision trace (every model attempt, every filter that fired, what was finally sent), and rerun with any scenario. At the end of each lane an independent AI judge reads the transcript with labels only, picks the bot and states the strongest tell; that verdict is the evaluation. The simulator is disabled in production even when SIM_KEY is configured. Local simulations never count toward the score and make real OpenRouter calls under the development key’s spending limit and availability checks. Scenarios are stored in the database; paste them in from the Scenarios panel. `bun run sim:extract <dir>` turns saved transcripts into that JSON without committing private conversations.
 
 ## Bot behavior
 
@@ -51,3 +51,7 @@ Browser tests use installed Chrome on this Mac. Model output is stochastic; beha
 Run `bun run review` and open http://localhost:5174/review to inspect fixed UI states without playing a game. Run `bun run review:capture` to export desktop/mobile screenshots and an HTML contact sheet. See [UI review](docs/ui-review.md).
 
 Run `bun run review:check` for the mobile layout and keyboard-viewport regression checks. It uses installed Google Chrome and project-local WebKit (`PLAYWRIGHT_BROWSERS_PATH=./.cache/ms-playwright bun run playwright install webkit`). Screenshots go to ignored `work/mobile-review/`. These browser-engine checks emulate mobile viewport changes; they do not replace physical iOS Safari and Android Chrome keyboard testing.
+
+## Repository checks
+
+Pushes to main and pull requests run `bun run format:check` and `bun run check`. Pull-request jobs have read-only repository permissions, no production environment, no model key and no deploy step. Dependabot checks Bun dependencies and pinned GitHub Actions weekly; vulnerability alerts are enabled. Updates need review and do not merge or deploy automatically. Owner/collaborator direct pushes remain allowed; no pull-request requirement was added.

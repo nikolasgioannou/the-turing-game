@@ -1,12 +1,12 @@
 ---
 id: '5faf4f'
 title: Bound active games and queue excess demand
-status: backlog
+status: done
 priority: urgent
 labels:
   - performance
 created_at: 2026-09-19T23:51:16.195Z
-updated_at: 2026-09-20T01:23:21.159Z
+updated_at: 2026-09-20T05:33:00.659Z
 ---
 
 The configurable 20-game cap and public waiting queue are already implemented. Production now uses one shared CPU and 2 GB RAM. Do not reimplement the delivered admission controls.
@@ -26,3 +26,7 @@ Recommended remaining scope:
 - Preserve the single-authority architecture; additional machines require coordinated room ownership and routing.
 
 Keep in backlog pending an explicit request to review or implement the remaining scope.
+
+Implementation/review outcome:
+
+Review completed: retain the configurable 20 unfinished-room cap, bounded public demand under the 1,000-live-socket admission ceiling, compatible arrival-order matching, cancellation/disconnect cleanup and terminal-state slot release. Fixed transport admission to count live sockets, avoiding reliance on delayed game peer registration. Existing capacity/queue/terminal-state tests pass. Friend invitations reserve slots; full friend creation/rematches return retry guidance. That policy is sufficient for the initial scope; a friend waiting queue is not required. Broader sustained load testing stays deferred in a5b7a7. No new machines or cap increases.

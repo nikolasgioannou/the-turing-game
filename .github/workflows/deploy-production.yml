@@ -38,13 +38,6 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
         with:
           version: 0.4.102
-      - name: Stage operator simulator key
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          SIM_KEY: ${{ secrets.SIM_KEY }}
-        run: |
-          # Optional: when the SIM_KEY secret exists, the deploy below applies it without a second restart.
-          if [ -n "$SIM_KEY" ]; then flyctl secrets set SIM_KEY="$SIM_KEY" --stage; else echo "SIM_KEY not set; simulator stays disabled."; fi
       - name: Deploy one production machine
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -53,4 +46,4 @@ jobs:
           flyctl config validate
           flyctl deploy --remote-only --ha=false --strategy immediate
       - name: Check production health
-        run: curl --fail --silent --show-error --retry 8 --retry-delay 5 --retry-all-errors https://theturinggame.ai/api/health
+        run: curl --fail --silent --show-error --connect-timeout 5 --max-time 10 --retry 8 --retry-delay 5 --retry-max-time 120 --retry-all-errors https://theturinggame.ai/api/ready

@@ -1,3 +1,4 @@
+import { PrivacyNotice } from './privacy';
 import { useEffect, useState } from 'react';
 import type { Lobby } from '../shared/protocol';
 
@@ -52,7 +53,7 @@ export function LiveScore({ score, connected }: { score?: Lobby['score']; connec
         aria-atomic="true"
       >
         <span className="sr-only">
-          {rate === null ? 'No percentage yet.' : `${rate}% of judges fooled.`}
+          {rate === null ? 'No percentage yet.' : `${rate}% of completed games won by the bot.`}
         </span>
         <strong
           aria-hidden="true"
@@ -61,7 +62,7 @@ export function LiveScore({ score, connected }: { score?: Lobby['score']; connec
           {displayedRate === null ? '—' : `${displayedRate}%`}
         </strong>
         <div className="min-w-0 text-xs leading-5">
-          <span className="block font-bold text-ink">Judges fooled</span>
+          <span className="block font-bold text-ink">Games the bot won</span>
           <span className="block min-h-10 text-muted">
             {!score
               ? 'Loading results…'
@@ -79,6 +80,9 @@ export function LiveScore({ score, connected }: { score?: Lobby['score']; connec
           />
         ))}
       </div>
+      <p className="mt-3 text-[10px] leading-4 text-muted">
+        Completed rounds, including repeat players and friend games.
+      </p>
     </section>
   );
 }
@@ -88,25 +92,28 @@ export function CreatorCredits() {
     'text-ink underline decoration-muted/50 underline-offset-4 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-player-b';
 
   return (
-    <p className="mt-6 text-center text-xs leading-6 text-muted">
-      Created by{' '}
-      <a
-        className={linkStyle}
-        href="https://x.com/marcbaghadjian"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Marc
-      </a>{' '}
-      &amp;{' '}
-      <a
-        className={linkStyle}
-        href="https://x.com/NikolasIoannou_"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Nik
-      </a>
-    </p>
+    <div>
+      <PrivacyNotice />
+      <p className="mt-6 text-center text-xs leading-6 text-muted">
+        Created by{' '}
+        <a
+          className={linkStyle}
+          href="https://x.com/marcbaghadjian"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Marc
+        </a>{' '}
+        &amp;{' '}
+        <a
+          className={linkStyle}
+          href="https://x.com/NikolasIoannou_"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Nik
+        </a>
+      </p>
+    </div>
   );
 }

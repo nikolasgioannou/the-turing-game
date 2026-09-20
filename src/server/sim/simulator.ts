@@ -76,7 +76,6 @@ class ScriptedPeer implements Peer {
 export class Simulator {
   lanes: LaneState[] = [];
   scenarios: Scenario[] = (sample as Scenario[]).slice();
-  listeners = new Set<(states: LaneState[]) => void>();
   private running = new Map<
     number,
     { judge: ScriptedPeer; human: ScriptedPeer; cancel: boolean }
@@ -88,11 +87,11 @@ export class Simulator {
     lanes = 5,
   ) {
     this.setLanes(lanes);
-    setInterval(() => this.push(), 1000);
   }
 
   setLanes(count: number) {
-    count = Math.max(1, Math.min(12, count));
+    if (!Number.isInteger(count) || count < 1 || count > 12)
+      throw new Error('Choose between 1 and 12 lanes.');
 
     while (this.lanes.length > count) {
       this.stop(this.lanes.length - 1);
@@ -116,8 +115,6 @@ export class Simulator {
         trace: [],
         verdict: null,
       });
-
-    this.push();
   }
 
   // An independent model reads the transcript with labels only and picks the bot, with a reason.
@@ -203,10 +200,6 @@ export class Simulator {
     await this.loadScenarios();
   }
 
-  push() {
-    for (const l of this.listeners) l(this.lanes);
-  }
-
   stop(index: number) {
     const h = this.running.get(index);
 
@@ -248,8 +241,6 @@ export class Simulator {
       trace: [],
     });
 
-    this.push();
-
     const log = (text: string) => {
       lane.log.push(`${new Date().toISOString().slice(11, 19)} ${text}`);
 
@@ -272,7 +263,6 @@ export class Simulator {
       lane.deadline = v.deadline;
       lane.result = v.result;
       lane.note = v.message ?? '';
-      this.push();
     };
     const originalSend = judge.send;
 
@@ -317,7 +307,6 @@ export class Simulator {
       lane.humanLabel = human.view!.ownLabel;
       lane.status = 'running';
       log(`human is ${lane.humanLabel}; replaying "${scenario.name}"`);
-      this.push();
 
       let lastJudgeAt = 0;
 
@@ -388,7 +377,6 @@ export class Simulator {
       lane.note = error instanceof Error ? error.message : String(error);
       log(`error: ${lane.note}`);
     } finally {
-      this.push();
     }
   }
 

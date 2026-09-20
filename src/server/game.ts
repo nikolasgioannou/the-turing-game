@@ -63,6 +63,7 @@ export class Game {
   private bots = new Map<string, BotSession>();
   private score?: ReturnType<Store['score']>;
   private lobbyPending = false;
+  private lobbySnapshots = new WeakMap<Peer, string>();
   private scoreRetryAt = 0;
   private background = new Set<Promise<unknown>>();
 
@@ -184,11 +185,17 @@ export class Game {
               : {}),
           };
 
-          for (const p of this.peers.values())
-            p.send({
-              type: 'lobby',
-              data: { availability, score, queued: p.queue ?? null, atCapacity: this.atCapacity() },
-            });
+          const atCapacity = this.atCapacity();
+
+          for (const p of this.peers.values()) {
+            const data = { availability, score, queued: p.queue ?? null, atCapacity };
+            const snapshot = JSON.stringify(data);
+
+            if (this.lobbySnapshots.get(p) === snapshot) continue;
+
+            this.lobbySnapshots.set(p, snapshot);
+            p.send({ type: 'lobby', data });
+          }
         }),
       )
       .catch(() => {

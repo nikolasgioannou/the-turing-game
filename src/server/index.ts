@@ -1,3 +1,5 @@
+import { simulatorAuthorized, simulatorKey } from './sim/access';
+import { Readiness } from './readiness';
 import { AdmissionError } from './admission';
 import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
@@ -36,7 +38,7 @@ await availability.refresh();
 
 const game = new Game(store, createAI({ availability }), Date.now, maxActiveGames);
 // Operator simulator: only mounted when SIM_KEY is configured; every route requires the key.
-const simKey = process.env.SIM_KEY?.trim() || null;
+const simKey = simulatorKey(production, process.env.SIM_KEY);
 const simulator = simKey ? new Simulator(game, store, Number(process.env.SIM_LANES ?? 5)) : null;
 
 if (simulator) await simulator.loadScenarios();
@@ -44,8 +46,6 @@ if (simulator) await simulator.loadScenarios();
 const simPage = simulator
   ? await Bun.file(resolve(import.meta.dir, 'sim/dashboard.html')).text()
   : '';
-const simAuthorized = (req: Request, url: URL) =>
-  !!simKey && (req.headers.get('x-sim-key') === simKey || url.searchParams.get('key') === simKey);
 const headers = {
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
@@ -70,7 +70,11 @@ type SocketData = {
 
 const sockets = new Set<ServerWebSocket<SocketData>>();
 const connections = new ConnectionLimiter();
+const sessionRequests = new ConnectionLimiter();
 const root = resolve('dist');
+const readiness = new Readiness(async () => {
+  await Promise.all([db.query('SELECT 1'), game.run(async () => {})]);
+});
 const server = Bun.serve<SocketData>({
   hostname: production ? '0.0.0.0' : '127.0.0.1',
   port,
@@ -80,13 +84,22 @@ const server = Bun.serve<SocketData>({
 
     if (url.pathname === '/api/health') return json({ ok: true });
 
+    if (url.pathname === '/api/ready') {
+      const ok = !stopping && (await readiness.check());
+
+      return json(
+        { ok, acceptingGames: ok && !availability.message && !game.atCapacity() },
+        ok ? 200 : 503,
+      );
+    }
+
     if (simulator && (url.pathname === '/sim' || url.pathname.startsWith('/api/sim/'))) {
       if (url.pathname === '/sim')
         return new Response(simPage, {
           headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
         });
 
-      if (!simAuthorized(req, url)) return json({ error: 'Unauthorized' }, 401);
+      if (!simulatorAuthorized(req, simKey)) return json({ error: 'Unauthorized' }, 401);
 
       if (url.pathname === '/api/sim/scenarios' && req.method === 'GET')
         return json(simulator.scenarios.map((s) => ({ name: s.name, turns: s.turns.length })));
@@ -108,7 +121,12 @@ const server = Bun.serve<SocketData>({
       }
 
       if (url.pathname === '/api/sim/lanes' && req.method === 'POST') {
-        simulator.setLanes(Number(url.searchParams.get('count')));
+        const count = Number(url.searchParams.get('count'));
+
+        if (!Number.isInteger(count) || count < 1 || count > 12)
+          return json({ error: 'Choose between 1 and 12 lanes.' }, 400);
+
+        simulator.setLanes(count);
 
         return json({ ok: true, lanes: simulator.lanes.length });
       }
@@ -127,39 +145,32 @@ const server = Bun.serve<SocketData>({
         return json({ ok: true });
       }
 
-      if (url.pathname === '/api/sim/events') {
-        let send: ((states: unknown) => void) | null = null;
-        const encoder = new TextEncoder();
-        const stream = new ReadableStream({
-          start(controller) {
-            send = (states) => {
-              try {
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ states, now: Date.now() })}\n\n`),
-                );
-              } catch {
-                if (send) simulator.listeners.delete(send);
-              }
-            };
-
-            simulator.listeners.add(send);
-            send(simulator.lanes);
-          },
-          cancel() {
-            if (send) simulator.listeners.delete(send);
-          },
-        });
-
-        return new Response(stream, {
-          headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' },
-        });
-      }
+      if (url.pathname === '/api/sim/state' && req.method === 'GET')
+        return json({ states: simulator.lanes, now: Date.now() });
 
       return json({ error: 'Not found' }, 404);
     }
 
     if (url.pathname === '/api/session' && req.method === 'GET') {
       const id = session(req) ?? crypto.randomUUID();
+      const ip = clientIP(
+        req.headers,
+        server.requestIP(req)?.address,
+        production && !!process.env.FLY_APP_NAME,
+      );
+
+      if (!sessionRequests.take(ip))
+        return json({ error: 'Too many connection attempts. We’ll retry shortly.' }, 429, {
+          'Retry-After': '60',
+        });
+
+      if (
+        sockets.size >= 1000 ||
+        [...sockets].filter((socket) => socket.data.peer.session === id).length >= 5
+      )
+        return json({ error: 'The game is busy. Waiting for a connection…' }, 429, {
+          'Retry-After': '15',
+        });
 
       return json({ ok: true }, 200, {
         'Set-Cookie': `turing_session=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000${production ? '; Secure' : ''}`,
@@ -186,8 +197,8 @@ const server = Bun.serve<SocketData>({
         });
 
       if (
-        game.peers.size >= 1000 ||
-        [...game.peers.values()].filter((p) => p.session === id).length >= 5
+        sockets.size >= 1000 ||
+        [...sockets].filter((socket) => socket.data.peer.session === id).length >= 5
       )
         return json({ error: 'Connection limit reached' }, 429);
 
@@ -262,6 +273,8 @@ const server = Bun.serve<SocketData>({
   websocket: {
     maxPayloadLength: 16_384,
     idleTimeout: 60,
+    backpressureLimit: 262_144,
+    closeOnBackpressureLimit: true,
     open(ws) {
       sockets.add(ws);
 
@@ -341,6 +354,7 @@ const timer = setInterval(() => {
     if (Date.now() - ws.data.lastPing > 45_000) ws.close(1001, 'Connection lost');
 
   connections.prune();
+  sessionRequests.prune();
 
   void availability.refresh();
 

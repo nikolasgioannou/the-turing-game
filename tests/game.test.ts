@@ -1258,3 +1258,24 @@ test('admission uses cached availability while refresh is pending and rejects co
     release();
   }
 });
+
+test('idle lobby peers do not receive repeated snapshots on ticks or unrelated chat', async () => {
+  const visitors = await Promise.all(Array.from({ length: 100 }, () => peer()));
+  const { h } = await pair();
+
+  await game.settled();
+
+  for (const visitor of visitors) visitor.events.length = 0;
+
+  for (let n = 0; n < 20; n++) {
+    await game.tick();
+    await game.lobby();
+    await game.settled();
+  }
+
+  expect(visitors.flatMap((v) => v.events).filter((e) => e.type === 'lobby')).toHaveLength(0);
+  await game.handle(h.p, { type: 'leave' });
+  await game.settled();
+  // Abandonment doesn't change the score or fullness, so idle visitors still need no update.
+  expect(visitors.flatMap((v) => v.events).filter((e) => e.type === 'lobby')).toHaveLength(0);
+});

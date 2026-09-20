@@ -1,3 +1,5 @@
+import { PrivacyNotice } from './privacy';
+import { retryAfter, retryDelay } from './retry';
 import { useVisualViewport } from './viewport';
 import { rememberedRoom, rememberRoom, ROOM_MISSING } from './restoration';
 import {
@@ -78,6 +80,8 @@ export function App({ review }: { review?: ReviewState }) {
   });
   const availabilityBanner = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
+  const retryConnection = useRef<() => void>(() => {});
+  const [retryCooling, setRetryCooling] = useState(false);
   const previousRoom = useRef<string | null>(review ? null : rememberedRoom());
   const initial = useRef(pathCommand());
   const replayName = useRef('');
@@ -88,7 +92,11 @@ export function App({ review }: { review?: ReviewState }) {
     setError(null);
 
     if (ws.current?.readyState !== WebSocket.OPEN) {
-      setError('Connection lost. Reconnecting to your match…');
+      setError(
+        previousRoom.current
+          ? 'Connection lost. Reconnecting to your match…'
+          : 'Connection lost. Reconnecting…',
+      );
 
       return;
     }
@@ -128,18 +136,55 @@ export function App({ review }: { review?: ReviewState }) {
     let socket: WebSocket | undefined;
     let heartbeat: ReturnType<typeof setInterval>;
     let retry: ReturnType<typeof setTimeout>;
+    let handshake: ReturnType<typeof setTimeout>;
     let attempts = 0;
+    let retryNotBefore = 0;
+    let cooldown: ReturnType<typeof setTimeout>;
 
-    function reconnect() {
+    function reconnect(serverSeconds = 0) {
       if (stopped) return;
 
       clearTimeout(retry);
-      retry = setTimeout(() => void start(), Math.min(1000 * 2 ** attempts++, 10000));
+      clearTimeout(cooldown);
+
+      const delay = retryDelay(attempts++, serverSeconds);
+
+      retryNotBefore = Date.now() + Math.max(1000, serverSeconds * 1000);
+      setRetryCooling(true);
+      cooldown = setTimeout(() => setRetryCooling(false), Math.max(1000, serverSeconds * 1000));
+      retry = setTimeout(() => void start(), delay);
     }
 
+    retryConnection.current = () => {
+      if (stopped || Date.now() < retryNotBefore) return;
+
+      clearTimeout(retry);
+      retryNotBefore = Date.now() + 1000;
+      void start();
+    };
+
     async function start() {
+      setRetryCooling(true);
+      retryNotBefore = Date.now() + 10000;
+
       try {
         const response = await fetch('/api/session', { signal: AbortSignal.timeout(10000) });
+
+        if (response.status === 429 || response.status === 503) {
+          if (stopped) return;
+
+          setConnected(false);
+
+          setError(
+            response.status === 429
+              ? 'The game is busy. Waiting for a connection…'
+              : 'The game is temporarily unavailable. Retrying…',
+          );
+
+          reconnect(retryAfter(response.headers.get('Retry-After')));
+
+          return;
+        }
 
         if (!response.ok) throw new Error('Session unavailable');
 
@@ -150,11 +195,10 @@ export function App({ review }: { review?: ReviewState }) {
         );
 
         ws.current = socket;
+        handshake = setTimeout(() => socket?.close(), 10000);
 
         socket.onopen = () => {
           if (stopped) return;
-
-          attempts = 0;
 
           setError(null);
 
@@ -170,6 +214,9 @@ export function App({ review }: { review?: ReviewState }) {
           const event: Event = JSON.parse(e.data);
 
           if (event.type === 'session') {
+            clearTimeout(handshake);
+            attempts = 0;
+            setRetryCooling(false);
             setConnected(true);
 
             if (!event.roomId) {
@@ -214,12 +261,19 @@ export function App({ review }: { review?: ReviewState }) {
         };
 
         socket.onclose = () => {
+          clearTimeout(handshake);
           clearInterval(heartbeat);
 
           if (stopped) return;
 
           setConnected(false);
-          setError('Connection lost. Reconnecting to your match…');
+
+          setError(
+            previousRoom.current
+              ? 'Connection lost. Reconnecting to your match…'
+              : 'Connection lost. Reconnecting…',
+          );
+
           reconnect();
         };
 
@@ -241,6 +295,9 @@ export function App({ review }: { review?: ReviewState }) {
       stopped = true;
       clearInterval(heartbeat);
       clearTimeout(retry);
+      clearTimeout(cooldown);
+      clearTimeout(handshake);
+      retryConnection.current = () => {};
       socket?.close();
     };
   }, []);
@@ -316,7 +373,9 @@ export function App({ review }: { review?: ReviewState }) {
         <Banner role="alert" className="error-banner">
           {error}
           {!connected ? (
-            <button onClick={() => location.reload()}>Retry now</button>
+            <button disabled={retryCooling} onClick={() => retryConnection.current()}>
+              Retry now
+            </button>
           ) : (
             <button aria-label="Dismiss error" onClick={() => setError(null)}>
               ×
@@ -440,6 +499,9 @@ export function App({ review }: { review?: ReviewState }) {
                 ) : (
                   <>
                     <h2>Choose your role</h2>
+                    <p className="mb-4 text-xs leading-6 text-muted">
+                      The AI can read your messages and unsent drafts.
+                    </p>
                     <div
                       className="dialog-modes flex rounded-none border border-[#39484e] bg-[#080d10] p-1"
                       aria-label="Game type"
@@ -482,6 +544,7 @@ export function App({ review }: { review?: ReviewState }) {
                           : 'No preference. Fill whichever role is needed.'}
                       </RoleButton>
                     </div>
+                    <PrivacyNotice />
                   </>
                 )}
               </Dialog>
@@ -958,6 +1021,7 @@ function Room({
               className="p-3"
               required
             />
+            <PrivacyNotice />
             <Button type="submit" disabled={!connected || !normalizeName(name)}>
               Enter
             </Button>

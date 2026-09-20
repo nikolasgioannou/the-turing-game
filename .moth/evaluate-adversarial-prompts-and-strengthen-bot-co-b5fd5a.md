@@ -6,7 +6,7 @@ priority: high
 labels:
   - safety
 created_at: 2026-09-19T23:51:16.352Z
-updated_at: 2026-09-20T01:23:21.232Z
+updated_at: 2026-09-20T05:33:00.810Z
 ---
 
 The bot prompt encourages decisive opinions and fictional personal details; response filters primarily address style and AI tells. Evaluate concrete risks without a broad rewrite that weakens ordinary conversational game behavior.
@@ -22,3 +22,7 @@ Acceptance criteria when authorized:
 - Record model/version, test coverage and remaining limitations without committing private conversations or credentials. Obtain authorization for any provider-backed evaluations.
 
 Keep in backlog; this scope clarification does not authorize implementation or model calls.
+
+Implementation/review outcome:
+
+Prepared docs/evaluations/bot-boundaries.md with 12 synthetic cases spanning system/draft/context extraction, injected style input, harmful requests and ordinary conversational regression cases. No provider evaluations were run and no prompt or filter behavior changed. Remains open for an explicitly bounded provider-backed evaluation and targeted fixes based on observed failures.
