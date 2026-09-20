@@ -17,16 +17,23 @@ export async function database(url?: string): Promise<Database> {
       max: 5,
       prepare: false,
       connect_timeout: 5,
-      connection: { statement_timeout: 4000 },
     });
     const wrap = (client: any): Query => ({
       query: async <T>(q: string, p: unknown[] = []) =>
         Array.from(await client.unsafe(q, p)) as T[],
     });
 
+    // Transaction-local settings work through the production connection pooler.
+    const transaction = <T>(fn: (tx: Query) => Promise<T>): Promise<T> =>
+      sql.begin(async (tx) => {
+        await tx.unsafe("SET LOCAL statement_timeout = '4s'");
+
+        return fn(wrap(tx));
+      }) as Promise<T>;
+
     return {
-      ...wrap(sql),
-      transaction: (fn) => sql.begin(async (tx) => fn(wrap(tx))) as Promise<any>,
+      query: <T>(q: string, p: unknown[] = []) => transaction((tx) => tx.query<T>(q, p)),
+      transaction,
       close: () => sql.end(),
     };
   }
