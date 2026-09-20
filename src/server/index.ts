@@ -2,6 +2,7 @@ import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
 import { database } from './database';
 import { ProviderAvailability } from './provider-availability';
+import { clientIP, ConnectionLimiter } from './connections';
 import { activeGameLimit } from './capacity';
 import { Store } from './store';
 import { createAI } from './ai';
@@ -66,7 +67,7 @@ type SocketData = {
 };
 
 const sockets = new Set<ServerWebSocket<SocketData>>();
-const perIp = new Map<string, { count: number; until: number }>();
+const connections = new ConnectionLimiter();
 const root = resolve('dist');
 const server = Bun.serve<SocketData>({
   hostname: production ? '0.0.0.0' : '127.0.0.1',
@@ -171,16 +172,16 @@ const server = Bun.serve<SocketData>({
 
       if (!id) return json({ error: 'Start a session first' }, 401);
 
-      const ip = server.requestIP(req)?.address ?? 'unknown';
-      const counter = perIp.get(ip);
+      const ip = clientIP(
+        req.headers,
+        server.requestIP(req)?.address,
+        production && !!process.env.FLY_APP_NAME,
+      );
 
-      if (counter && counter.until > Date.now() && counter.count >= 60)
-        return json({ error: 'Too many connections. Try again shortly.' }, 429);
-
-      perIp.set(ip, {
-        count: counter && counter.until > Date.now() ? counter.count + 1 : 1,
-        until: counter && counter.until > Date.now() ? counter.until : Date.now() + 60_000,
-      });
+      if (!connections.take(ip))
+        return json({ error: 'Too many connections. Try again shortly.' }, 429, {
+          'Retry-After': '60',
+        });
 
       if (
         game.peers.size >= 1000 ||
@@ -309,7 +310,7 @@ const timer = setInterval(() => {
   for (const ws of sockets)
     if (Date.now() - ws.data.lastPing > 45_000) ws.close(1001, 'Connection lost');
 
-  for (const [ip, r] of perIp) if (r.until < Date.now()) perIp.delete(ip);
+  connections.prune();
 
   void availability.refresh();
   void game.run(() => game.tick());
