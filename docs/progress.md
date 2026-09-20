@@ -538,3 +538,9 @@ Final validation for the six-ticket batch: 248 tests, typecheck and production b
 ## Link preview assets and metadata
 
 Added initial-HTML Open Graph/large-image card metadata, canonical URL, a 1200 × 630 PNG card and SVG/PNG/touch favicons. The exporter reuses IdentityIcon and the bundled arcade font through installed Chrome. Corrected the README's outdated find-the-human introduction. Typecheck, production build and local built asset HTTP/content-type/dimension checks passed; visually reviewed the generated card. No model calls or game servers were needed, and the temporary static verification server was stopped. Production still serves the old metadata; public asset verification remains pending deployment in ticket 4d66f9. Contribution, license and security-reporting decisions remain separate in 9ca5b1.
+
+## Production deployment and pooler compatibility
+
+Deployed caa891f through GitHub workflow 35491162003. The initial b5f9c11 rollout crashed at startup because the managed PostgreSQL pooler rejected statement_timeout as a startup parameter; the site was briefly unavailable. Moved the four-second statement timeout to SET LOCAL inside explicit transactions for both standalone queries and transaction callbacks. This retains server-side query limits without unsupported connection startup parameters. All 248 tests, typecheck and build passed, and the corrected production workflow completed successfully.
+
+The single Fly machine's health check passes. Verified public metadata and exact bytes for the social card and all favicons, plus an authenticated production lobby WebSocket connection. No games or model completions were created by these checks. Ticket 4d66f9 is complete. The production database startup succeeds through the actual pooler; a deliberate live slow-query timeout was not exercised.
