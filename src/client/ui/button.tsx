@@ -14,7 +14,7 @@ const sizes = {
   composer:
     'min-h-12 px-3.75 py-2.5 text-sm leading-[1.4] max-[600px]:max-w-33 max-[600px]:text-xs',
   arcade: 'min-h-15 px-4.5 py-2.75 text-base leading-[1.4] max-[640px]:text-[13px]',
-  text: 'px-0 py-1 text-sm leading-normal',
+  text: 'min-h-11 px-0 py-1 text-sm leading-normal',
 };
 
 type StyleProps = {
@@ -45,7 +45,7 @@ export function SegmentButton({
   return (
     <button
       type={type}
-      className={`flex-1 border-0 bg-transparent p-2.25 text-[13px] font-bold text-[#adb9bb] aria-pressed:bg-accent aria-pressed:text-[#100d08] ${className}`}
+      className={`min-h-11 flex-1 border-0 bg-transparent p-2.25 text-[13px] font-bold text-[#adb9bb] aria-pressed:bg-accent aria-pressed:text-[#100d08] ${className}`}
       {...props}
     />
   );

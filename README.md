@@ -49,3 +49,5 @@ Browser tests use installed Chrome on this Mac. Model output is stochastic; beha
 ## UI review
 
 Run `bun run review` and open http://localhost:5174/review to inspect fixed UI states without playing a game. Run `bun run review:capture` to export desktop/mobile screenshots and an HTML contact sheet. See [UI review](docs/ui-review.md).
+
+Run `bun run review:check` for the mobile layout and keyboard-viewport regression checks. It uses installed Google Chrome and project-local WebKit (`PLAYWRIGHT_BROWSERS_PATH=./.cache/ms-playwright bun run playwright install webkit`). Screenshots go to ignored `work/mobile-review/`. These browser-engine checks emulate mobile viewport changes; they do not replace physical iOS Safari and Android Chrome keyboard testing.

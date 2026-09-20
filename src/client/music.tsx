@@ -63,7 +63,7 @@ export function Music() {
         type="button"
         aria-label={playing ? 'Pause music' : 'Play music'}
         aria-pressed={playing}
-        className="min-h-9 px-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-player-b"
+        className="min-h-11 px-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-player-b"
         onClick={() => {
           const player = audio.current;
 

@@ -1,3 +1,4 @@
+import { ROOM_MISSING } from '../restoration';
 import type { ReviewState } from '../main';
 import type { Lobby, RoomView } from '../../shared/protocol';
 
@@ -235,6 +236,12 @@ for (const [id, title, rematch] of [
     }),
   });
 }
+
+add('Results', 'saving-result', 'Saving the verdict', {
+  room: room({ phase: 'saving', deadline: null, message: 'Saving your result…' }),
+});
+
+add('Lobby', 'match-missing', 'Previous game unavailable', { error: ROOM_MISSING });
 
 export const reviewExamples = examples;
 

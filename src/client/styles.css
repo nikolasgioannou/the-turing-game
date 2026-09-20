@@ -196,6 +196,28 @@
     }
   }
 
+  body:has(.app-shell .active-chat) {
+    overflow: hidden;
+  }
+
+  .app-shell:has(.active-chat) {
+    position: fixed;
+    top: var(--visual-top, 0px);
+    inset-inline: 0;
+    width: 100%;
+    height: var(--visual-height, 100dvh);
+    overflow: hidden;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
+  }
+
+  .start-dialog {
+    top: var(--visual-top, 0px);
+    bottom: calc(100% - var(--visual-top, 0px) - var(--visual-height, 100dvh));
+    max-height: calc(var(--visual-height, 100dvh) - 32px);
+  }
+
   .app-shell .arcade-lobby {
     @apply mt-0 w-full;
   }

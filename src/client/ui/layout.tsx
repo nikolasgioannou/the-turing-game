@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 export function AppShell({ className = '', ...props }: ComponentProps<'div'>) {
   return (
     <div
-      className={`app-shell mx-auto max-w-260 px-8 has-[.active-chat]:flex has-[.active-chat]:h-dvh has-[.active-chat]:max-w-240 has-[.active-chat]:flex-col has-[.active-chat]:px-6 has-[.arcade-lobby]:flex has-[.arcade-lobby]:min-h-dvh has-[.arcade-lobby]:flex-col max-[700px]:px-5.5 max-[640px]:px-3.5 max-[600px]:has-[.active-chat]:px-3.5 ${className}`}
+      className={`app-shell mx-auto max-w-260 px-8 has-[.active-chat]:flex has-[.active-chat]:max-w-240 has-[.active-chat]:flex-col has-[.active-chat]:px-6 has-[.arcade-lobby]:flex has-[.arcade-lobby]:min-h-dvh has-[.arcade-lobby]:flex-col max-[700px]:px-5.5 max-[640px]:px-3.5 max-[600px]:has-[.active-chat]:px-3.5 ${className}`}
       {...props}
     />
   );

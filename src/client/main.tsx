@@ -1,3 +1,4 @@
+import { useVisualViewport } from './viewport';
 import { rememberedRoom, rememberRoom, ROOM_MISSING } from './restoration';
 import {
   AvailabilityNotice,
@@ -22,7 +23,7 @@ import {
   Textarea,
   Panel,
 } from './ui';
-import { useEffect, useRef, useState, useReducer } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useReducer } from 'react';
 import {
   characters,
   normalizeName,
@@ -60,6 +61,8 @@ export type ReviewState = {
 };
 
 export function App({ review }: { review?: ReviewState }) {
+  useVisualViewport();
+
   const [lobby, setLobby] = useState<Lobby | null>(review ? (review.lobby ?? null) : null),
     [room, setRoom] = useState<RoomView | null>(review?.room ?? null),
     [connected, setConnected] = useState(review?.connected ?? false),
@@ -712,9 +715,15 @@ function Composer({
   useEffect(() => () => clearTimeout(draftTimer.current), []);
 
   useEffect(() => {
-    input.current?.focus({ preventScroll: true });
-    input.current?.scrollIntoView({ block: 'nearest' });
+    if (window.matchMedia('(pointer: fine)').matches) input.current?.focus({ preventScroll: true });
   }, []);
+
+  useLayoutEffect(() => {
+    if (!input.current) return;
+
+    input.current.style.height = '48px';
+    input.current.style.height = Math.min(120, input.current.scrollHeight + 2) + 'px';
+  }, [value]);
 
   const count = characters(value);
   const nearLimit = count >= limit - 50;
@@ -730,6 +739,7 @@ function Composer({
           setValue('');
           clearTimeout(draftTimer.current);
           draftCallback.current?.('');
+          input.current?.focus({ preventScroll: true });
         }
       }}
     >
@@ -781,6 +791,9 @@ function Composer({
           className="col-start-2 row-start-1 w-auto uppercase"
           size="composer"
           variant="primary"
+          onPointerDown={(event) => {
+            if (document.activeElement === input.current) event.preventDefault();
+          }}
           disabled={sendBlocked || !value.trim() || count > limit}
         >
           {button}
@@ -867,6 +880,20 @@ function Room({
     if (followChat.current && chatRef.current)
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [room.messages.length]);
+
+  useEffect(() => {
+    const chat = chatRef.current;
+
+    if (!chat) return;
+
+    const observer = new ResizeObserver(() => {
+      if (followChat.current) chat.scrollTop = chat.scrollHeight;
+    });
+
+    observer.observe(chat);
+
+    return () => observer.disconnect();
+  }, []);
 
   const showVerdict = isJudge && (room.phase === 'verdict' || (room.phase === 'chat' && guessing));
 
@@ -1068,7 +1095,7 @@ function Room({
       ) : null}
       {!done && !['waiting', 'saving'].includes(room.phase) ? (
         <section
-          className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
+          className="action-panel m-0 max-h-[70%] shrink-0 overflow-y-auto overscroll-contain border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"
         >
           {isJudge || isHuman ? (
