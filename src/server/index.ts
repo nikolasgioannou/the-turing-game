@@ -1,3 +1,4 @@
+import { AdmissionError } from './admission';
 import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
 import { database } from './database';
@@ -6,7 +7,7 @@ import { clientIP, ConnectionLimiter } from './connections';
 import { activeGameLimit } from './capacity';
 import { Store } from './store';
 import { createAI } from './ai';
-import { ActionError, Game, type Peer } from './game';
+import { Game, type Peer } from './game';
 import { Simulator } from './sim/simulator';
 
 const production = process.env.NODE_ENV === 'production';
@@ -189,7 +190,7 @@ const server = Bun.serve<SocketData>({
       )
         return json({ error: 'Connection limit reached' }, 429);
 
-      const peer: Peer = { id: crypto.randomUUID(), session: id, send: () => {} };
+      const peer: Peer = { id: crypto.randomUUID(), session: id, ip, send: () => {} };
 
       if (
         server.upgrade(req, {
@@ -293,7 +294,7 @@ const server = Bun.serve<SocketData>({
           ws.data.peer.send({
             type: 'error',
             message:
-              error instanceof ActionError
+              error instanceof AdmissionError
                 ? error.message
                 : 'Something went wrong. Please try again.',
           });

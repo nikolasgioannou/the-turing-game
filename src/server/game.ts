@@ -1,3 +1,4 @@
+import { AdmissionError, StartLimiter } from './admission';
 import { BUSY_MESSAGE } from './capacity';
 import { commandSchema } from '../shared/commands';
 import {
@@ -19,6 +20,7 @@ import { Store } from './store';
 export interface Peer {
   id: string;
   session: string;
+  ip?: string;
   send: (event: Event) => void;
   roomId?: string;
   queue?: QueuePreference;
@@ -49,12 +51,13 @@ export type Match = {
   message: string | null;
 };
 
-export class ActionError extends Error {}
+export class ActionError extends AdmissionError {}
 
 export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
   private queueSequence = 0;
+  private starts = new StartLimiter(() => this.now());
   private bots = new Map<string, BotSession>();
   private score?: ReturnType<Store['score']>;
   private contexts = new Map<string, Record<string, string>>();
@@ -211,11 +214,26 @@ export class Game {
       const waiting = [...this.peers.values()]
         .filter((p) => p.queue)
         .sort((a, b) => (a.queueOrder ?? 0) - (b.queueOrder ?? 0));
+
+      for (const peer of waiting) {
+        try {
+          this.starts.take([peer], false, false);
+        } catch (error) {
+          if (!(error instanceof AdmissionError)) throw error;
+
+          peer.queue = undefined;
+          peer.send({ type: 'error', message: error.message });
+        }
+      }
+
       let pair: [Peer, Peer] | undefined;
 
       for (const first of waiting) {
+        if (!first.queue) continue;
+
         const second = waiting.find(
           (p) =>
+            !!p.queue &&
             p !== first &&
             p.session !== first.session &&
             (p.queue === 'either' || first.queue === 'either' || p.queue !== first.queue),
@@ -231,7 +249,21 @@ export class Game {
 
       const [other, p] = pair;
       const preference = p.queue!;
-      const next = await this.newMatch();
+      let next: Match;
+
+      try {
+        next = await this.newMatch(false, [p, other]);
+      } catch (error) {
+        if (!(error instanceof AdmissionError)) throw error;
+
+        for (const peer of pair) {
+          peer.queue = undefined;
+          peer.send({ type: 'error', message: error.message });
+        }
+
+        continue;
+      }
+
       const role: Role =
         preference !== 'either'
           ? preference
@@ -250,10 +282,12 @@ export class Game {
     }
   }
 
-  async newMatch(simulated = false) {
+  async newMatch(simulated = false, actors: Peer[] = []) {
     await this.available();
 
     if (this.atCapacity()) throw new ActionError(BUSY_MESSAGE);
+
+    this.starts.take(actors, simulated);
 
     const id = crypto.randomUUID();
 
@@ -348,7 +382,7 @@ export class Game {
     let next: Match;
 
     try {
-      next = await this.newMatch();
+      next = await this.newMatch(false, [p, other]);
     } catch (error) {
       m.rematch = {};
       this.broadcast(m);
@@ -424,7 +458,7 @@ export class Game {
 
         return;
       case 'create': {
-        const next = await this.newMatch();
+        const next = await this.newMatch(false, [p]);
 
         next.inviteToken = crypto.randomUUID() + crypto.randomUUID();
 
@@ -450,6 +484,7 @@ export class Game {
         if (next.humanSession === p.session || next.judgeSession === p.session)
           throw new ActionError('Open the invitation on another device or browser profile.');
 
+        this.starts.take([p]);
         this.assign(next, p, next.humanPeer ? 'judge' : 'human');
         next.phase = 'ready';
         next.deadline = this.now() + LIMITS.actionMs;

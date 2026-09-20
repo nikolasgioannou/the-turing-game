@@ -1,12 +1,12 @@
 ---
-id: 'dc0d88'
+id: "dc0d88"
 title: Limit automated game creation and concurrent model requests
-status: backlog
+status: done
 priority: urgent
 labels:
   - security
 created_at: 2026-09-19T23:51:16.227Z
-updated_at: 2026-09-19T23:51:16.227Z
+updated_at: 2026-09-20T00:42:58.388Z
 ---
 
 Provider credit limits bound spending but do not prevent automated clients from consuming the allowance. Sessions are cheap to create and a client can control both seats. OpenRouter must remain the spending authority.

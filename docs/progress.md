@@ -504,3 +504,7 @@ The result supports retaining a 20-game cap on the 2 GB machine with substantial
 ## Trusted connection addresses
 
 Extracted connection address selection and bounded connection counters. Fly ingress uses a validated Fly-Client-IP only for a private Fly transport peer; direct/local connections ignore forwarding headers. Equivalent address spellings normalize consistently. Focused tests cover independent clients, shared-network reconnect bursts, expiry, malformed headers and direct-header spoofing. Typecheck passes. The deployed proxy's actual socket address still needs a live ingress check before closing d8bb1f; production behavior has not changed in this milestone.
+
+## Game-start and model-request protection
+
+Added session and normalized-network start throttles across public matching, invitations and rematches, with separate bounded simulator starts. Queue admission removes throttled sessions without ejecting unrelated waiting players. Model calls, hedges, retries and simulator judging share a bounded cancellation-aware request pool. The existing suite and focused limiter tests passed after resolving compatibility regressions; final added admission integration checks run below. Verified the actual production Fly key reports a finite daily allowance; no provider settings were changed. No production games or real completions were created. A challenge remains unnecessary for normal play; distributed abuse still requires the provider spending limit.

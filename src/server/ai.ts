@@ -1,3 +1,4 @@
+import { modelRequests } from './admission';
 import { resolve } from 'node:path';
 import type { ProviderAvailability } from './provider-availability';
 import { SYSTEM } from './bot/constants';
@@ -87,20 +88,22 @@ export async function requestCompletion(
   signal: AbortSignal,
   hooks: BotHooks,
   fetcher: typeof fetch = fetch,
+  requestKey = 'operator',
 ) {
   const body = JSON.stringify(openRouterBody(params));
 
   for (let attempt = 0; attempt < 2; attempt++) {
     signal.throwIfAborted();
 
-    await hooks.beforeRequest();
-
+    const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(timeout * 1000)]);
+    const release = await modelRequests.acquire(requestKey, requestSignal);
     let status: number | undefined;
     let responseHeaders = new Headers();
     let received = false;
 
     try {
-      signal.throwIfAborted();
+      requestSignal.throwIfAborted();
+      await hooks.beforeRequest();
 
       const response = await fetcher('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -109,7 +112,7 @@ export async function requestCompletion(
           'Content-Type': 'application/json',
         },
         body,
-        signal: AbortSignal.any([signal, AbortSignal.timeout(timeout * 1000)]),
+        signal: requestSignal,
       });
 
       status = response.status;
@@ -135,6 +138,8 @@ export async function requestCompletion(
 
       return text;
     } catch (error) {
+      release();
+
       if (
         status === 402 ||
         signal.aborted ||
@@ -165,6 +170,8 @@ export async function requestCompletion(
 
         if (signal.aborted) abort();
       });
+    } finally {
+      release();
     }
   }
 
@@ -250,6 +257,7 @@ export function createAI(
                     creditExhausted: () => options.availability?.reportExhausted(),
                   },
                   options.fetcher,
+                  id,
                 )
                   .then((text) => write({ type: 'result', id: event.id, text }))
                   .catch((error) => {

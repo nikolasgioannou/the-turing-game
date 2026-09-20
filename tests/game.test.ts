@@ -944,3 +944,41 @@ test('friend joins use their reserved slot and full rematches can retry after re
   expect(h.p.roomId).not.toBe(m.id);
   expect(h.p.roomId).toBe(j.p.roomId);
 });
+
+test('rapid invitation reuse is throttled but normal replay recovers', async () => {
+  const { p } = await peer();
+
+  for (let i = 0; i < 6; i++) {
+    await game.handle(p, { type: 'create', role: 'human' });
+    await game.handle(p, { type: 'leave' });
+  }
+
+  await expect(game.handle(p, { type: 'create', role: 'human' })).rejects.toThrow(
+    'starting games too quickly',
+  );
+
+  clock += 90_000;
+  await game.handle(p, { type: 'create', role: 'human' });
+  expect(game.rooms.get(p.roomId!)?.phase).toBe('waiting');
+});
+
+test('abusive queued session cannot eject an unrelated waiting player', async () => {
+  const a = await peer();
+
+  for (let i = 0; i < 6; i++) {
+    await game.handle(a.p, { type: 'create', role: 'human' });
+    await game.handle(a.p, { type: 'leave' });
+  }
+
+  const normal = await peer();
+
+  await game.handle(normal.p, { type: 'queue', role: 'judge' });
+  await game.handle(a.p, { type: 'queue', role: 'human' });
+  expect(a.p.queue).toBeUndefined();
+  expect(normal.p.queue).toBe('judge');
+
+  const good = await peer();
+
+  await game.handle(good.p, { type: 'queue', role: 'human' });
+  expect(good.p.roomId).toBe(normal.p.roomId);
+});
