@@ -6,21 +6,23 @@ priority: urgent
 labels:
   - performance
 created_at: 2026-09-19T23:51:16.195Z
-updated_at: 2026-09-20T00:05:46.177Z
+updated_at: 2026-09-20T01:23:21.159Z
 ---
 
-Each match spawns a separate Bun process (src/server/ai.ts). Production uses one shared CPU and 512 MB of memory; the 1,000-connection ceiling does not establish safe active-game capacity.
+The configurable 20-game cap and public waiting queue are already implemented. Production now uses one shared CPU and 2 GB RAM. Do not reimplement the delivered admission controls.
 
-Acceptance criteria:
+Delivered:
 
-- Add a configurable maximum number of active games, enforced across public matching, invitations, friend rematches and simulator work.
-- Keep excess demand in a bounded queue with clear waiting/cancel behavior and fair admission when capacity becomes free.
-- Measure worker memory and latency before selecting limits or changing machine size; document the measured safe range.
-- Preserve the single-authority architecture. Do not add machines without shared room ownership/routing.
-- Test simultaneous admissions, cancellation, disconnects and slot release after every terminal state.
+- MAX_ACTIVE_GAMES defaults to 20 unfinished rooms across public games, invitations, friend rematches and simulator work.
+- Public excess demand waits for capacity and admits compatible players when a slot is released, with cancellation/disconnect handling.
+- Friend creation/rematches and simulator starts return a retry response when full; an existing invitation reserves its slot.
+- Tests cover simultaneous admission and slot release. The controlled Fly test admitted 20 games and held the extra pair until capacity became free; see docs/progress.md and a5b7a7 for measurement limitations.
 
-Implementation update:
+Recommended remaining scope:
 
-- Implemented the explicitly requested default of 20 configurable unfinished rooms via MAX_ACTIVE_GAMES, shared by public, friend and simulator paths.
-- Public excess demand queues automatically; friend creation/rematches return a retry message when full.
-- User deferred capacity measurement. This ticket remains in backlog for its broader measurement and unified waiting-policy acceptance criteria; do not start remaining work without explicit authorization.
+- Review the original queue-bounding, waiting-policy and terminal-state coverage requirements against the current implementation. Identify concrete gaps before starting any further work.
+- Decide whether friend retry behavior is sufficient; a unified friend waiting queue is not a requirement for the initial release.
+- Narrow this ticket to verified gaps, or close it after confirming the delivered behavior meets the chosen policy. Do not treat broader load testing as a blocker for the existing 20-game configuration.
+- Preserve the single-authority architecture; additional machines require coordinated room ownership and routing.
+
+Keep in backlog pending an explicit request to review or implement the remaining scope.

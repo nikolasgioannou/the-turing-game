@@ -6,23 +6,27 @@ priority: high
 labels:
   - operations
 created_at: 2026-09-20T00:26:56.228Z
-updated_at: 2026-09-20T00:26:56.228Z
+updated_at: 2026-09-20T01:23:21.189Z
 ---
 
-Production deploys currently replace the single Fly machine immediately. Active rooms and bot workers live in process memory, so replacing that process interrupts games. Investigate and implement a practical deployment flow that lets existing games finish while the next version becomes available.
+Production deploys replace the single Fly machine immediately. Rooms and bot workers live in process memory, so replacement interrupts active games.
 
-Scope:
+Recommendation: defer multi-machine room ownership, migration and seamless handoff architecture. First evaluate the simplest practical drain-and-wait deployment flow that lets existing games finish before replacing the process. Brief waiting for new arrivals is acceptable to evaluate; uninterrupted service must not be claimed without verification.
 
-- Evaluate draining the existing process before replacement versus temporarily running old and new machines together. Document feasibility, Fly shutdown limits, additional running cost, and the simplest safe approach.
-- Stop assigning new games to a draining process while preserving current chat, opening replies, timers, verdict submission and result delivery. Account for waiting invitations, queued players and rematches so draining cannot wait indefinitely.
-- If machines overlap, define room ownership and reconnect routing, coordinate matchmaking and the active-game limit, and prevent duplicate bot workers or outcome writes. Changing the deployment strategy alone is insufficient for in-memory rooms.
-- Bound drain time and handle forced shutdown, failed deployments and rollback with clear player recovery. Coordinate with ticket 4b2745 for stale-room recovery.
+Initial scope when authorized:
 
-Acceptance criteria:
+- Stop assigning new games while allowing opening replies, chat, timers, verdict submission, pending outcome saves and result delivery to finish.
+- Define behavior for queued players, reserved invitations and rematches so draining cannot wait indefinitely.
+- Determine where draining occurs relative to Fly replacement and shutdown deadlines; changing the deployment strategy alone does not preserve in-memory rooms.
+- Bound drain time and document forced shutdown, failed deployment and rollback recovery. Existing missing-match recovery helps explain interruptions but does not preserve a lost game.
 
-- A controlled deployment during opening, active chat and verdict allows existing games to finish without losing messages, duplicating model work or scoring twice.
-- New arrivals receive an accurate waiting state or reach the new version without entering a process that is shutting down.
-- Reconnection during deployment returns participants to their owning game when it still exists.
-- Document any unavoidable interruption cases, operational steps, cost implications and verified limitations. If seamless continuation is not feasible within the chosen architecture, record the required changes and provide a safe drain-and-wait alternative.
+Acceptance for the initial approach:
 
-This ticket does not authorize implementation or additional infrastructure spending.
+- Verify a controlled drain during opening, chat and verdict, including outcome persistence, without duplicate model work or scores.
+- New arrivals receive accurate waiting/retry behavior and do not enter a process about to shut down.
+- Reconnecting players recover their owning game while its process is alive; document cases where recovery is impossible.
+- Document operational steps, unavoidable interruptions, verified limitations and any cost implications.
+
+Only revisit overlapping machines or room migration if usage and deployment needs justify the complexity. That later scope must define room ownership, reconnect routing, coordinated matchmaking/cap enforcement and duplicate-work prevention before implementation.
+
+Keep in backlog. This ticket does not authorize implementation or additional infrastructure spending.

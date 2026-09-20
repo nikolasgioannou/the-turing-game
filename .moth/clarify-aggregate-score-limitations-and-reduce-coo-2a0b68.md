@@ -6,15 +6,22 @@ priority: medium
 labels:
   - integrity
 created_at: 2026-09-19T23:51:16.367Z
-updated_at: 2026-09-19T23:51:16.367Z
+updated_at: 2026-09-20T01:23:21.204Z
 ---
 
-Two cooperating clients can control both roles and repeatedly submit chosen outcomes. The homepage aggregate is therefore a game statistic, not a controlled measurement of model performance.
+Two cooperating clients can control both roles and repeatedly submit chosen outcomes. The homepage aggregate represents completed games, not unique people or a controlled scientific measurement of model performance.
 
-Acceptance criteria:
+Recommendation: start with honest score wording. Defer sophisticated anti-cheating, identity verification and reputation systems until observed abuse justifies them.
 
-- Decide and document whether the aggregate represents casual play or a stronger evaluation claim.
-- Use accurate UI wording and avoid unsupported claims about human/model detection ability.
-- Evaluate low-friction duplicate/automated outcome abuse protections without introducing unnecessary user tracking.
-- Keep simulated, failed and abandoned games excluded and preserve idempotent outcome writes.
-- Test coordinated repeat play and normal friend rematches against the chosen policy.
+Initial acceptance criteria when authorized:
+
+- Explain the aggregate as a casual game statistic and avoid unsupported claims about human/model detection ability or unique participants.
+- Keep the wording concise and understandable in the homepage score UI.
+- Preserve exclusion of simulated, failed and abandoned games and idempotent outcome writes; normal friend rematches remain legitimate repeat play.
+
+Deferred scope:
+
+- If coordinated or automated manipulation becomes a real issue, define the desired counting policy and evaluate proportionate, low-friction protections without unnecessary user tracking.
+- Test observed abuse patterns alongside normal friend rematches before adopting those protections.
+
+Keep in backlog; this scope clarification does not authorize implementation.
