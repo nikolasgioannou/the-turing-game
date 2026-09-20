@@ -1,5 +1,5 @@
 import { commandSchema } from '../src/shared/commands';
-import { afterAll, beforeAll, beforeEach, expect, test, spyOn } from 'bun:test';
+import { afterAll, afterEach, beforeAll, beforeEach, expect, test, spyOn } from 'bun:test';
 import { database } from '../src/server/database';
 import { Store } from '../src/server/store';
 import { Game, type Peer, type Match } from '../src/server/game';
@@ -31,6 +31,10 @@ beforeAll(async () => {
   await store.init();
 });
 
+afterEach(async () => {
+  await game.settled();
+});
+
 afterAll(async () => {
   await store.db.close();
 });
@@ -47,6 +51,7 @@ async function peer(session: string = crypto.randomUUID()) {
   const p: Peer = { id: crypto.randomUUID(), session, send: (e) => events.push(e) };
 
   await game.connect(p);
+  await game.settled();
 
   return { p, events };
 }
@@ -206,6 +211,8 @@ test('deadline stops worker and rejects late replies, sending and spectator gues
     reason: 'found the bot',
   });
 
+  await game.settled();
+
   expect(game.view(m, j.p).result?.humanWon).toBe(true);
 });
 
@@ -220,6 +227,8 @@ test('early verdict commits reason and identity together, cancels work and block
     choice: m.humanLabel,
     reason: 'guess',
   });
+
+  await game.settled();
 
   expect(m.phase).toBe('complete');
   expect(game.view(m, j.p).result?.humanWon).toBe(false);
@@ -295,6 +304,7 @@ test('judge identifies the bot and both humans win', async () => {
   const { j, m } = await opening();
 
   await game.handle(j.p, { type: 'verdict', choice: m.humanLabel === 'A' ? 'B' : 'A', reason: '' });
+  await game.settled();
 
   expect(
     game.view(m, { id: 'test', session: m.humanSession!, send: () => {} }).result?.humanWon,
@@ -351,6 +361,7 @@ test('verdict broadcasts the updated aggregate to people on the homepage', async
 
   expect(lastScore()).toEqual({ completed: 0, aiWins: 0 });
   await game.handle(j.p, { type: 'verdict', choice: m.humanLabel === 'A' ? 'B' : 'A', reason: '' });
+  await game.settled();
   expect(lastScore()).toEqual({ completed: 1, aiWins: 0 });
   await game.tick();
   expect(lastScore()).toEqual({ completed: 1, aiWins: 0 });
@@ -524,6 +535,8 @@ test('unchanged lobby ticks reuse the aggregate until a result is saved', async 
       reason: '',
     });
 
+    await game.settled();
+
     expect(calls).toBe(2);
   } finally {
     store.score = original;
@@ -554,6 +567,8 @@ test('completed matches store only an outcome and are not rejoined after returni
     choice: m.humanLabel === 'A' ? 'B' : 'A',
     reason: 'private explanation',
   });
+
+  await game.settled();
 
   expect(await store.db.query('SELECT * FROM match_outcomes')).toEqual([
     { id: m.id, ai_won: false },
@@ -673,6 +688,7 @@ async function finishedFriends() {
   await game.handle(j.p, { type: 'join', token: m.inviteToken });
   m.choice = m.humanLabel === 'A' ? 'B' : 'A';
   await game.finish(m, 'complete', null);
+  await game.settled();
 
   return { h, j, m };
 }
@@ -853,6 +869,8 @@ test('credit exhaustion does not discard a game already ready for a verdict', as
       reason: '',
     });
 
+    await game.settled();
+
     expect(m.phase).toBe('complete');
     expect((await store.score()).completed).toBe(1);
   } finally {
@@ -1014,6 +1032,7 @@ test('verdict write retries keep identities private and preserve the choice and 
     ).rejects.toThrow();
 
     await completion;
+    await game.settled();
     expect(m.phase).toBe('complete');
     expect(m.reason).toBe('my exact reason');
     expect((await store.score()).completed).toBe(1);
@@ -1036,6 +1055,7 @@ test('ambiguous outcome write retries are idempotent and permanent failure is ac
 
   try {
     await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'saved once' });
+    await game.settled();
     expect((await store.score()).completed).toBe(1);
     expect(m.phase).toBe('complete');
   } finally {
@@ -1050,6 +1070,7 @@ test('ambiguous outcome write retries are idempotent and permanent failure is ac
 
   try {
     await game.handle(next.j.p, { type: 'verdict', choice: next.m.humanLabel, reason: 'retained' });
+    await game.settled();
     expect(next.m.phase).toBe('failed');
     expect(next.m.reason).toBe('retained');
     expect(game.view(next.m, next.j.p).result).toBeNull();
@@ -1076,6 +1097,7 @@ test('disconnect while saving preserves the committed result', async () => {
     await game.disconnect(j.p);
     release();
     await completion;
+    await game.settled();
     expect(m.phase).toBe('complete');
     expect((await store.score()).completed).toBe(1);
   } finally {
@@ -1135,4 +1157,104 @@ test('friend result reconnect restores rematch availability without restoring wi
   expect(reconnect.roomId).toBe(m.id);
   expect(game.view(m, reconnect).rematch?.own).toBeNull();
   expect(game.view(m, j.p).rematch?.available).toBe(true);
+});
+
+test('slow verdict storage does not block unrelated chat, heartbeat or verdicts', async () => {
+  const first = await opening();
+  const second = await opening();
+  const original = store.saveOutcome.bind(store);
+  let release!: () => void;
+
+  store.saveOutcome = async (id, won) => {
+    if (id === first.m.id)
+      await new Promise<void>((resolve) => {
+        release = resolve;
+      });
+
+    await original(id, won);
+  };
+
+  try {
+    await game.run(() =>
+      game.handle(first.j.p, { type: 'verdict', choice: first.m.humanLabel, reason: 'first' }),
+    );
+
+    expect(first.m.phase).toBe('saving');
+    await emit(first.m, [], 'live');
+    expect(first.m.phase).toBe('saving');
+    await game.run(() => game.handle(second.j.p, { type: 'message', text: 'still responsive' }));
+    await game.run(() => game.handle(second.j.p, { type: 'ping' }));
+    expect(second.j.events.at(-1)?.type).toBe('pong');
+
+    await game.run(() =>
+      game.handle(second.j.p, { type: 'verdict', choice: second.m.humanLabel, reason: 'second' }),
+    );
+
+    for (let i = 0; i < 30 && second.m.phase === 'saving'; i++) await Bun.sleep(10);
+
+    expect(second.m.phase).toBe('complete');
+    expect(first.m.phase).toBe('saving');
+  } finally {
+    release();
+    await game.settled();
+    store.saveOutcome = original;
+  }
+});
+
+test('a slow score read is coalesced and does not block authority actions', async () => {
+  const original = store.score.bind(store);
+  let release!: () => void,
+    calls = 0;
+
+  store.score = async () => {
+    calls++;
+    await new Promise<void>((resolve) => (release = resolve));
+
+    return original();
+  };
+
+  try {
+    const events: Event[] = [];
+    const p: Peer = {
+      id: crypto.randomUUID(),
+      session: crypto.randomUUID(),
+      send: (e) => events.push(e),
+    };
+
+    await game.run(() => game.connect(p));
+
+    for (let i = 0; i < 20; i++) await game.run(() => game.tick());
+
+    await game.run(() => game.handle(p, { type: 'ping' }));
+    expect(events.at(-1)).toEqual({ type: 'pong' });
+    expect(calls).toBe(1);
+  } finally {
+    release();
+    await game.settled();
+    store.score = original;
+  }
+});
+
+test('admission uses cached availability while refresh is pending and rejects confirmed exhaustion', async () => {
+  let release!: () => void;
+  let message: string | null = null;
+  const checking = new Promise<void>((resolve) => (release = resolve));
+
+  game.ai = { ...ai, refreshAvailability: () => checking, unavailable: () => message };
+
+  const p: Peer = { id: crypto.randomUUID(), session: crypto.randomUUID(), send: () => {} };
+
+  try {
+    await game.run(() => game.connect(p));
+    await game.run(() => game.handle(p, { type: 'create', role: 'judge' }));
+    expect(p.roomId).toBeDefined();
+    await game.run(() => game.handle(p, { type: 'leave' }));
+    message = 'No more games today';
+
+    await expect(game.run(() => game.handle(p, { type: 'create', role: 'judge' }))).rejects.toThrow(
+      message,
+    );
+  } finally {
+    release();
+  }
 });

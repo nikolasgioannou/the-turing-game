@@ -1,12 +1,12 @@
 ---
 id: '846378'
 title: Keep slow external calls outside global game serialization
-status: backlog
+status: done
 priority: high
 labels:
   - performance
 created_at: 2026-09-19T23:51:16.242Z
-updated_at: 2026-09-19T23:51:16.242Z
+updated_at: 2026-09-20T00:50:58.006Z
 ---
 
 Game.run serializes all players through one promise chain. Admission can await a provider check and game operations await database work. An in-memory reproduction showed an unrelated action blocked behind a delayed availability check.

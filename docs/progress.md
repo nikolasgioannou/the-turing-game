@@ -516,3 +516,7 @@ Added a saving phase that freezes the submitted choice/reason and cancels bot wo
 ## Authoritative match restoration
 
 WebSocket handshakes now explicitly report the restored room or absence of a room. The browser remembers only the previous room ID for refresh recovery; a missing room clears stale chat/timer state and displays a route back to normal play. Active seats still restore by authenticated session, and retained friend results can restore rematch availability without restoring withdrawn consent. Tests verify normal reconnect, server-state loss, foreign-room secrecy and friend result recovery. All 65 game tests and typecheck pass; browser coverage follows with the mobile milestone.
+
+## Dependency isolation
+
+Moved score reads and outcome saves outside the serialized game queue, with coalesced score refreshes and room/state revalidation on outcome completion. Admission uses the provider cache refreshed by the independent server timer. Socket work is bounded and timer ticks coalesce. Tests hold one verdict write or score read open while unrelated chat, verdicts and heartbeats continue; a pending availability refresh no longer blocks admission against the known cache. Added a guard against late bot snapshots reopening a saving game. Full typecheck, unit/integration suite and production build pass. No production deployment.

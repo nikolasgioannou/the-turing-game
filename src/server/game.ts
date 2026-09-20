@@ -62,6 +62,21 @@ export class Game {
   private starts = new StartLimiter(() => this.now());
   private bots = new Map<string, BotSession>();
   private score?: ReturnType<Store['score']>;
+  private lobbyPending = false;
+  private scoreRetryAt = 0;
+  private background = new Set<Promise<unknown>>();
+
+  private track(task: Promise<unknown>) {
+    this.background.add(task);
+    void task.catch(() => {}).finally(() => this.background.delete(task));
+  }
+
+  async settled() {
+    while (this.background.size) await Promise.allSettled([...this.background]);
+
+    await this.serial;
+  }
+
   private contexts = new Map<string, Record<string, string>>();
   private serial: Promise<unknown> = Promise.resolve();
 
@@ -149,26 +164,45 @@ export class Game {
     };
   }
 
-  async lobby(peer?: Peer) {
-    const score = await (this.score ??= this.store.score().catch((error) => {
-      this.score = undefined;
+  async lobby(_peer?: Peer) {
+    if (this.lobbyPending || this.now() < this.scoreRetryAt) return;
 
-      throw error;
-    }));
-    const unavailable = this.ai.unavailable?.();
-    const availability = {
-      available: !unavailable,
-      message: unavailable ?? null,
-      ...(unavailable && this.ai.capacityResetsAt?.()
-        ? { resetsAt: this.ai.capacityResetsAt() }
-        : {}),
-    };
+    this.lobbyPending = true;
 
-    for (const p of peer ? [peer] : this.peers.values())
-      p.send({
-        type: 'lobby',
-        data: { availability, score, queued: p.queue ?? null, atCapacity: this.atCapacity() },
+    const scoreTask = (this.score ??= withDeadline(this.store.score()));
+    const task = scoreTask
+      .then((score) =>
+        this.run(async () => {
+          if (this.score !== scoreTask) return;
+
+          const unavailable = this.ai.unavailable?.();
+          const availability = {
+            available: !unavailable,
+            message: unavailable ?? null,
+            ...(unavailable && this.ai.capacityResetsAt?.()
+              ? { resetsAt: this.ai.capacityResetsAt() }
+              : {}),
+          };
+
+          for (const p of this.peers.values())
+            p.send({
+              type: 'lobby',
+              data: { availability, score, queued: p.queue ?? null, atCapacity: this.atCapacity() },
+            });
+        }),
+      )
+      .catch(() => {
+        if (this.score === scoreTask) this.score = undefined;
+
+        this.scoreRetryAt = this.now() + 5000;
+      })
+      .finally(() => {
+        this.lobbyPending = false;
+
+        if (this.score !== scoreTask && this.now() >= this.scoreRetryAt) void this.lobby();
       });
+
+    this.track(task);
   }
 
   broadcast(m: Match) {
@@ -200,8 +234,6 @@ export class Game {
   }
 
   async available() {
-    await this.ai.refreshAvailability?.();
-
     const unavailable = this.ai.unavailable?.();
 
     if (unavailable) throw new ActionError(unavailable);
@@ -710,7 +742,7 @@ export class Game {
   }
 
   private async receiveBot(m: Match, state: BotState) {
-    if (ended(m.phase) || m.phase === 'verdict') return;
+    if (ended(m.phase) || ['verdict', 'saving'].includes(m.phase)) return;
 
     if (m.deadline !== null && this.now() >= m.deadline) {
       await this.expire(m);
@@ -785,25 +817,7 @@ export class Game {
       m.deadline = null;
       this.stopBot(m);
       this.broadcast(m);
-
-      let saved = !!m.simulated;
-
-      for (let attempt = 0; !saved && attempt < 3; attempt++) {
-        try {
-          await withDeadline(this.store.saveOutcome(m.id, m.choice === m.humanLabel));
-          saved = true;
-        } catch {
-          if (attempt < 2) await Bun.sleep(250 * 2 ** attempt);
-        }
-      }
-
-      m.phase = saved ? 'complete' : 'failed';
-
-      m.message = saved
-        ? null
-        : 'We couldn’t confirm your result was saved. Please return to the lobby and try a new game.';
-
-      await this.persist(m);
+      this.track(this.saveResult(m));
 
       return;
     }
@@ -813,6 +827,31 @@ export class Game {
     m.deadline = null;
     this.stopBot(m);
     await this.persist(m);
+  }
+
+  private async saveResult(m: Match) {
+    let saved = !!m.simulated;
+
+    for (let attempt = 0; !saved && attempt < 3; attempt++) {
+      try {
+        await withDeadline(this.store.saveOutcome(m.id, m.choice === m.humanLabel));
+        saved = true;
+      } catch {
+        if (attempt < 2) await Bun.sleep(250 * 2 ** attempt);
+      }
+    }
+
+    await this.run(async () => {
+      if (this.rooms.get(m.id) !== m || m.phase !== 'saving') return;
+
+      m.phase = saved ? 'complete' : 'failed';
+
+      m.message = saved
+        ? null
+        : 'We couldn’t confirm your result was saved. Please return to the lobby and try a new game.';
+
+      await this.persist(m);
+    });
   }
 
   async disconnect(p: Peer) {

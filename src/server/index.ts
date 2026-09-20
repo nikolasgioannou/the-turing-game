@@ -65,6 +65,7 @@ type SocketData = {
   window: number;
   messages: number;
   drafts: number;
+  pending: number;
 };
 
 const sockets = new Set<ServerWebSocket<SocketData>>();
@@ -201,7 +202,14 @@ const server = Bun.serve<SocketData>({
 
       if (
         server.upgrade(req, {
-          data: { peer, lastPing: Date.now(), window: Date.now(), messages: 0, drafts: 0 },
+          data: {
+            peer,
+            lastPing: Date.now(),
+            window: Date.now(),
+            messages: 0,
+            drafts: 0,
+            pending: 0,
+          },
         })
       )
         return;
@@ -294,6 +302,17 @@ const server = Bun.serve<SocketData>({
         return;
       }
 
+      if (ws.data.pending >= 8) {
+        ws.data.peer.send({
+          type: 'error',
+          message: 'Please wait for your previous actions to finish.',
+        });
+
+        return;
+      }
+
+      ws.data.pending++;
+
       void game.run(async () => {
         try {
           await game.handle(ws.data.peer, raw);
@@ -305,6 +324,8 @@ const server = Bun.serve<SocketData>({
                 ? error.message
                 : 'Something went wrong. Please try again.',
           });
+        } finally {
+          ws.data.pending--;
         }
       });
     },
@@ -314,6 +335,7 @@ const server = Bun.serve<SocketData>({
     },
   },
 });
+let ticking = false;
 const timer = setInterval(() => {
   for (const ws of sockets)
     if (Date.now() - ws.data.lastPing > 45_000) ws.close(1001, 'Connection lost');
@@ -321,7 +343,17 @@ const timer = setInterval(() => {
   connections.prune();
 
   void availability.refresh();
-  void game.run(() => game.tick());
+
+  if (!ticking) {
+    ticking = true;
+
+    void game
+      .run(() => game.tick())
+      .finally(() => {
+        ticking = false;
+      })
+      .catch(() => {});
+  }
 }, 1000);
 let stopping = false;
 
@@ -337,6 +369,7 @@ async function stop() {
         await game.finish(m, 'failed', 'The server restarted. This match was not counted.');
   });
 
+  await game.settled();
   await server.stop(true);
   await db.close();
   process.exit();
