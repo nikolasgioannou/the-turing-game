@@ -1,12 +1,12 @@
 ---
 id: '4c14c7'
 title: Recover cleanly when saving a verdict fails
-status: backlog
+status: done
 priority: urgent
 labels:
   - bug
 created_at: 2026-09-19T23:51:16.273Z
-updated_at: 2026-09-19T23:51:16.273Z
+updated_at: 2026-09-20T00:45:28.598Z
 ---
 
 Game.finish marks a match complete before persist saves its outcome. If the write rejects, no result is broadcast, and another verdict is rejected because the match is already complete. Reproduced with a failing Store.saveOutcome: complete server state, zero room result events, retry rejected.

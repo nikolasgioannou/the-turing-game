@@ -1046,7 +1046,7 @@ function Room({
           ))}
         </div>
       ) : null}
-      {!done && room.phase !== 'waiting' ? (
+      {!done && !['waiting', 'saving'].includes(room.phase) ? (
         <section
           className="action-panel m-0 shrink-0 border-0 border-t border-[#303853] bg-transparent py-3"
           aria-label="Chat controls"

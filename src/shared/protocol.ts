@@ -33,6 +33,7 @@ export type Phase =
   | 'opening_ai'
   | 'chat'
   | 'verdict'
+  | 'saving'
   | 'complete'
   | 'abandoned'
   | 'failed';

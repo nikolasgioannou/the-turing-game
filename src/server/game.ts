@@ -1,3 +1,4 @@
+import { withDeadline } from './deadline';
 import { AdmissionError, StartLimiter } from './admission';
 import { BUSY_MESSAGE } from './capacity';
 import { commandSchema } from '../shared/commands';
@@ -171,10 +172,6 @@ export class Game {
   }
 
   async persist(m: Match) {
-    // Simulated matches never touch the public score.
-    if (m.phase === 'complete' && !m.simulated)
-      await this.store.saveOutcome(m.id, m.choice === m.humanLabel);
-
     if (ended(m.phase)) this.score = undefined;
 
     this.broadcast(m);
@@ -660,7 +657,7 @@ export class Game {
             }),
           failed: (error) => {
             void this.run(async () => {
-              if (ended(m.phase) || m.phase === 'verdict') return;
+              if (ended(m.phase) || ['verdict', 'saving'].includes(m.phase)) return;
 
               const exhausted = error instanceof AIError && error.code === 'openrouter_402';
 
@@ -775,6 +772,37 @@ export class Game {
   }
 
   async finish(m: Match, phase: Phase, message: string | null) {
+    if (ended(m.phase) || m.phase === 'saving') return;
+
+    if (phase === 'complete') {
+      m.phase = 'saving';
+      m.message = 'Saving your result…';
+      m.deadline = null;
+      this.stopBot(m);
+      this.broadcast(m);
+
+      let saved = !!m.simulated;
+
+      for (let attempt = 0; !saved && attempt < 3; attempt++) {
+        try {
+          await withDeadline(this.store.saveOutcome(m.id, m.choice === m.humanLabel));
+          saved = true;
+        } catch {
+          if (attempt < 2) await Bun.sleep(250 * 2 ** attempt);
+        }
+      }
+
+      m.phase = saved ? 'complete' : 'failed';
+
+      m.message = saved
+        ? null
+        : 'We couldn’t confirm your result was saved. Please return to the lobby and try a new game.';
+
+      await this.persist(m);
+
+      return;
+    }
+
     m.phase = phase;
     m.message = message;
     m.deadline = null;
@@ -817,7 +845,7 @@ export class Game {
 
     if (this.ai.capacityExhausted?.()) {
       for (const m of this.rooms.values()) {
-        if (!ended(m.phase) && m.phase !== 'verdict')
+        if (!ended(m.phase) && !['verdict', 'saving'].includes(m.phase))
           await this.finish(m, 'failed', CAPACITY_INTERRUPTED);
       }
     }

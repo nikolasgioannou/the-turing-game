@@ -982,3 +982,103 @@ test('abusive queued session cannot eject an unrelated waiting player', async ()
   await game.handle(good.p, { type: 'queue', role: 'human' });
   expect(good.p.roomId).toBe(normal.p.roomId);
 });
+
+test('verdict write retries keep identities private and preserve the choice and reason', async () => {
+  const { j, h, m } = await opening();
+  const original = store.saveOutcome.bind(store);
+  let attempts = 0;
+
+  store.saveOutcome = async (...args) => {
+    if (++attempts === 1) throw Error('temporary database failure');
+
+    await original(...args);
+  };
+
+  try {
+    const completion = game.handle(j.p, {
+      type: 'verdict',
+      choice: m.humanLabel,
+      reason: 'my exact reason',
+    });
+
+    await Bun.sleep(10);
+    expect(m.phase).toBe('saving');
+    expect(game.view(m, h.p).result).toBeNull();
+
+    await expect(
+      game.handle(j.p, {
+        type: 'verdict',
+        choice: m.humanLabel === 'A' ? 'B' : 'A',
+        reason: 'changed',
+      }),
+    ).rejects.toThrow();
+
+    await completion;
+    expect(m.phase).toBe('complete');
+    expect(m.reason).toBe('my exact reason');
+    expect((await store.score()).completed).toBe(1);
+    expect(attempts).toBe(2);
+  } finally {
+    store.saveOutcome = original;
+  }
+});
+
+test('ambiguous outcome write retries are idempotent and permanent failure is actionable', async () => {
+  const { j, m } = await opening();
+  const original = store.saveOutcome.bind(store);
+  let attempts = 0;
+
+  store.saveOutcome = async (...args) => {
+    await original(...args);
+
+    if (++attempts === 1) throw Error('ack lost');
+  };
+
+  try {
+    await game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'saved once' });
+    expect((await store.score()).completed).toBe(1);
+    expect(m.phase).toBe('complete');
+  } finally {
+    store.saveOutcome = original;
+  }
+
+  const next = await opening();
+
+  store.saveOutcome = async () => {
+    throw Error('database down');
+  };
+
+  try {
+    await game.handle(next.j.p, { type: 'verdict', choice: next.m.humanLabel, reason: 'retained' });
+    expect(next.m.phase).toBe('failed');
+    expect(next.m.reason).toBe('retained');
+    expect(game.view(next.m, next.j.p).result).toBeNull();
+    expect(next.m.message).toContain('couldn’t confirm');
+  } finally {
+    store.saveOutcome = original;
+  }
+});
+
+test('disconnect while saving preserves the committed result', async () => {
+  const { j, m } = await opening();
+  const original = store.saveOutcome.bind(store);
+  let release!: () => void;
+
+  store.saveOutcome = async (...args) => {
+    await new Promise<void>((resolve) => (release = resolve));
+    await original(...args);
+  };
+
+  try {
+    const completion = game.handle(j.p, { type: 'verdict', choice: m.humanLabel, reason: 'yes' });
+
+    await Bun.sleep(1);
+    await game.disconnect(j.p);
+    release();
+    await completion;
+    expect(m.phase).toBe('complete');
+    expect((await store.score()).completed).toBe(1);
+  } finally {
+    store.saveOutcome = original;
+  }
+});

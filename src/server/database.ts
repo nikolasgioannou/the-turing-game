@@ -13,7 +13,12 @@ export interface Database extends Query {
 
 export async function database(url?: string): Promise<Database> {
   if (url) {
-    const sql = postgres(url, { max: 5, prepare: false, connect_timeout: 10 });
+    const sql = postgres(url, {
+      max: 5,
+      prepare: false,
+      connect_timeout: 5,
+      connection: { statement_timeout: 4000 },
+    });
     const wrap = (client: any): Query => ({
       query: async <T>(q: string, p: unknown[] = []) =>
         Array.from(await client.unsafe(q, p)) as T[],
