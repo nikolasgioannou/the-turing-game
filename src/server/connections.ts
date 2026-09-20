@@ -25,8 +25,10 @@ export function normalizeIP(value: string | null | undefined): string | null {
 export function clientIP(headers: Headers, address: string | undefined, flyProxy: boolean) {
   const direct = normalizeIP(address);
 
-  if (flyProxy && direct?.startsWith('fdaa:'))
-    return normalizeIP(headers.get('fly-client-ip')) ?? direct;
+  const privatePeer =
+    direct && (direct.startsWith('fdaa:') || /^172\.(1[6-9]|2\d|3[01])\./.test(direct));
+
+  if (flyProxy && privatePeer) return normalizeIP(headers.get('fly-client-ip')) ?? direct;
 
   return direct ?? 'unknown';
 }

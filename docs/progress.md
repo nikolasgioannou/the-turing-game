@@ -520,3 +520,7 @@ WebSocket handshakes now explicitly report the restored room or absence of a roo
 ## Dependency isolation
 
 Moved score reads and outcome saves outside the serialized game queue, with coalesced score refreshes and room/state revalidation on outcome completion. Admission uses the provider cache refreshed by the independent server timer. Socket work is bounded and timer ticks coalesce. Tests hold one verdict write or score read open while unrelated chat, verdicts and heartbeats continue; a pending availability refresh no longer blocks admission against the known cache. Added a guard against late bot snapshots reopening a saving game. Full typecheck, unit/integration suite and production build pass. No production deployment.
+
+## Live Fly ingress verification
+
+Verified the transport address and client-header behavior using a separate temporary Fly app with the production Bun image and explicit HTTP/TLS service handlers. The observed socket address was private IPv4 in 172.16.0.0/12, so the trust check now supports that range as well as private fdaa IPv6. Fly supplied a client address and overwrote an intentionally spoofed Fly-Client-IP header. Early probe attempts hit stale DNS/service errors; the successful probe used the newly allocated address explicitly. The temporary app and machine were removed. Tests cover the observed IPv4 path, its local-development rejection and range boundaries. No production service or credentials were exposed by the diagnostic app.

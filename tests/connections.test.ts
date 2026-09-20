@@ -8,6 +8,9 @@ test('only private Fly ingress may supply the client address', () => {
   });
 
   expect(clientIP(headers, 'fdaa:1::3', true)).toBe('203.0.113.7');
+  expect(clientIP(headers, '172.16.1.234', true)).toBe('203.0.113.7');
+  expect(clientIP(headers, '172.16.1.234', false)).toBe('172.16.1.234');
+  expect(clientIP(headers, '172.15.1.1', true)).toBe('172.15.1.1');
   expect(clientIP(headers, '127.0.0.1', false)).toBe('127.0.0.1');
   expect(clientIP(headers, '198.51.100.5', true)).toBe('198.51.100.5');
   headers.set('fly-client-ip', '203.0.113.7, 198.51.100.1');

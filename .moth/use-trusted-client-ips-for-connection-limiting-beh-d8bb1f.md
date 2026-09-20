@@ -1,12 +1,12 @@
 ---
 id: 'd8bb1f'
 title: Use trusted client IPs for connection limiting behind Fly
-status: in-progress
+status: done
 priority: urgent
 labels:
   - security
 created_at: 2026-09-19T23:51:16.212Z
-updated_at: 2026-09-20T00:37:20.347Z
+updated_at: 2026-09-20T01:02:39.492Z
 ---
 
 src/server/index.ts uses server.requestIP(req) for the 60-connections-per-minute limiter. Behind Fly this may identify a proxy and group unrelated visitors. This is a deployment concern that needs verification, not a confirmed observation of production IP values.
