@@ -75,6 +75,7 @@ export type RoomView = {
 };
 
 export type Lobby = {
+  atCapacity?: boolean;
   score: { completed: number; aiWins: number };
   availability: { available: boolean; message: string | null; resetsAt?: number };
   queued: QueuePreference | null;

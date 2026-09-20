@@ -1,3 +1,4 @@
+import { BUSY_MESSAGE } from './capacity';
 import { commandSchema } from '../shared/commands';
 import {
   ended,
@@ -21,6 +22,7 @@ export interface Peer {
   send: (event: Event) => void;
   roomId?: string;
   queue?: QueuePreference;
+  queueOrder?: number;
 }
 
 export type Match = {
@@ -52,6 +54,7 @@ export class ActionError extends Error {}
 export class Game {
   peers = new Map<string, Peer>();
   rooms = new Map<string, Match>();
+  private queueSequence = 0;
   private bots = new Map<string, BotSession>();
   private score?: ReturnType<Store['score']>;
   private contexts = new Map<string, Record<string, string>>();
@@ -61,6 +64,7 @@ export class Game {
     public store: Store,
     public ai: AI,
     public now = () => Date.now(),
+    public readonly maxActiveGames = 20,
   ) {}
 
   run<T>(fn: () => Promise<T>): Promise<T> {
@@ -154,7 +158,7 @@ export class Game {
     for (const p of peer ? [peer] : this.peers.values())
       p.send({
         type: 'lobby',
-        data: { availability, score, queued: p.queue ?? null },
+        data: { availability, score, queued: p.queue ?? null, atCapacity: this.atCapacity() },
       });
   }
 
@@ -198,8 +202,58 @@ export class Game {
     if (unavailable) throw new ActionError(unavailable);
   }
 
+  atCapacity() {
+    return [...this.rooms.values()].filter((m) => !ended(m.phase)).length >= this.maxActiveGames;
+  }
+
+  async matchQueued() {
+    while (!this.atCapacity() && !this.ai.unavailable?.()) {
+      const waiting = [...this.peers.values()]
+        .filter((p) => p.queue)
+        .sort((a, b) => (a.queueOrder ?? 0) - (b.queueOrder ?? 0));
+      let pair: [Peer, Peer] | undefined;
+
+      for (const first of waiting) {
+        const second = waiting.find(
+          (p) =>
+            p !== first &&
+            p.session !== first.session &&
+            (p.queue === 'either' || first.queue === 'either' || p.queue !== first.queue),
+        );
+
+        if (second) {
+          pair = [first, second];
+          break;
+        }
+      }
+
+      if (!pair) return;
+
+      const [other, p] = pair;
+      const preference = p.queue!;
+      const next = await this.newMatch();
+      const role: Role =
+        preference !== 'either'
+          ? preference
+          : other.queue === 'human'
+            ? 'judge'
+            : other.queue === 'judge'
+              ? 'human'
+              : Math.random() < 0.5
+                ? 'human'
+                : 'judge';
+
+      this.assign(next, p, role);
+      this.assign(next, other, role === 'human' ? 'judge' : 'human');
+      next.phase = 'ready';
+      await this.persist(next);
+    }
+  }
+
   async newMatch(simulated = false) {
     await this.available();
+
+    if (this.atCapacity()) throw new ActionError(BUSY_MESSAGE);
 
     const id = crypto.randomUUID();
 
@@ -354,38 +408,12 @@ export class Game {
 
         return;
       case 'queue': {
-        const other = [...this.peers.values()].find(
-          (x) =>
-            x.queue &&
-            (x.queue === 'either' || c.role === 'either' || x.queue !== c.role) &&
-            x.session !== p.session,
-        );
-
-        if (other) {
-          const next = await this.newMatch();
-
-          const role: Role =
-            c.role !== 'either'
-              ? c.role
-              : other.queue === 'human'
-                ? 'judge'
-                : other.queue === 'judge'
-                  ? 'human'
-                  : Math.random() < 0.5
-                    ? 'human'
-                    : 'judge';
-
-          this.assign(next, p, role);
-          this.assign(next, other, role === 'human' ? 'judge' : 'human');
-          next.phase = 'ready';
-          await this.persist(next);
-        } else {
-          p.roomId = undefined;
-          p.queue = c.role;
-          await this.lobby();
-        }
-
+        p.roomId = undefined;
+        p.queue = c.role;
+        p.queueOrder = ++this.queueSequence;
         this.clearRematch(m, p);
+        await this.matchQueued();
+        await this.lobby();
 
         return;
       }
@@ -766,6 +794,7 @@ export class Game {
         this.rooms.delete(m.id);
     }
 
+    await this.matchQueued();
     await this.lobby();
   }
 }

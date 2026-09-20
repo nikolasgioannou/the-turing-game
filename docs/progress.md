@@ -476,3 +476,9 @@ Validation: the full 221-test suite, typecheck and production build passed; the 
 Added shared availability notices for paused matchmaking, provider-check failures and recovery. Recovery actions require player intent, preserve friend rematch context, and support dismissal. Confirmed key reset periods produce a local-time hint; generic credit failures clear it. Player copy describes a game limit, with “Come back tomorrow” only for a confirmed daily reset. Interrupted games explain that the round ended early without affecting win/loss. Added five gallery presets (47 total).
 
 Validation: typecheck, all 225 tests and production build passed. Desktop/mobile browser checks passed for paused notices, reset timestamps, failure messaging, dismissal, opening role selection after recovery, and preserving friend rematch controls. No real model calls, production games, provider settings, push or deployment.
+
+## Configurable concurrent-game admission
+
+Added MAX_ACTIVE_GAMES with a default of 20, strict environment validation, and an explicit Fly setting. All unfinished rooms count, including invitations, verdicts and simulations. Public matching queues excess demand and resumes on ticks in compatible arrival order. Friend creation/rematches and simulations reject excess starts with a clear retry message; existing invitations keep reserved slots. Added a desktop/mobile review state.
+
+Validation: all 230 tests, typecheck and production build passed, including concurrent admissions, queue ordering, slot release, cancellation, invitation expiry and rematch retry. Desktop/mobile browser checks verified waiting copy, cancel availability and overflow. No load measurement, real model calls or deployment was performed.

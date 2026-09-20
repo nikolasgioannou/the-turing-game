@@ -59,3 +59,7 @@ Provider authentication/credit failures end the affected match as a technical fa
 ## Custom domain
 
 Spaceship DNS points `theturinggame.ai` at Fly using A `66.241.125.138` and AAAA `2a09:8280:1::18e:4abf:0`. Fly manages the HTTPS certificate. `APP_ORIGIN` must match this public origin for WebSocket authentication and invitation links. Production page requests on the old Fly hostname redirect to the canonical domain; API health checks remain available without a redirect. The www hostname is not configured.
+
+## Concurrent game limit
+
+`MAX_ACTIVE_GAMES` defaults to 20 and must be a positive integer. Set it in `.env` for local development and restart the server. For production, edit `[env].MAX_ACTIVE_GAMES` in `fly.toml` and deploy. The limit is per process and assumes the current single-machine authority. All unfinished rooms reserve a slot, including invitations, verdicts and simulator rooms. Public players wait in the existing queue and are matched on the next tick when space opens. Full friend creation/rematch and simulator attempts receive a retry message; joining an existing invitation uses its reserved slot. This is a concurrency limit, not a spending cap or a measured capacity guarantee.

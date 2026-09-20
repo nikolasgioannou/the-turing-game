@@ -389,17 +389,19 @@ export function App({ review }: { review?: ReviewState }) {
                 ) : joining || lobby?.queued ? (
                   <>
                     <p className="eyebrow">MATCHMAKING</p>
-                    <h2>Finding an opponent</h2>
+                    <h2>{lobby?.atCapacity ? 'Waiting for a game slot' : 'Finding an opponent'}</h2>
                     <div
                       className="compact-queue m-0 flex min-h-12.5 items-center gap-3 border border-player-b bg-[#152125] px-4 py-3.5 text-[13px] text-[#ccecf6]"
                       role="status"
                     >
                       <span className="waiting-mark size-3.75 shrink-0 animate-[spin_1.5s_linear_infinite] rounded-full border-2 border-[#59604e] border-t-[#77def2]" />
-                      {lobby?.queued
-                        ? lobby.queued === 'either'
-                          ? 'Finding a match for either role…'
-                          : `Finding a ${lobby.queued === 'human' ? 'judge' : 'human'}…`
-                        : 'Joining…'}
+                      {lobby?.atCapacity && lobby?.queued
+                        ? 'All game slots are full. We’ll match you as soon as space opens.'
+                        : lobby?.queued
+                          ? lobby.queued === 'either'
+                            ? 'Finding a match for either role…'
+                            : `Finding a ${lobby.queued === 'human' ? 'judge' : 'human'}…`
+                          : 'Joining…'}
                     </div>
                     <Button
                       variant="secondary"

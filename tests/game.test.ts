@@ -783,6 +783,7 @@ test('match creation has no daily token or hourly match quota', async () => {
 
     await game.handle(p.p, { type: 'create', role: 'judge' });
     expect(p.p.roomId).toBeDefined();
+    await game.handle(p.p, { type: 'leave' });
   }
 
   expect(game.rooms.size).toBe(40);
@@ -857,4 +858,89 @@ test('credit exhaustion does not discard a game already ready for a verdict', as
   } finally {
     delete ai.capacityExhausted;
   }
+});
+
+test('default capacity stops room 21, including simultaneous simulator admissions', async () => {
+  const attempts = await Promise.allSettled(Array.from({ length: 25 }, () => game.newMatch(true)));
+
+  expect(attempts.filter((a) => a.status === 'fulfilled')).toHaveLength(20);
+  expect(game.rooms.size).toBe(20);
+  expect(game.atCapacity()).toBe(true);
+});
+
+test('queued players are matched in arrival order when a slot opens', async () => {
+  game = new Game(store, ai, () => clock, 1);
+
+  const occupied = await pair(false);
+  const a = await peer(),
+    b = await peer(),
+    c = await peer();
+
+  await game.handle(a.p, { type: 'queue', role: 'human' });
+  await game.handle(b.p, { type: 'queue', role: 'human' });
+  await game.handle(c.p, { type: 'queue', role: 'judge' });
+  expect(a.p.roomId).toBeUndefined();
+  await game.handle(occupied.h.p, { type: 'leave' });
+  await game.tick();
+  expect(a.p.roomId).toBeDefined();
+  expect(a.p.roomId).toBe(c.p.roomId);
+  expect(b.p.queue).toBe('human');
+  expect([...game.rooms.values()].filter((m) => m.phase === 'ready')).toHaveLength(1);
+});
+
+test('cancel and disconnect remove waiting players; expired invitations free capacity', async () => {
+  game = new Game(store, ai, () => clock, 1);
+
+  const host = await peer();
+
+  await game.handle(host.p, { type: 'create', role: 'human' });
+
+  const a = await peer(),
+    b = await peer(),
+    c = await peer(),
+    d = await peer();
+
+  for (const p of [a, b, c, d]) await game.handle(p.p, { type: 'queue', role: 'either' });
+
+  await game.handle(a.p, { type: 'cancel' });
+  await game.disconnect(b.p);
+  clock += 90_001;
+  await game.tick();
+  expect(a.p.roomId).toBeUndefined();
+  expect(b.p.roomId).toBeUndefined();
+  expect(c.p.roomId).toBeDefined();
+  expect(c.p.roomId).toBe(d.p.roomId);
+});
+
+test('friend joins use their reserved slot and full rematches can retry after release', async () => {
+  game = new Game(store, ai, () => clock, 1);
+
+  const { h, j, m } = await finishedFriends();
+  const host = await peer(),
+    guest = await peer();
+
+  await game.handle(host.p, { type: 'create', role: 'human' });
+
+  const reserved = game.rooms.get(host.p.roomId!)!;
+
+  await game.handle(guest.p, { type: 'join', token: reserved.inviteToken });
+
+  const extra = await peer();
+
+  await expect(game.handle(extra.p, { type: 'create', role: 'judge' })).rejects.toThrow(
+    'All game slots',
+  );
+
+  await game.handle(h.p, { type: 'rematch', role: 'human' });
+
+  await expect(game.handle(j.p, { type: 'rematch', role: 'judge' })).rejects.toThrow(
+    'All game slots',
+  );
+
+  expect(m.rematch).toEqual({});
+  await game.handle(host.p, { type: 'leave' });
+  await game.handle(h.p, { type: 'rematch', role: 'human' });
+  await game.handle(j.p, { type: 'rematch', role: 'judge' });
+  expect(h.p.roomId).not.toBe(m.id);
+  expect(h.p.roomId).toBe(j.p.roomId);
 });

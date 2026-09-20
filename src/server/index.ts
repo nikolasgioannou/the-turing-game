@@ -2,6 +2,7 @@ import type { ServerWebSocket } from 'bun';
 import { resolve, sep } from 'node:path';
 import { database } from './database';
 import { ProviderAvailability } from './provider-availability';
+import { activeGameLimit } from './capacity';
 import { Store } from './store';
 import { createAI } from './ai';
 import { ActionError, Game, type Peer } from './game';
@@ -21,6 +22,7 @@ if (!production) {
     allowedOrigins.add(`http://${host}:${port}`);
 }
 
+const maxActiveGames = activeGameLimit(process.env.MAX_ACTIVE_GAMES);
 const db = await database(process.env.DATABASE_URL);
 const store = new Store(db);
 
@@ -30,7 +32,7 @@ const availability = new ProviderAvailability();
 
 await availability.refresh();
 
-const game = new Game(store, createAI({ availability }));
+const game = new Game(store, createAI({ availability }), Date.now, maxActiveGames);
 // Operator simulator: only mounted when SIM_KEY is configured; every route requires the key.
 const simKey = process.env.SIM_KEY?.trim() || null;
 const simulator = simKey ? new Simulator(game, store, Number(process.env.SIM_LANES ?? 5)) : null;

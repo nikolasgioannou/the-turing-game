@@ -245,3 +245,8 @@ export function materialize(example: ReviewExample): ReviewState {
 
   return state;
 }
+
+add('Start', 'server-full', 'Waiting for a game slot', {
+  startOpen: true,
+  lobby: { ...lobby, queued: 'either', atCapacity: true },
+});
