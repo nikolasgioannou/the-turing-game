@@ -22,6 +22,7 @@ test('equivalent IPv6 and mapped IPv4 cannot split a limit', () => {
   expect(normalizeIP('2001:0db8:0000::1')).toBe('2001:db8::1');
   expect(normalizeIP('::ffff:192.0.2.1')).toBe('192.0.2.1');
   expect(normalizeIP('garbage')).toBeNull();
+  expect(normalizeIP('fe80::1%en0')).toBeNull();
 });
 
 test('clients have independent limits; shared networks allow reconnect bursts and recover', () => {

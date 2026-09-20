@@ -1,7 +1,7 @@
 import { isIP } from 'node:net';
 
 export function normalizeIP(value: string | null | undefined): string | null {
-  if (!value || !isIP(value)) return null;
+  if (!value || value.includes('%') || !isIP(value)) return null;
 
   if (isIP(value) === 4) return value;
 
