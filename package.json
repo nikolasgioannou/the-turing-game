@@ -19,7 +19,8 @@
     "sim:extract": "bun scripts/sim/extract.ts",
     "review": "bun --bun run vite --port 5174",
     "review:capture": "bun scripts/review-capture.ts",
-    "review:check": "PLAYWRIGHT_BROWSERS_PATH=./.cache/ms-playwright bun scripts/check-mobile-review.ts"
+    "review:check": "PLAYWRIGHT_BROWSERS_PATH=./.cache/ms-playwright bun scripts/check-mobile-review.ts",
+    "social:assets": "bun scripts/social-assets.tsx"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.8",
