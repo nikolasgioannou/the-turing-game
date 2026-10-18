@@ -23,7 +23,7 @@
     "social:assets": "bun scripts/social-assets.tsx"
   },
   "dependencies": {
-    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite": "0.5.10",
     "postgres": "3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
